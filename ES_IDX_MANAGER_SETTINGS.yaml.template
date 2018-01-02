@@ -1,0 +1,6 @@
+- name: elastic search human cell atlas
+  endpoint: {endpoint}
+  days: 7
+  index_format: '%Y.%m.%d'
+  indices:
+    - prefix: cwl

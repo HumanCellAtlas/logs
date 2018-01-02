@@ -1,0 +1,32 @@
+set -a
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# must be defined by the user
+CLOUDTRAIL_LOG_GROUP_NAME=undefined
+CLOUDTRAIL_NAME=undefined
+CLOUDTRAIL_ROLE_NAME=undefined
+ES_DOMAIN_NAME=undefined
+LOG_TOPIC_SUBSCRIPTION_NAME=undefined
+REGION=undefined
+GCLOUD_PROJECT=undefined
+ES_IDX_MANAGER_SETTINGS=undefined
+
+USER_DEFINED_VAR_ARRAY=(
+  CLOUDTRAIL_LOG_GROUP_NAME
+  CLOUDTRAIL_NAME
+  CLOUDTRAIL_ROLE_NAME
+  ES_DOMAIN_NAME
+  LOG_TOPIC_SUBSCRIPTION_NAME
+  REGION
+  GCLOUD_PROJECT
+)
+
+# hardcoded or derived variables
+CODE_DEPLOYMENT_BUCKET=hca-code-deployment
+ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
+ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+ELK_EXPORT_ROLE_NAME=lambda_elasticsearch_execution
+ELK_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$ELK_EXPORT_ROLE_NAME"
+GCP_EXPORT_ROLE_NAME=lambda_gcp_export
+GCP_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$GCP_EXPORT_ROLE_NAME"
+set +a

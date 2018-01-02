@@ -1,0 +1,22 @@
+{
+  "app_name": "gcp-to-cwl-exporter",
+  "environment_variables": {
+    "GOOGLE_APPLICATION_CREDENTIALS": "/var/task/domovoilib/gcp-credentials.json"
+  },
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "dev",
+      "environment_variables": {
+        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.gcp-exporter"
+      }
+    },
+    "staging": {
+      "environment_variables": {
+        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.gcp-exporter"
+      }
+    }
+  },
+  "version": "2.0",
+  "lambda_timeout": 300,
+  "lambda_memory_size": 1536
+}

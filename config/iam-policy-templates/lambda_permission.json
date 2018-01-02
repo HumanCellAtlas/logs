@@ -1,0 +1,8 @@
+{
+  "StatementId": "c5a3c3d4-9e7f-4c22-9959-4334c358d60c",
+  "FunctionName": "gcp-to-cwl-exporter-staging",
+  "Action": "lambda:InvokeFunction",
+  "Principal": "logs.us-east-1.amazonaws.com",
+  "SourceAccount": "${ACCOUNT_ID}",
+  "SourceArn": "arn:aws:logs:us-east-1:${ACCOUNT_ID}:*"
+}
