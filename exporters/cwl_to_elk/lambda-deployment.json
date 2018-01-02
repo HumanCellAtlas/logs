@@ -1,0 +1,19 @@
+{
+   "Code": {
+      "S3Bucket": "hca-code-deployment",
+      "S3Key": "LogsToElasticsearch_App.zip"
+   },
+   "Description": "Exports CloudWatch Logs to ElasticSearch",
+   "Environment": {
+      "Variables": {
+         "ES_ENDPOINT" : "${ES_ENDPOINT}"
+      }
+   },
+   "FunctionName": "LogsToElasticsearch",
+   "Handler": "index.handler",
+   "MemorySize": 128,
+   "Publish": true,
+   "Role": "${EXPORT_ROLE_ARN}",
+   "Runtime": "nodejs4.3",
+   "Timeout": 60
+}

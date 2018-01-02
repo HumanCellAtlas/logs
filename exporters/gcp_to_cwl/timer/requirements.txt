@@ -1,0 +1,4 @@
+Flask==0.12.2
+google-cloud-pubsub==0.29.4
+gunicorn==19.7.1
+google-cloud

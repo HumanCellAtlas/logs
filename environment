@@ -1,0 +1,23 @@
+set -a
+# must be defined by the user
+REGION=undefined
+ES_DOMAIN_NAME=undefined
+CLOUDTRAIL_LOG_GROUP_NAME=undefined
+CLOUDTRAIL_NAME=undefined
+CLOUDTRAIL_ROLE_NAME=undefined
+
+USER_DEFINED_VAR_ARRAY=(
+  REGION
+  ES_DOMAIN_NAME
+  CLOUDTRAIL_LOG_GROUP_NAME
+  CLOUDTRAIL_NAME
+  CLOUDTRAIL_ROLE_NAME
+)
+
+# hardcoded or derived variables
+CODE_DEPLOYMENT_BUCKET=hca-code-deployment
+ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
+ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+EXPORT_ROLE_NAME=lambda_elasticsearch_execution
+EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$EXPORT_ROLE_NAME"
+set +a

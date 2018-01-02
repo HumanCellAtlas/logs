@@ -1,0 +1,18 @@
+.PHONY: clean
+clean:
+	$(MAKE) -C exporters/gcp_to_cwl/ clean
+
+.PHONY: install
+install:
+	$(MAKE) -C exporters/gcp_to_cwl/ install
+
+.PHONY: test
+test:
+	$(MAKE) -C exporters/gcp_to_cwl/ test
+
+.PHONY: deploy
+deploy:
+	./setup.sh cloudtrail
+	./setup.sh elk
+	./setup.sh log-exporter
+	$(MAKE) -C exporters/gcp_to_cwl/ deploy
