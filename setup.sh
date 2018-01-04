@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 ##
 # helper functions
@@ -34,6 +34,11 @@ status_report() {
     exit 1
   fi
 }
+
+##
+# global config
+#
+SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 ##
@@ -111,33 +116,33 @@ setup_log_exporter() {
 
   # create export role and policy
   aws iam create-role \
-    --role-name ${EXPORT_ROLE_NAME} \
+    --role-name ${ELK_EXPORT_ROLE_NAME} \
     --assume-role-policy-document "$(envsubst_to_str policies/assume_role.json '$SERVICE')" \
     2> /dev/null \
-    || echo "${EXPORT_ROLE_NAME} IAM role already exists."
+    || echo "${ELK_EXPORT_ROLE_NAME} IAM role already exists."
 
   aws iam put-role-policy \
-    --role-name ${EXPORT_ROLE_NAME} \
+    --role-name ${ELK_EXPORT_ROLE_NAME} \
     --policy-name ExportLogs \
     --policy-document file://`pwd`/policies/lambda_elasticsearch_execution.json \
-    || echo "Policy for ${EXPORT_ROLE_NAME} already exists."
+    || echo "Policy for ${ELK_EXPORT_ROLE_NAME} already exists."
 
   # make the application and deploy it
-  rm -rf target
-  mkdir target
+  rm -rf $SOURCE_DIR/target
+  mkdir $SOURCE_DIR/target
+  ZIP_FILE=LogsToElasticsearch_App.zip
+  TARGET=$SOURCE_DIR/target/$ZIP_FILE
 
-  cp exporters/cwl_to_elk/index.js target/
-  cd target && npm install zlib https crypto && cd ..
-  cd target && zip -r ../LogsToElasticsearch_App.zip ./* && cd ..
+  cd exporters/cwl_to_elk/ && zip -r $TARGET ./{*.js,node_modules,package.json,package-lock.json} && cd -
 
-  aws s3 rm s3://${CODE_DEPLOYMENT_BUCKET}/LogsToElasticsearch_App.zip
+  aws s3 rm s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
 
   aws s3 cp \
-    LogsToElasticsearch_App.zip \
-    s3://${CODE_DEPLOYMENT_BUCKET}/LogsToElasticsearch_App.zip
+    $TARGET \
+    s3://${CODE_DEPLOYMENT_BUCKET}/$ZIP_FILE
 
   aws lambda create-function \
-    --cli-input-json "$(envsubst_to_str exporters/cwl_to_elk/lambda-deployment.json '$ES_ENDPOINT $EXPORT_ROLE_ARN')" \
+    --cli-input-json "$(envsubst_to_str exporters/cwl_to_elk/lambda-deployment.json '$ES_ENDPOINT $ELK_EXPORT_ROLE_ARN')" \
     || echo "Lambda function already exists!"
 
   aws lambda add-permission \
@@ -145,10 +150,63 @@ setup_log_exporter() {
     || echo "Permission already exists!"
 }
 
+
+setup_gcp_exporter() {
+  export SERVICE=lambda
+
+  # create export role and policy
+  aws iam create-role \
+    --role-name ${GCP_EXPORT_ROLE_NAME} \
+    --assume-role-policy-document "$(envsubst_to_str policies/assume_role.json '$SERVICE')" \
+    2> /dev/null \
+    || echo "${GCP_EXPORT_ROLE_NAME} IAM role already exists."
+
+  aws iam put-role-policy \
+    --role-name ${GCP_EXPORT_ROLE_NAME} \
+    --policy-name ExportLogs \
+    --policy-document file://`pwd`/policies/lambda_gcp_export.json \
+    || echo "Policy for ${GCP_EXPORT_ROLE_NAME} already exists."
+
+  # make the application and deploy it
+  rm -rf $SOURCE_DIR/target
+  mkdir $SOURCE_DIR/target
+  ZIP_FILE=GcpToCloudWatchLogs_App.zip
+  TARGET=$SOURCE_DIR/target/$ZIP_FILE
+
+  cd exporters/gcp_to_cwl/ && zip -r $TARGET ./{*.js,node_modules,package.json,package-lock.json} && cd -
+
+  aws s3 rm s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
+
+  aws s3 cp $TARGET s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
+
+  aws lambda delete-function --function-name function:GcpToCloudWatchLogs
+
+  aws lambda create-function \
+    --cli-input-json "$(envsubst_to_str exporters/gcp_to_cwl/lambda-deployment.json '$GCP_EXPORT_ROLE_ARN $REGION $GCLOUD_PROJECT $LOG_TOPIC_SUBSCRIPTION_NAME $GCLOUD_CREDENTIALS $GOOGLE_APPLICATION_CREDENTIALS')" \
+    || echo "Lambda function already exists!"
+
+  aws events put-rule \
+    --name FiveMinutes \
+    --schedule-expression 'rate(5 minutes)' \
+    || echo "Schedule rule already exists!"
+
+  aws lambda add-permission \
+    --statement-id '4068b956-e43f-4861-b97f-42527b81c8d4' \
+    --action 'lambda:InvokeFunction' \
+    --principal events.amazonaws.com \
+    --source-arn arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/FiveMinutes \
+    --function-name function:GcpToCloudWatchLogs \
+    || echo "Permission already exists!"
+
+  aws events put-targets \
+    --rule ScheduleGcpToCloudWatchLogs \
+    --targets "Id"="1","Arn"="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:GcpToCloudWatchLogs","Input"="{}"
+}
+
 echo_help() {
     echo
     echo "${0} [system]"
-    echo -e "\tsystem ∈ {cloudtrail, elk, log-exporter}"
+    echo -e "\tsystem ∈ {cloudtrail, elk, log-exporter, gcp-exporter}"
     echo
 }
 
@@ -176,6 +234,9 @@ case "$1" in
     ;;
   'log-exporter')
     setup_log_exporter
+    ;;
+  'gcp-exporter')
+    setup_gcp_exporter
     ;;
   *)
     echo_help

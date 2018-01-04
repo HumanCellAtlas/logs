@@ -1,22 +1,26 @@
+.PHONY: image
+image:
+	docker build -t ubuntu-nodejs .
+
 .PHONY: clean
 clean:
-	$(MAKE) -C queue_logs clean
-	$(MAKE) -C batch_export_logs clean
-	$(MAKE) -C timer clean
+	rm -rf node_modules
+
+.PHONY: dev
+dev: clean
+	npm install
 
 .PHONY: install
 install:
-	$(MAKE) -C queue_logs install
-	$(MAKE) -C batch_export_logs install
-	$(MAKE) -C timer install
+	docker run -it \
+		-v `pwd`/:/tmp/ \
+		ubuntu-nodejs:latest \
+		bash -c 'cd /tmp && make clean && npm install `jq -r ".dependencies | keys[]" package.json | egrep -v "mocha|sinon|should"`'
 
 .PHONY: test
 test:
-	$(MAKE) -C queue_logs test
-	$(MAKE) -C batch_export_logs test
+	npm test
 
 .PHONY: deploy
 deploy:
-	$(MAKE) -C queue_logs deploy
-	$(MAKE) -C batch_export_logs deploy
-	$(MAKE) -C timer deploy
+	gcloud beta functions deploy exportLogs --trigger-bucket hca-logs

@@ -1,0 +1,21 @@
+{
+  "name": "GcpToCloudWatchLogs",
+  "version": "0.0.0",
+  "description": "Listens for logs to be uploaded to Google Cloud Storage and uploads them to CloudWatch Logs.",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "engines": {
+    "node": "6.10.3"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^0.16.1",
+    "aws-sdk": "^2.176.0",
+    "googleapis": "^23.0.0",
+    "mocha": "^4.1.0",
+    "should": "^13.2.0",
+    "sinon": "^4.1.3",
+    "zlib": "^1.0.5"
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha"
+  }
+}

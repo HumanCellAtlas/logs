@@ -1,23 +1,35 @@
 set -a
 # must be defined by the user
-REGION=undefined
-ES_DOMAIN_NAME=undefined
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
 CLOUDTRAIL_NAME=undefined
 CLOUDTRAIL_ROLE_NAME=undefined
+ES_DOMAIN_NAME=undefined
+EXPORTER_GOOGLE_APPLICATION_CREDENTIALS=undefined
+GCLOUD_PROJECT=undefined
+LOG_TOPIC_SUBSCRIPTION_NAME=undefined
+REGION=undefined
 
 USER_DEFINED_VAR_ARRAY=(
-  REGION
-  ES_DOMAIN_NAME
   CLOUDTRAIL_LOG_GROUP_NAME
   CLOUDTRAIL_NAME
   CLOUDTRAIL_ROLE_NAME
+  ES_DOMAIN_NAME
+  EXPORTER_GOOGLE_APPLICATION_CREDENTIALS
+  GCLOUD_PROJECT
+  LOG_TOPIC_SUBSCRIPTION_NAME
+  REGION
 )
+
+# this is where credentials will be deserialized to
+GCLOUD_CREDENTIALS=$(cat $EXPORTER_GOOGLE_APPLICATION_CREDENTIALS | gzip -cf | base64)
+GOOGLE_APPLICATION_CREDENTIALS=/tmp/`uuidgen`.json
 
 # hardcoded or derived variables
 CODE_DEPLOYMENT_BUCKET=hca-code-deployment
 ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
 ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
-EXPORT_ROLE_NAME=lambda_elasticsearch_execution
-EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$EXPORT_ROLE_NAME"
+ELK_EXPORT_ROLE_NAME=lambda_elasticsearch_execution
+ELK_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$ELK_EXPORT_ROLE_NAME"
+GCP_EXPORT_ROLE_NAME=lambda_gcp_export
+GCP_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$GCP_EXPORT_ROLE_NAME"
 set +a

@@ -13,7 +13,7 @@
    "Handler": "index.handler",
    "MemorySize": 128,
    "Publish": true,
-   "Role": "${EXPORT_ROLE_ARN}",
+   "Role": "${ELK_EXPORT_ROLE_ARN}",
    "Runtime": "nodejs4.3",
    "Timeout": 60
 }
