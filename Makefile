@@ -7,12 +7,12 @@ clean:
 	$(MAKE) -C exporters/gcp_to_cwl/ clean
 
 .PHONY: install
-install:
+install: image
 	$(MAKE) -C exporters/gcp_to_cwl/ install
 
 .PHONY: test
 test:
-	$(MAKE) -C exporters/gcp_to_cwl/ test
+	$(MAKE) -C exporters/gcp_to_cwl/ clean dev test
 
 .PHONY: deploy
 deploy:
