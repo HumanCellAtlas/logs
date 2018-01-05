@@ -113,6 +113,7 @@ ENV/
 
 # environment/credentials
 gcp-credentials.json
+environment
 
 # test code
 hand_test.js
