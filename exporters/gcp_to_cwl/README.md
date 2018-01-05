@@ -1,5 +1,7 @@
 # GCP to CloudWatch Logs Exporter
 
-The image below diagrams the design of the system that exports logs from GCP to CloudWatch Logs.
-![diagram](https://github.com/HumanCellAtlas/logs/blob/master/exporters/gcp_to_cwl/static/gcp-exporter.png?raw=true)
-Requests that push data are shown in red, while calls that pull data are shown in blue.
+The lambda in this repository enables exporting application logs from GCP into cloudwatch logs. See the diagram below for an architectural overview.
+
+![tree!](https://github.com/HumanCellAtlas/logs/blob/master/static/gcp-exporter.png?raw=true)
+
+Red arrows indicate data being pusshed from the client to the server, blue arrows indicate clients pulling data from a server.
