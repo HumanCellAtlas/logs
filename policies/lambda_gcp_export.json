@@ -5,6 +5,7 @@
             "Effect": "Allow",
             "Action": [
                 "logs:CreateLogStream",
+                "logs:DescribeLogStreams",
                 "logs:PutLogEvents"
             ],
             "Resource": "arn:aws:logs:*:*:*"
@@ -12,7 +13,7 @@
         {
             "Effect": "Allow",
             "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:*:*:*"
+            "Resource": "*"
         }
     ]
 }
