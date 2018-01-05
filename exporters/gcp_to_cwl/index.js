@@ -94,7 +94,7 @@ exports.groupEntriesIntoRequests = function(unformattedLogEntries) {
       };
     }
 
-    if (logEntry.timestamp >= twentyThreeHoursAgo) {
+    if (logEntry.timestamp >= twentyThreeHoursAgo && (typeof logEntry.message) == 'string') {
       requests[logGroup].logEvents.push(logEntry);
     }
   }
@@ -126,6 +126,7 @@ exports.putLogEvents = function(cloudwatchlogs, request, sequenceTokenCache) {
         sequenceTokenCache[cacheKey] = correctSequenceToken;
         return exports.putLogEvents(cloudwatchlogs, request, sequenceTokenCache);
       } else {
+        console.log(`WARN err_code=${err.code} err=${err}, attempting to repair request...`);
         return prepareCloudWatchLogs(cloudwatchlogs, request.logGroupName, request.logStreamName)
           .then(token => {
             sequenceTokenCache[cacheKey] = token;
