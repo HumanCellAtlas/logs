@@ -199,8 +199,8 @@ setup_gcp_exporter() {
     || echo "Permission already exists!"
 
   aws events put-targets \
-    --rule ScheduleGcpToCloudWatchLogs \
-    --targets "Id"="1","Arn"="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:GcpToCloudWatchLogs","Input"="{}"
+    --rule FiveMinutes \
+    --targets "Id"="1","Arn"="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:GcpToCloudWatchLogs","Input"="\"{}\""
 }
 
 echo_help() {
