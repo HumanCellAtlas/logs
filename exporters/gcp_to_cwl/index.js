@@ -3,6 +3,7 @@ const PubSub = require(`@google-cloud/pubsub`);
 const pubsub = require('./pubsub');
 var zlib = require('zlib');
 var fs = require('fs');
+const assert = require('assert');
 
 const BATCH_SIZE = 2500;
 const AWS_REGION = process.env.REGION;
@@ -166,6 +167,7 @@ function prepareCloudWatchLogs(cloudwatchlogs, logGroup, logStream) {
     logStream: logStream,
     logGroupExists: undefined,
     logStreamExists: undefined,
+    uploadToken: undefined
   }
 
   function updateStatus(cloudwatchlogs, status) {
@@ -180,6 +182,7 @@ function prepareCloudWatchLogs(cloudwatchlogs, logGroup, logStream) {
             status.logGroupExists = true;
             status.logStreamExists = true;
             status.uploadToken = stream.uploadSequenceToken;
+            assert.notStrictEqual(status.uploadToken, undefined);
             return [null, status];
           }
         }
