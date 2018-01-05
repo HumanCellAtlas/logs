@@ -110,19 +110,19 @@ exports.groupEntriesIntoRequests = function(unformattedLogEntries) {
 exports.putLogEvents = function(cloudwatchlogs, request, sequenceTokenCache) {
   var cacheKey = `${request.logGroupName}:${request.logStreamName}`;
   request.sequenceToken = (cacheKey in sequenceTokenCache) ? sequenceTokenCache[cacheKey] : null;
-  console.log(`Putting ${request.logEvents.length} events to CWL.`)
+  console.log(`${cacheKey} - Putting ${request.logEvents.length} events to CWL.`)
   return cloudwatchlogs.putLogEvents(request)
     .promise()
     .then(response => {
       // if the call is successful, cache the next sequence token
-      console.log(`Put succeeded, next token: ${response.nextSequenceToken}`);
+      console.log(`${cacheKey} - Put succeeded, next token: ${response.nextSequenceToken}`);
       sequenceTokenCache[cacheKey] = response.nextSequenceToken;
     })
     .catch(err => {
       if (err.code == 'InvalidSequenceTokenException') {
         var correctSequenceToken = String(err).split(' ');
         correctSequenceToken = correctSequenceToken[correctSequenceToken.length - 1];
-        console.log(`Sequence token invalid, correct token: ${correctSequenceToken}`);
+        console.log(`${cacheKey} - Sequence token invalid, correct token: ${correctSequenceToken}`);
         sequenceTokenCache[cacheKey] = correctSequenceToken;
         return exports.putLogEvents(cloudwatchlogs, request, sequenceTokenCache);
       } else {
