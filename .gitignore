@@ -29,8 +29,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-node_modules/
 *.zip
+vendor/
 
 # NodeJS
 node_modules/

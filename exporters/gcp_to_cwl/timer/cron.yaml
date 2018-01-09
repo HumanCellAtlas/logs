@@ -1,4 +1,0 @@
-cron:
-    - description: "regular job"
-      url: /watch
-      schedule: every 30 minutes

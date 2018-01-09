@@ -1,6 +1,6 @@
 .PHONY: image
 image:
-	docker build -t ubuntu-nodejs .
+	docker build -t build-runtime .
 
 .PHONY: clean
 clean:

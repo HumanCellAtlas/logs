@@ -55,7 +55,7 @@ setup_cloudtrail() {
 
   aws iam create-role \
     --role-name ${CLOUDTRAIL_ROLE_NAME} \
-    --assume-role-policy-document file://`pwd`/policies/assume_role.json \
+    --assume-role-policy-document file://`pwd`/config/iam-policy-templates/assume_role.json \
     2> /dev/null \
     || echo "CloudTrail IAM role already exists."
 
@@ -73,7 +73,7 @@ setup_cloudtrail() {
   aws iam put-role-policy \
     --role-name ${CLOUDTRAIL_ROLE_NAME} \
     --policy-name cloudtrail-policy \
-    --policy-document "$(envsubst_to_str policies/role.json '$REGION $LOG_GROUP_NAME $ACCOUNT_ID')"
+    --policy-document "$(envsubst_to_str config/iam-policy-templates/role.json '$REGION $LOG_GROUP_NAME $ACCOUNT_ID')"
 
   RESULT=$(aws cloudtrail update-trail \
     --name ${CLOUDTRAIL_NAME} \
@@ -105,7 +105,7 @@ setup_ELK() {
     --elasticsearch-version 6.1 \
     --elasticsearch-cluster-config InstanceType=t2.small.elasticsearch,InstanceCount=1 \
     --ebs-options EBSEnabled=true,VolumeType=standard,VolumeSize=10 \
-    --access-policies "$(envsubst_to_str policies/es-access.json '$ES_USER_ARRAY $IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')")
+    --access-policies "$(envsubst_to_str config/iam-policy-templates/es-access.json '$ES_USER_ARRAY $IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')")
 
   status_report "ELK Stack" $? "$ES_DOMAIN_RESULT"
 }
@@ -117,14 +117,14 @@ setup_log_exporter() {
   # create export role and policy
   aws iam create-role \
     --role-name ${ELK_EXPORT_ROLE_NAME} \
-    --assume-role-policy-document "$(envsubst_to_str policies/assume_role.json '$SERVICE')" \
+    --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
     2> /dev/null \
     || echo "${ELK_EXPORT_ROLE_NAME} IAM role already exists."
 
   aws iam put-role-policy \
     --role-name ${ELK_EXPORT_ROLE_NAME} \
     --policy-name ExportLogs \
-    --policy-document file://`pwd`/policies/lambda_elasticsearch_execution.json \
+    --policy-document file://`pwd`/config/iam-policy-templates/lambda_elasticsearch_execution.json \
     || echo "Policy for ${ELK_EXPORT_ROLE_NAME} already exists."
 
   # make the application and deploy it
@@ -146,7 +146,7 @@ setup_log_exporter() {
     || echo "Lambda function already exists!"
 
   aws lambda add-permission \
-    --cli-input-json "$(envsubst_to_str policies/lambda_permission.json '$ACCOUNT_ID')" \
+    --cli-input-json "$(envsubst_to_str config/iam-policy-templates/lambda_permission.json '$ACCOUNT_ID')" \
     || echo "Permission already exists!"
 }
 
@@ -157,50 +157,16 @@ setup_gcp_exporter() {
   # create export role and policy
   aws iam create-role \
     --role-name ${GCP_EXPORT_ROLE_NAME} \
-    --assume-role-policy-document "$(envsubst_to_str policies/assume_role.json '$SERVICE')" \
+    --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
     2> /dev/null \
     || echo "${GCP_EXPORT_ROLE_NAME} IAM role already exists."
 
-  aws iam put-role-policy \
-    --role-name ${GCP_EXPORT_ROLE_NAME} \
-    --policy-name ExportLogs \
-    --policy-document file://`pwd`/policies/lambda_gcp_export.json \
-    || echo "Policy for ${GCP_EXPORT_ROLE_NAME} already exists."
+  aws lambda delete-function --function-name function:gcp-to-cwl-exporter-dev \
+    || echo "Function gcp-to-cwl-exporter-dev does not exist."
+  aws lambda delete-function --function-name function:gcp-to-cwl-exporter-staging \
+    || echo "Function gcp-to-cwl-exporter-staging does not exist."
 
-  # make the application and deploy it
-  rm -rf $SOURCE_DIR/target
-  mkdir $SOURCE_DIR/target
-  ZIP_FILE=GcpToCloudWatchLogs_App.zip
-  TARGET=$SOURCE_DIR/target/$ZIP_FILE
-
-  cd exporters/gcp_to_cwl/ && zip -r $TARGET ./{*.js,node_modules,package.json,package-lock.json} && cd -
-
-  aws s3 rm s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
-
-  aws s3 cp $TARGET s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
-
-  aws lambda delete-function --function-name function:GcpToCloudWatchLogs
-
-  aws lambda create-function \
-    --cli-input-json "$(envsubst_to_str exporters/gcp_to_cwl/lambda-deployment.json '$GCP_EXPORT_ROLE_ARN $REGION $GCLOUD_PROJECT $LOG_TOPIC_SUBSCRIPTION_NAME $GCLOUD_CREDENTIALS $GOOGLE_APPLICATION_CREDENTIALS')" \
-    || echo "Lambda function already exists!"
-
-  aws events put-rule \
-    --name FiveMinutes \
-    --schedule-expression 'rate(5 minutes)' \
-    || echo "Schedule rule already exists!"
-
-  aws lambda add-permission \
-    --statement-id '4068b956-e43f-4861-b97f-42527b81c8d4' \
-    --action 'lambda:InvokeFunction' \
-    --principal events.amazonaws.com \
-    --source-arn arn:aws:events:${REGION}:${ACCOUNT_ID}:rule/FiveMinutes \
-    --function-name function:GcpToCloudWatchLogs \
-    || echo "Permission already exists!"
-
-  aws events put-targets \
-    --rule FiveMinutes \
-    --targets "Id"="1","Arn"="arn:aws:lambda:${REGION}:${ACCOUNT_ID}:function:GcpToCloudWatchLogs","Input"="\"{}\""
+  DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ deploy
 }
 
 echo_help() {
