@@ -1,11 +1,11 @@
 set -a
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 # must be defined by the user
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
 CLOUDTRAIL_NAME=undefined
 CLOUDTRAIL_ROLE_NAME=undefined
 ES_DOMAIN_NAME=undefined
-EXPORTER_GOOGLE_APPLICATION_CREDENTIALS=undefined
-GCLOUD_PROJECT=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 REGION=undefined
 
@@ -19,9 +19,6 @@ USER_DEFINED_VAR_ARRAY=(
   LOG_TOPIC_SUBSCRIPTION_NAME
   REGION
 )
-
-# this is where credentials will be deserialized to
-GCLOUD_CREDENTIALS=$(cat $EXPORTER_GOOGLE_APPLICATION_CREDENTIALS | gzip -cf | base64)
 
 # hardcoded or derived variables
 CODE_DEPLOYMENT_BUCKET=hca-code-deployment
