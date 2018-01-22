@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 ##
 # helper functions
@@ -169,6 +169,15 @@ setup_gcp_exporter() {
   DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ deploy
 }
 
+
+setup_alerts() {
+  # TODO: send this to a broader set of users
+  aws cloudformation create-stack \
+    --stack-name CloudTrail-Monitoring \
+    --template-body file://`pwd`/config/cloudformation/CloudWatch_Alarms_for_CloudTrail_API_Activity.json \
+    --parameters ParameterKey=LogGroupName,ParameterValue=${CLOUDTRAIL_LOG_GROUP_NAME} ParameterKey=Email,ParameterValue=mweiden@chanzuckerberg.com
+}
+
 echo_help() {
     echo
     echo "${0} [system]"
@@ -203,6 +212,9 @@ case "$1" in
     ;;
   'gcp-exporter')
     setup_gcp_exporter
+    ;;
+  'alerts')
+    setup_alerts
     ;;
   *)
     echo_help
