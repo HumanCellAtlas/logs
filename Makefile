@@ -2,9 +2,9 @@
 clean:
 	$(MAKE) -C exporters/gcp_to_cwl/ clean
 
-.PHONY: install
-install:
-	$(MAKE) -C exporters/gcp_to_cwl/ install
+.PHONY: dev
+dec:
+	$(MAKE) -C exporters/gcp_to_cwl/ dev
 
 .PHONY: test
 test:

@@ -31,7 +31,6 @@ wheels/
 *.egg
 *.zip
 vendor/
-domovoilib/
 
 # NodeJS
 node_modules/

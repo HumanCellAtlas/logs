@@ -2,17 +2,14 @@ export EXPORT_ENV_VARS_TO_LAMBDA=LOG_TOPIC_SUBSCRIPTION_NAME
 
 default: build
 
-.PHONY: clean
-clean:
-	rm -rf node_modules
-
 .PHONY: dev
-dev: clean
-	npm install
+dev:
+	virtualenv env
+	pip install -r requirements.txt
 
 .PHONY: test
 test:
-	python3 -m unittest discover -s test -p 'test_*.py'
+	source env/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
 build:
