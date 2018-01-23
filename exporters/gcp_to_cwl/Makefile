@@ -1,11 +1,6 @@
 export EXPORT_ENV_VARS_TO_LAMBDA=LOG_TOPIC_SUBSCRIPTION_NAME
 
-
 default: build
-
-.PHONY: image
-image:
-	docker build -t ubuntu-nodejs .
 
 .PHONY: clean
 clean:

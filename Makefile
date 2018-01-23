@@ -1,7 +1,3 @@
-.PHONY: image
-image:
-	docker build -t build-runtime .
-
 .PHONY: clean
 clean:
 	$(MAKE) -C exporters/gcp_to_cwl/ clean
