@@ -3,7 +3,7 @@ clean:
 	$(MAKE) -C exporters/gcp_to_cwl/ clean
 
 .PHONY: dev
-dec:
+dev:
 	$(MAKE) -C exporters/gcp_to_cwl/ dev
 
 .PHONY: test
