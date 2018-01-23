@@ -3,7 +3,7 @@ clean:
 	$(MAKE) -C exporters/gcp_to_cwl/ clean
 
 .PHONY: install
-install: image
+install:
 	$(MAKE) -C exporters/gcp_to_cwl/ install
 
 .PHONY: test
