@@ -4,7 +4,7 @@ default: build
 
 .PHONY: dev
 dev:
-	virtualenv env
+	virtualenv -p python3 env
 	source env/bin/activate && pip install -r requirements.txt
 
 .PHONY: test
