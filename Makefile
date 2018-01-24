@@ -8,7 +8,7 @@ dev:
 
 .PHONY: test
 test:
-	$(MAKE) -C exporters/gcp_to_cwl/ clean dev test
+	$(MAKE) -C exporters/gcp_to_cwl/ test
 
 .PHONY: deploy
 deploy:
