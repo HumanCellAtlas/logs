@@ -1,5 +1,6 @@
 ZIP_FILE := LogsToElasticsearch_App.zip
 TARGET := target/$(ZIP_FILE)
+LAMBDA_CONFIG := ../../config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json
 
 .PHONY: build
 build:
@@ -15,6 +16,6 @@ publish:
 .PHONY: deploy
 deploy:
 	aws lambda update-function-code \
-		--function-name $(shell cat ../../config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json | jq -r '.FunctionName') \
-		--s3-bucket $(shell cat ../../config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json | jq -r '.Code.S3Bucket') \
-		--s3-key $(shell cat ../../config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json | jq -r '.Code.S3Key')
+		--function-name $(shell cat $(LAMBDA_CONFIG) | jq -r '.FunctionName') \
+		--s3-bucket $(shell cat $(LAMBDA_CONFIG) | jq -r '.Code.S3Bucket') \
+		--s3-key $(shell cat $(LAMBDA_CONFIG) | jq -r '.Code.S3Key')
