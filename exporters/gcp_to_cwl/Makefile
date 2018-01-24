@@ -18,6 +18,6 @@ build:
 	shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done
 
 .PHONY: deploy
-deploy: build
+deploy:
 	./build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
 	domovoi deploy --stage $(DEPLOYMENT_STAGE)

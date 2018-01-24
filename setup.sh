@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -ex
+set -e
 
 ##
 # helper functions
@@ -91,21 +91,15 @@ setup_ELK() {
   export SERVICE=lambda
 
   # create elasticsearch access policies
-  read -p "Enter (space separated) admin ElasticSearch AWS users: " users
-  user_arns=()
-  for user in $users; do
-    user_arns+=("arn:aws:iam::${ACCOUNT_ID}:user/${user}")
-  done
-  export ES_USER_ARRAY="\"$(echo ${user_arns[@]} | sed 's/ /", "/g')\""
   export IP_ADDRESS_ARRAY="\"$(curl http://checkip.amazonaws.com/)\""
 
   # create domain
   ES_DOMAIN_RESULT=$(aws es create-elasticsearch-domain \
     --domain-name ${ES_DOMAIN_NAME} \
-    --elasticsearch-version 6.1 \
+    --elasticsearch-version 6.0 \
     --elasticsearch-cluster-config InstanceType=t2.small.elasticsearch,InstanceCount=1 \
     --ebs-options EBSEnabled=true,VolumeType=standard,VolumeSize=10 \
-    --access-policies "$(envsubst_to_str config/iam-policy-templates/es-access.json '$ES_USER_ARRAY $IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')")
+    --access-policies "$(envsubst_to_str config/iam-policy-templates/es-access.json '$IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')") \
 
   status_report "ELK Stack" $? "$ES_DOMAIN_RESULT"
 }
@@ -125,28 +119,16 @@ setup_log_exporter() {
     --role-name ${ELK_EXPORT_ROLE_NAME} \
     --policy-name ExportLogs \
     --policy-document file://`pwd`/config/iam-policy-templates/lambda_elasticsearch_execution.json \
+    2> /dev/null \
     || echo "Policy for ${ELK_EXPORT_ROLE_NAME} already exists."
 
-  # make the application and deploy it
-  rm -rf $SOURCE_DIR/target
-  mkdir $SOURCE_DIR/target
-  ZIP_FILE=LogsToElasticsearch_App.zip
-  TARGET=$SOURCE_DIR/target/$ZIP_FILE
-
-  cd exporters/cwl_to_elk/ && zip -r $TARGET ./{*.js,node_modules,package.json,package-lock.json} && cd -
-
-  aws s3 rm s3://${CODE_DEPLOYMENT_BUCKET}/${ZIP_FILE}
-
-  aws s3 cp \
-    $TARGET \
-    s3://${CODE_DEPLOYMENT_BUCKET}/$ZIP_FILE
-
   aws lambda create-function \
-    --cli-input-json "$(envsubst_to_str exporters/cwl_to_elk/lambda-deployment.json '$ES_ENDPOINT $ELK_EXPORT_ROLE_ARN')" \
+    --cli-input-json "$(envsubst_to_str config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json '$ES_ENDPOINT $ELK_EXPORT_ROLE_ARN')" \
+    2> /dev/null \
     || echo "Lambda function already exists!"
-
   aws lambda add-permission \
     --cli-input-json "$(envsubst_to_str config/iam-policy-templates/lambda_permission.json '$ACCOUNT_ID')" \
+    2> /dev/null \
     || echo "Permission already exists!"
 }
 
@@ -160,13 +142,6 @@ setup_gcp_exporter() {
     --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
     2> /dev/null \
     || echo "${GCP_EXPORT_ROLE_NAME} IAM role already exists."
-
-  aws lambda delete-function --function-name function:gcp-to-cwl-exporter-dev \
-    || echo "Function gcp-to-cwl-exporter-dev does not exist."
-  aws lambda delete-function --function-name function:gcp-to-cwl-exporter-staging \
-    || echo "Function gcp-to-cwl-exporter-staging does not exist."
-
-  DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ deploy
 }
 
 
@@ -207,10 +182,10 @@ case "$1" in
   'elk')
     setup_ELK
     ;;
-  'log-exporter')
+  'configure-log-exporter')
     setup_log_exporter
     ;;
-  'gcp-exporter')
+  'configure-gcp-exporter')
     setup_gcp_exporter
     ;;
   'alerts')

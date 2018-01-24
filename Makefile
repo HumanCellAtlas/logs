@@ -10,10 +10,14 @@ dev:
 test:
 	$(MAKE) -C exporters/gcp_to_cwl/ test
 
-.PHONY: deploy
-deploy:
+.PHONY: deploy-infra
+deploy-infra:
 	./setup.sh cloudtrail
 	./setup.sh elk
-	./setup.sh log-exporter
-	./setup.sh gcp-exporter
-	$(MAKE) -C exporters/gcp_to_cwl/ deploy
+	./setup.sh configure-log-exporter
+	./setup.sh configure-gcp-exporter
+
+.PHONY: deploy-apps
+deploy-apps:
+	DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ build deploy
+	make -C exporters/cwl_to_elk/ build publish deploy
