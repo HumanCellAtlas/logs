@@ -6,7 +6,10 @@ This repository holds the configuration for HCA'a centralized logging, monitorin
 
 First define all required variables in the `environment` file.
 
-Then, install necessary packages with `make install`.
+Then, set up the dev environment with `make dev`.
+
+Make sure to specify `GOOGLE_APPLICATION_CREDENTIALS` with _non-privileged_
+test credentials.
 
 ## Testing
 
