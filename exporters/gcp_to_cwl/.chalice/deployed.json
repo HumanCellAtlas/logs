@@ -2,11 +2,11 @@
   "staging": {
     "api_handler_name": "gcp-to-cwl-exporter-staging",
     "api_handler_arn": "arn:aws:lambda:us-east-1:861229788715:function:gcp-to-cwl-exporter-staging",
-    "lambda_functions": {},
-    "backend": "api",
-    "chalice_version": "0.10.1",
-    "rest_api_id": null,
+    "rest_api_id": "",
+    "region": null,
     "api_gateway_stage": null,
-    "region": "us-east-1"
+    "backend": "api_server",
+    "chalice_version": "1.0.1",
+    "lambda_functions": {}
   }
 }

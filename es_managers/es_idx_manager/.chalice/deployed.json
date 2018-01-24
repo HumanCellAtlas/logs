@@ -1,0 +1,12 @@
+{
+  "staging": {
+    "region": "us-east-1",
+    "api_handler_name": "es-idx-manager-staging",
+    "api_handler_arn": "arn:aws:lambda:us-east-1:861229788715:function:es-idx-manager-staging",
+    "rest_api_id": null,
+    "lambda_functions": {},
+    "chalice_version": "0.10.1",
+    "api_gateway_stage": null,
+    "backend": "api"
+  }
+}

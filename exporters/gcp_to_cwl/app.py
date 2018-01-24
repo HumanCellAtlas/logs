@@ -47,7 +47,8 @@ def file(filename, mode):
 
 
 def group_entries_into_requests(unformatted_log_entries) -> typing.List[dict]:
-    twenty_three_hours_ago = (datetime.utcnow() - timedelta(hours=23)).timestamp() * 1000
+    twenty_three_hours_ago = (
+        datetime.utcnow() - timedelta(hours=23)).timestamp() * 1000
     requests = {}
 
     for unformatted_entry in unformatted_log_entries:

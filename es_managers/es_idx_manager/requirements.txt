@@ -1,0 +1,5 @@
+boto3==1.5.8
+domovoi==1.4.5
+certifi==2016.8.8
+elasticsearch-curator==4.0.6
+PyYAML==3.11

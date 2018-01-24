@@ -1,0 +1,20 @@
+{
+  "app_name": "es-idx-manager",
+  "environment_variables": {},
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "dev",
+      "environment_variables": {
+        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.es-idx-manager"
+      }
+    },
+    "staging": {
+      "environment_variables": {
+        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.es-idx-manager"
+      }
+    }
+  },
+  "version": "2.0",
+  "lambda_timeout": 300,
+  "lambda_memory_size": 1536
+}
