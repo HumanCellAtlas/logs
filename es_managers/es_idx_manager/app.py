@@ -151,7 +151,7 @@ class ES_Cleanup(object):
         return self.send_to_es("/_cat/indices")
 
 app = domovoi.Domovoi()
-@app.scheduled_function("rate(2 minutes)")
+@app.scheduled_function("rate(12 hours)")
 def handler(event, context):
     """Main Lambda function
     """
