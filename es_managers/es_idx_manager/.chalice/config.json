@@ -1,6 +1,8 @@
 {
   "app_name": "es-idx-manager",
-  "environment_variables": {},
+  "environment_variables": {
+    "ES_IDX_MANAGER_SETTINGS": "/var/task/domovoilib/es-idx-manager-settings.yaml"
+  },
   "stages": {
     "dev": {
       "api_gateway_stage": "dev",
@@ -10,7 +12,7 @@
     },
     "staging": {
       "environment_variables": {
-        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.es-idx-manager"
+        "LOG_TOPIC_SUBSCRIPTION_NAME": "logs.gcp-exporter"
       }
     }
   },

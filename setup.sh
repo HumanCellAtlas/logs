@@ -133,18 +133,6 @@ setup_log_exporter() {
 }
 
 
-setup_gcp_exporter() {
-  export SERVICE=lambda
-
-  # create export role and policy
-  aws iam create-role \
-    --role-name ${GCP_EXPORT_ROLE_NAME} \
-    --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
-    2> /dev/null \
-    || echo "${GCP_EXPORT_ROLE_NAME} IAM role already exists."
-}
-
-
 setup_alerts() {
   # TODO: send this to a broader set of users
   aws cloudformation create-stack \
@@ -184,9 +172,6 @@ case "$1" in
     ;;
   'configure-log-exporter')
     setup_log_exporter
-    ;;
-  'configure-gcp-exporter')
-    setup_gcp_exporter
     ;;
   'alerts')
     setup_alerts

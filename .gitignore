@@ -114,6 +114,8 @@ ENV/
 # environment/credentials
 gcp-credentials.json
 environment
+es_managers/es_idx_manager/domovoilib/
+serverless-curator.yaml
 
 # test code
 hand_test.js
