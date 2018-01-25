@@ -68,7 +68,7 @@ def group_entries_into_requests(unformatted_log_entries) -> typing.List[dict]:
     for log_group, request in requests.items():
         request['logEvents'].sort(key=lambda r: r['timestamp'])
 
-    return list(requests.values())
+    return list(filter(lambda r: len(r['logEvents']) > 0, requests.values()))
 
 
 def format_log_entry(unformatted_log_entry) -> dict:
