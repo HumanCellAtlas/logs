@@ -2,23 +2,23 @@
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Effect": "Allow",
       "Action": [
         "logs:CreateLogStream",
         "logs:DescribeLogStreams",
         "logs:PutLogEvents"
       ],
-      "Resource": "arn:aws:logs:*:*:*",
-      "Effect": "Allow"
+      "Resource": "arn:aws:logs:*:*:*"
     },
     {
+      "Effect": "Allow",
       "Action": "logs:CreateLogGroup",
-      "Resource": "*",
-      "Effect": "Allow"
+      "Resource": "*"
     },
     {
+      "Effect": "Allow",
       "Action": "es:*",
-      "Resource": "arn:aws:es:*:*:*",
-      "Effect": "Allow"
+      "Resource": "arn:aws:es:*:*:*"
     }
   ]
 }

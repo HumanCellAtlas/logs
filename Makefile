@@ -1,10 +1,7 @@
-.PHONY: clean
-clean:
-	$(MAKE) -C exporters/gcp_to_cwl/ clean
-
 .PHONY: dev
 dev:
 	$(MAKE) -C exporters/gcp_to_cwl/ dev
+	$(MAKE) -C es_managers/es_idx_manager/ dev
 
 .PHONY: test
 test:

@@ -19,5 +19,5 @@ build:
 
 .PHONY: deploy
 deploy:
-	./build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
-	domovoi deploy --stage $(DEPLOYMENT_STAGE)
+	source env/bin/activate && ./../../utils/build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
+	source env/bin/activate && domovoi deploy --stage $(DEPLOYMENT_STAGE)

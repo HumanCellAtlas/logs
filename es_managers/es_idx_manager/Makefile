@@ -19,5 +19,5 @@ build:
 
 .PHONY: deploy
 deploy: build
-	./build_deploy_config.sh es-idx-manager $(DEPLOYMENT_STAGE)
-	domovoi deploy --stage $(DEPLOYMENT_STAGE)
+	source env/bin/activate && $(PROJECT_ROOT)/utils/build_deploy_config.sh es-idx-manager $(DEPLOYMENT_STAGE)
+	source env/bin/activate && domovoi deploy --stage $(DEPLOYMENT_STAGE)
