@@ -126,7 +126,7 @@ class ESCleanup(object):
         """ES Get indices
 
         Returns:
-            dict: ES answer
+            list: ES answer
         """
         return self.send_to_es("/_cat/indices")
 
@@ -148,12 +148,17 @@ class ESCleanup(object):
         return should_delete
 
     def manage_indices(self):
+        """ES Get indices
+
+        Returns:
+            list: ES answer
+        """
         for index in self.get_indices():
             index_name = index["index"]
             if self.should_delete_index(index):
                 print("Deleting index: %s" % index_name)
                 self.delete_index(index_name)
-
+        return self.get_indices()
 
 app = domovoi.Domovoi()
 @app.scheduled_function("rate(12 hours)")
