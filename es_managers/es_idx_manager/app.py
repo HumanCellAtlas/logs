@@ -111,6 +111,17 @@ class ESCleanup(object):
         """
         return self.send_to_es(index_name, "DELETE")
 
+    def create_index(self, index_name):
+        """ES CREATE specific index
+
+        Args:
+            index_name (str): Index name
+
+        Returns:
+            dict: ES answer
+        """
+        return self.send_to_es(index_name, "PUT")
+
     def get_indices(self):
         """ES Get indices
 
@@ -136,6 +147,13 @@ class ESCleanup(object):
                 should_delete = True
         return should_delete
 
+    def manage_indices(self):
+        for index in self.get_indices():
+            index_name = index["index"]
+            if self.should_delete_index(index):
+                print("Deleting index: %s" % index_name)
+                self.delete_index(index_name)
+
 
 app = domovoi.Domovoi()
 @app.scheduled_function("rate(12 hours)")
@@ -149,11 +167,4 @@ def handler(event, context):
         for cluster_config in config:
 
             es = ESCleanup(event, context, cluster_config)
-
-            for index in es.get_indices():
-                index_name = index["index"]
-                if es.should_delete_index(index):
-                    print("Deleting index: %s" % index_name)
-                    es.delete_index(index_name)
-                else:
-                    print("Ignoring index: %s" % index_name)
+            es.manage_indices()
