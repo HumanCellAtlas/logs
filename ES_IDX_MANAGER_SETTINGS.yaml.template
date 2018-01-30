@@ -4,3 +4,10 @@
   index_format: '%Y.%m.%d'
   indices:
     - prefix: cwl
+
+- name: test configuration
+  endpoint: {endpoint}
+  days: 7
+  index_format: '%Y.%m.%d'
+  indices:
+    - prefix: test

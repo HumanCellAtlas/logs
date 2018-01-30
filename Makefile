@@ -6,6 +6,7 @@ dev:
 .PHONY: test
 test:
 	$(MAKE) -C exporters/gcp_to_cwl/ test
+	$(MAKE) -C es_managers/es_idx_manager/ test
 
 .PHONY: deploy-infra
 deploy-infra:

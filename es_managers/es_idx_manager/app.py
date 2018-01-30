@@ -54,8 +54,9 @@ class ESCleanup(object):
         self.cfg["es_endpoint"] = cluster_config.get('endpoint')
         self.cfg["index"] = [index.get("prefix") for index in cluster_config.get('indices')]
 
-        self.cfg["delete_after"] = cluster_config.get('days')
         self.cfg["index_format"] = cluster_config.get('index_format')
+        # Index cutoff definition, remove older than this date
+        self.cfg["earliest_to_keep"] = datetime.date.today() - datetime.timedelta(days=int(cluster_config.get('days')))
 
         if not self.cfg["es_endpoint"]:
             raise Exception("[es_endpoint] OS variable is not set")
@@ -93,6 +94,7 @@ class ESCleanup(object):
         preq = req.prepare()
         session = Session()
         res = session.send(preq)
+        session.close()
         if res.status_code >= 200 and res.status_code <= 299:
             return json.loads(res.content)
         else:
@@ -109,13 +111,54 @@ class ESCleanup(object):
         """
         return self.send_to_es(index_name, "DELETE")
 
-    def get_indices(self):
-        """ES Get indices
+    def create_index(self, index_name):
+        """ES CREATE specific index
+
+        Args:
+            index_name (str): Index name
 
         Returns:
             dict: ES answer
         """
+        return self.send_to_es(index_name, "PUT")
+
+    def get_indices(self):
+        """ES Get indices
+
+        Returns:
+            list: ES answer
+        """
         return self.send_to_es("/_cat/indices")
+
+    def should_delete_index(self, index):
+        """Evaluate index for deletion
+
+        Args:
+            index (dict): Index
+
+        Returns:
+            boolean: boolean for whether index should be deleted
+        """
+        should_delete = False
+        index_name = '-'.join(word for word in index["index"].split("-")[:-1])
+        index_date = index["index"].split("-")[-1]
+        if index_name in self.cfg["index"] or "all" in self.cfg["index"]:
+            if index_date <= self.cfg["earliest_to_keep"].strftime(self.cfg["index_format"]):
+                should_delete = True
+        return should_delete
+
+    def manage_indices(self):
+        """ES Get indices
+
+        Returns:
+            list: ES answer
+        """
+        for index in self.get_indices():
+            index_name = index["index"]
+            if self.should_delete_index(index):
+                print("Deleting index: %s" % index_name)
+                self.delete_index(index_name)
+        return self.get_indices()
 
 app = domovoi.Domovoi()
 @app.scheduled_function("rate(12 hours)")
@@ -129,20 +172,4 @@ def handler(event, context):
         for cluster_config in config:
 
             es = ESCleanup(event, context, cluster_config)
-            # Index cutoff definition, remove older than this date
-            earliest_to_keep = datetime.date.today() - datetime.timedelta(
-                days=int(es.cfg["delete_after"]))
-            for index in es.get_indices():
-
-                if index["index"] == ".kibana":
-                    # ignore .kibana index
-                    continue
-
-                idx_name = '-'.join(word for word in index["index"].split("-")[:-1])
-                idx_date = index["index"].split("-")[-1]
-
-                if idx_name in es.cfg["index"] or "all" in es.cfg["index"]:
-
-                    if idx_date <= earliest_to_keep.strftime(es.cfg["index_format"]):
-                        print("Deleting index: %s" % index["index"])
-                        es.delete_index(index["index"])
+            es.manage_indices()
