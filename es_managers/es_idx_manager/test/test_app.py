@@ -46,23 +46,29 @@ class TestApp(unittest.TestCase):
     def test_index_deletion_pipeline(self):
         # create 10 test indices backdating from today into the past
         index_format = self.test_config["index_format"]
-        indices_to_cleanup = []
+        test_indices = []
         for subtract in range(0, 10):
             index_name = "test-" + (datetime.date.today() - datetime.timedelta(days=subtract)).strftime(index_format)
-            self.es.create_index(index_name)
-            # store indices that are recent within 7 days to cleanup at the end
-            if subtract < 7:
-                indices_to_cleanup.append(index_name)
+            test_indices.append(index_name)
 
-        # Store indices before/after management of indices and ensure 3 were deleted
-        pre_managed_indices_len = len(self.es.get_indices())
-        self.es.manage_indices()
-        post_managed_indices_len = len(self.es.get_indices())
-        self.assertEqual(pre_managed_indices_len - 3, post_managed_indices_len)
+        # wrap creation and management in a try/finally to allow for cleanup even if test fails
+        try:
+            for index_name in test_indices:
+                self.es.create_index(index_name)
 
-        # deletion of 7 indices that were created but not deleted above
-        for index_name in indices_to_cleanup:
-            self.es.delete_index(index_name)
+            # Store indices before/after management of indices and ensure 3 were deleted
+            pre_managed_indices_len = len(self.es.get_indices())
+            self.es.manage_indices()
+            post_managed_indices_len = len(self.es.get_indices())
+            self.assertEqual(pre_managed_indices_len - 3, post_managed_indices_len)
+        finally:
+            # deletion of any indices. No assumptions made on test so every potential index is attempted
+            for index_name in test_indices:
+                try:
+                    self.es.delete_index(index_name)
+                except ESException as e:
+                    # Error expected when index deleted in management is reattempted here
+                    continue
 
 
 if __name__ == '__main__':
