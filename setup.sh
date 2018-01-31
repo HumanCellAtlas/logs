@@ -97,8 +97,8 @@ setup_ELK() {
   ES_DOMAIN_RESULT=$(aws es create-elasticsearch-domain \
     --domain-name ${ES_DOMAIN_NAME} \
     --elasticsearch-version 6.0 \
-    --elasticsearch-cluster-config InstanceType=t2.small.elasticsearch,InstanceCount=1 \
-    --ebs-options EBSEnabled=true,VolumeType=standard,VolumeSize=10 \
+    --elasticsearch-cluster-config InstanceType=m3.xlarge.elasticsearch,InstanceCount=2 \
+    --ebs-options EBSEnabled=true,VolumeType=gp2,VolumeSize=512 \
     --access-policies "$(envsubst_to_str config/iam-policy-templates/es-access.json '$IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')") \
 
   status_report "ELK Stack" $? "$ES_DOMAIN_RESULT"
