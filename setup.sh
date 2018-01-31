@@ -96,7 +96,7 @@ setup_ELK() {
   # create domain
   ES_DOMAIN_RESULT=$(aws es create-elasticsearch-domain \
     --domain-name ${ES_DOMAIN_NAME} \
-    --elasticsearch-version 6.0 \
+    --elasticsearch-version 5.5 \
     --elasticsearch-cluster-config InstanceType=m3.xlarge.elasticsearch,InstanceCount=2 \
     --ebs-options EBSEnabled=true,VolumeType=gp2,VolumeSize=512 \
     --access-policies "$(envsubst_to_str config/iam-policy-templates/es-access.json '$IP_ADDRESS_ARRAY $REGION $ACCOUNT_ID')") \
