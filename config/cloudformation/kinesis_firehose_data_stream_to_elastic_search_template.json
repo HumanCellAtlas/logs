@@ -1,0 +1,45 @@
+{
+  "RoleARN": "${FIREHOSE_ROLE_ARN}",
+  "DomainARN": "${ES_ARN}",
+  "IndexName": "cwl",
+  "TypeName": "fromFirehose",
+  "IndexRotationPeriod": "OneDay",
+  "BufferingHints": {
+    "IntervalInSeconds": 60,
+    "SizeInMBs": 5
+  },
+  "RetryOptions": {
+    "DurationInSeconds": 60
+  },
+  "CloudWatchLoggingOptions": {
+    "Enabled": true,
+    "LogGroupName": "${FIREHOSE_LOG_GROUP_NAME}",
+    "LogStreamName": "ElasticsearchDelivery"
+  },
+  "S3BackupMode": "FailedDocumentsOnly",
+  "S3Configuration": {
+    "RoleARN": "${FIREHOSE_ROLE_ARN}",
+    "BucketARN": "${FIREHOSE_S3_BUCKET_ARN}",
+    "Prefix": "firehose",
+    "BufferingHints": {
+      "SizeInMBs": 5,
+      "IntervalInSeconds": 60
+    },
+    "CompressionFormat": "GZIP",
+    "EncryptionConfiguration": {
+      "KMSEncryptionConfig": {
+        "AWSKMSKeyARN": "arn:aws:kms:us-east-1:861229788715:key/58f9ca37-c4e4-4ecb-9a46-25bebe127b8c"
+      }
+    },
+    "CloudWatchLoggingOptions": {
+      "Enabled": true,
+      "LogGroupName": "${FIREHOSE_S3_LOG_GROUP_NAME}",
+      "LogStreamName": "S3Delivery"
+    }
+  },
+  "ProcessingConfiguration": {
+    "Enabled": false,
+    "Processors": []
+  }
+}
+                   

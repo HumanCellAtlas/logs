@@ -104,6 +104,46 @@ setup_ELK() {
   status_report "ELK Stack" $? "$ES_DOMAIN_RESULT"
 }
 
+setup_kinesis_firehose_stream() {
+  export SERVICE=firehose
+
+  aws iam create-role \
+    --role-name ${FIREHOSE_ROLE_NAME} \
+    --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
+    2> /dev/null \
+    || echo "KINESIS FIREHOSE ES IAM role already exists."
+
+  aws iam put-role-policy \
+    --role-name ${FIREHOSE_ROLE_NAME} \
+    --policy-name FirehoseES \
+    --policy-document file://`pwd`/config/iam-policy-templates/firehose-to-es.json \
+    2> /dev/null \
+    || echo "Policy for ${FIREHOSE_ROLE_NAME} already exists."
+
+  aws firehose create-delivery-stream \
+    --delivery-stream-name Kinesis-Firehose-ES \
+    --delivery-stream-type DirectPut \
+    --elasticsearch-destination-configuration "$(envsubst_to_str config/cloudformation/kinesis_firehose_data_stream_to_elastic_search_template.json '$ES_ARN $FIREHOSE_ROLE_ARN $FIREHOSE_LOG_GROUP_NAME $FIREHOSE_ROLE_ARN $FIREHOSE_S3_BUCKET_ARN $FIREHOSE_S3_LOG_GROUP_NAME')" \
+    2> /dev/null \
+    || echo "Delivery stream for ES already exists."
+}
+
+setup_cwl_to_firehose_stream() {
+
+  aws iam create-role \
+      --role-name ${CWL_TO_KINESIS_ROLE} \
+      --assume-role-policy-document file://`pwd`/config/iam-policy-templates/TrustPolicyForCWL.json \
+    2> /dev/null \
+    || echo "CWL KINESIS FIREHOSE IAM role already exists."
+
+  aws iam put-role-policy \
+      --role-name ${CWL_TO_KINESIS_ROLE} \
+      --policy-name Permissions-Policy-For-CWL \
+      --policy-document "$(envsubst_to_str config/iam-policy-templates/PermissionsForCWL.json '$CWL_TO_KINESIS_ROLE_ARN')" \
+    2> /dev/null \
+    || echo "CWL KINESIS FIREHOSE policy already exists."
+}
+
 
 setup_log_exporter() {
   export SERVICE=lambda
@@ -166,6 +206,12 @@ done
 case "$1" in
   'cloudtrail')
     setup_cloudtrail
+    ;;
+  'kinesis-firehose-stream')
+    setup_kinesis_firehose_stream
+    ;;
+  'cwl-to-firehose-stream')
+    setup_cwl_to_firehose_stream
     ;;
   'elk')
     setup_ELK

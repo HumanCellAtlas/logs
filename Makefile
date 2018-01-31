@@ -14,6 +14,8 @@ deploy-infra:
 	./setup.sh elk
 	./setup.sh configure-log-exporter
 	./setup.sh configure-gcp-exporter
+	./setup.sh kinesis-firehose-stream
+	./setup.sh cwl-to-firehose-stream
 
 .PHONY: deploy-apps
 deploy-apps:
