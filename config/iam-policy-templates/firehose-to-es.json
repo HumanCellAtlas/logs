@@ -19,6 +19,15 @@
             "Effect": "Allow",
             "Action": "es:*",
             "Resource": "arn:aws:es:*:*:*"
-        }
+        },
+        {
+       "Sid": "UseLambdaFunction",
+       "Effect": "Allow",
+       "Action": [
+           "lambda:InvokeFunction",
+           "lambda:GetFunctionConfiguration"
+       ],
+       "Resource": "arn:aws:lambda:*:*:*"
+   }
     ]
 }

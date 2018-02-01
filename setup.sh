@@ -121,11 +121,9 @@ setup_kinesis_firehose_stream() {
     || echo "Policy for ${FIREHOSE_ROLE_NAME} already exists."
 
   aws firehose create-delivery-stream \
-    --delivery-stream-name Kinesis-Firehose-ES \
+    --delivery-stream-name ${FIREHOSE_DELIVERY_STREAM_NAME} \
     --delivery-stream-type DirectPut \
-    --elasticsearch-destination-configuration "$(envsubst_to_str config/cloudformation/kinesis_firehose_data_stream_to_elastic_search_template.json '$ES_ARN $FIREHOSE_ROLE_ARN $FIREHOSE_LOG_GROUP_NAME $FIREHOSE_ROLE_ARN $FIREHOSE_S3_BUCKET_ARN $FIREHOSE_S3_LOG_GROUP_NAME')" \
-    2> /dev/null \
-    || echo "Delivery stream for ES already exists."
+    --elasticsearch-destination-configuration "$(envsubst_to_str config/cloudformation/kinesis_firehose_data_stream_to_elastic_search_template.json '$ES_ARN $FIREHOSE_ROLE_ARN $FIREHOSE_LOG_GROUP_NAME $FIREHOSE_ROLE_ARN $FIREHOSE_S3_BUCKET_ARN $FIREHOSE_S3_LOG_GROUP_NAME $AWS_KMS_KEY $FIREHOSE_PREPROCESS_LAMBDA_ARN')" 
 }
 
 setup_cwl_to_firehose_stream() {

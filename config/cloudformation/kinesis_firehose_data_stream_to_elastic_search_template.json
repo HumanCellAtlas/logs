@@ -1,7 +1,7 @@
 {
   "RoleARN": "${FIREHOSE_ROLE_ARN}",
   "DomainARN": "${ES_ARN}",
-  "IndexName": "cwl",
+  "IndexName": "testering",
   "TypeName": "fromFirehose",
   "IndexRotationPeriod": "OneDay",
   "BufferingHints": {
@@ -9,7 +9,7 @@
     "SizeInMBs": 5
   },
   "RetryOptions": {
-    "DurationInSeconds": 60
+    "DurationInSeconds": 5
   },
   "CloudWatchLoggingOptions": {
     "Enabled": true,
@@ -28,7 +28,7 @@
     "CompressionFormat": "GZIP",
     "EncryptionConfiguration": {
       "KMSEncryptionConfig": {
-        "AWSKMSKeyARN": "arn:aws:kms:us-east-1:861229788715:key/58f9ca37-c4e4-4ecb-9a46-25bebe127b8c"
+        "AWSKMSKeyARN": "${AWS_KMS_KEY}"
       }
     },
     "CloudWatchLoggingOptions": {
@@ -38,8 +38,34 @@
     }
   },
   "ProcessingConfiguration": {
-    "Enabled": false,
-    "Processors": []
+    "Enabled": true,
+    "Processors": [
+        {
+            "Type": "Lambda",
+            "Parameters": [
+                {
+                    "ParameterName": "LambdaArn",
+                    "ParameterValue": "${FIREHOSE_PREPROCESS_LAMBDA_ARN}"
+                },
+                {
+                    "ParameterName": "NumberOfRetries",
+                    "ParameterValue": "3"
+                },
+                {
+                    "ParameterName": "RoleArn",
+                    "ParameterValue": "${FIREHOSE_ROLE_ARN}"
+                },
+                {
+                    "ParameterName": "BufferSizeInMBs",
+                    "ParameterValue": "3"
+                },
+                {
+                    "ParameterName": "BufferIntervalInSeconds",
+                    "ParameterValue": "60"
+                }
+            ]
+        }
+    ]
   }
-}
+}      
                    
