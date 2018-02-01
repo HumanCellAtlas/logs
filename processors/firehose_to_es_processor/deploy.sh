@@ -19,8 +19,3 @@ aws lambda create-function \
 --cli-input-json "$(envsubst_to_str config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json '$ES_ENDPOINT $FIREHOSE_CWL_ROLE_ARN')" \
 2> /dev/null \
 || echo "Lambda function already exists!"
-
-aws lambda add-permission \
---cli-input-json "$(envsubst_to_str config/iam-policy-templates/lambda_permission.json '$ACCOUNT_ID')" \
-2> /dev/null \
-|| echo "Permission already exists!"
