@@ -86,7 +86,7 @@ def get_log_group(unformatted_log_entry) -> str:
     }
     project_id = unformatted_log_entry['resource']['labels']['project_id']
     resource_type = unformatted_log_entry['resource']['type']
-    resource_name_key = resource_name_map[resource_type]
+    resource_name_key = resource_name_map.get(resource_type)
     resource_name_suffix = f"/{unformatted_log_entry['resource']['labels'][resource_name_key]}" \
         if resource_name_key else ''
     return f"/gcp/{project_id}/{resource_type}{resource_name_suffix}"
