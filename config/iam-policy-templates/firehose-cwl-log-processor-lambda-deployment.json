@@ -1,0 +1,15 @@
+{
+   "Code": {
+      "S3Bucket": "hca-code-deployment",
+      "S3Key": "FirehoseCWLLogsProcessor_App.zip"
+   },
+   "Description": "Processes CloudWatch Logs from Firehose",
+   "Environment": {},
+   "FunctionName": "Firehose-CWL-Processor",
+   "Handler": "index.handler",
+   "MemorySize": 128,
+   "Publish": true,
+   "Role": "${FIREHOSE_CWL_ROLE_ARN}",
+   "Runtime": "nodejs4.3",
+   "Timeout": 60
+}
