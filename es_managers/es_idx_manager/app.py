@@ -140,8 +140,8 @@ class ESCleanup(object):
             boolean: boolean for whether index should be deleted
         """
         should_delete = False
-        index_name = '-'.join(word for word in index["index"].split("-")[:-1])
-        index_date = index["index"].split("-")[-1]
+        index_name = '-'.join(word for word in index["index"].split("-", 1)[:-1])
+        index_date = index["index"].split("-", 1)[-1]
         if index_name in self.cfg["index"] or "all" in self.cfg["index"]:
             if index_date <= self.cfg["earliest_to_keep"].strftime(self.cfg["index_format"]):
                 should_delete = True

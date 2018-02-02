@@ -45,6 +45,7 @@ class TestApp(unittest.TestCase):
 
     def test_index_deletion_pipeline(self):
         # create 10 test indices backdating from today into the past
+
         index_format = self.test_config["index_format"]
         test_indices = []
         for subtract in range(0, 10):
