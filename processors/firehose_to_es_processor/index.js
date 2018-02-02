@@ -60,10 +60,11 @@ const zlib = require('zlib');
  * The result must be returned in a Promise.
  */
 function transformLogEvent(logEvent) {
+    const transformed_timestamp = new Date(1 * logEvent.timestamp).toISOString();
     const transformed_payload = {
         message: logEvent.message,
         id: logEvent.id,
-        timestamp: "2018-02-01T21:30:00.000Z"
+        timestamp: transformed_timestamp
     };
     return Promise.resolve(transformed_payload);
 }

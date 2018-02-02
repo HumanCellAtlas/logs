@@ -143,40 +143,35 @@ setup_cwl_to_firehose_stream() {
 }
 
 
-setup_log_exporter() {
-  export SERVICE=lambda
-
-  # create export role and policy
-  aws iam create-role \
-    --role-name ${ELK_EXPORT_ROLE_NAME} \
-    --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
-    2> /dev/null \
-    || echo "${ELK_EXPORT_ROLE_NAME} IAM role already exists."
-
-  aws iam put-role-policy \
-    --role-name ${ELK_EXPORT_ROLE_NAME} \
-    --policy-name ExportLogs \
-    --policy-document file://`pwd`/config/iam-policy-templates/lambda_elasticsearch_execution.json \
-    2> /dev/null \
-    || echo "Policy for ${ELK_EXPORT_ROLE_NAME} already exists."
-
-  aws lambda create-function \
-    --cli-input-json "$(envsubst_to_str config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json '$ES_ENDPOINT $ELK_EXPORT_ROLE_ARN')" \
-    2> /dev/null \
-    || echo "Lambda function already exists!"
-  aws lambda add-permission \
-    --cli-input-json "$(envsubst_to_str config/iam-policy-templates/lambda_permission.json '$ACCOUNT_ID')" \
-    2> /dev/null \
-    || echo "Permission already exists!"
-}
-
-
 setup_alerts() {
   # TODO: send this to a broader set of users
   aws cloudformation create-stack \
     --stack-name CloudTrail-Monitoring \
     --template-body file://`pwd`/config/cloudformation/CloudWatch_Alarms_for_CloudTrail_API_Activity.json \
     --parameters ParameterKey=LogGroupName,ParameterValue=${CLOUDTRAIL_LOG_GROUP_NAME} ParameterKey=Email,ParameterValue=mweiden@chanzuckerberg.com
+}
+
+setup_firehose_cwl_processor() {
+  export SERVICE=lambda
+
+  # create export role and policy
+  aws iam create-role \
+  --role-name firehose-cwl-log-processor \
+  --assume-role-policy-document "$(envsubst_to_str config/iam-policy-templates/assume_role.json '$SERVICE')" \
+  2> /dev/null \
+  || echo "firehose-cwl-log-processor IAM role already exists."
+
+  aws iam put-role-policy \
+  --role-name firehose-cwl-log-processor \
+  --policy-name ProcessCWLFromFirehose \
+  --policy-document file://`pwd`/config/iam-policy-templates/lambda_firehose_execution.json \
+  2> /dev/null \
+  || echo "Policy for firehose-cwl-log-processor already exists."
+
+  aws lambda create-function \
+  --cli-input-json "$(envsubst_to_str config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json '$ES_ENDPOINT $FIREHOSE_CWL_ROLE_ARN')" \
+  2> /dev/null \
+  || echo "Lambda function already exists!"
 }
 
 echo_help() {
@@ -205,6 +200,9 @@ case "$1" in
   'cloudtrail')
     setup_cloudtrail
     ;;
+  'configure-firehose-cwl-processor')
+    setup_firehose_cwl_processor
+    ;;
   'kinesis-firehose-stream')
     setup_kinesis_firehose_stream
     ;;
@@ -213,9 +211,6 @@ case "$1" in
     ;;
   'elk')
     setup_ELK
-    ;;
-  'configure-log-exporter')
-    setup_log_exporter
     ;;
   'alerts')
     setup_alerts

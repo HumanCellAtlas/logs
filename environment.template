@@ -22,6 +22,7 @@ ES_IDX_MANAGER_SETTINGS=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 GCLOUD_PROJECT=undefined
 GOOGLE_APPLICATION_CREDENTIALS=undefined
+AWS_KMS_KEY=undefined
 
 
 USER_DEFINED_VAR_ARRAY=(
@@ -44,6 +45,7 @@ USER_DEFINED_VAR_ARRAY=(
 	LOG_TOPIC_SUBSCRIPTION_NAME
 	GCLOUD_PROJECT
 	GOOGLE_APPLICATION_CREDENTIALS
+	AWS_KMS_KEY
 )
 
 # hardcoded or derived variables
@@ -53,10 +55,10 @@ ES_ARN=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '
 FIREHOSE_ROLE_ARN=$(aws iam get-role --role-name $FIREHOSE_ROLE_NAME | jq -r '.Role.Arn')
 FIREHOSE_S3_BUCKET_ARN="arn:aws:s3:::${FIREHOSE_S3_BUCKET_NAME}"
 ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
-ELK_EXPORT_ROLE_NAME=lambda_elasticsearch_execution
-ELK_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$ELK_EXPORT_ROLE_NAME"
 GCP_EXPORT_ROLE_NAME=lambda_gcp_export
 GCP_EXPORT_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$GCP_EXPORT_ROLE_NAME"
 CWL_TO_KINESIS_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/$CWL_TO_KINESIS_ROLE"
+FIREHOSE_CWL_ROLE_ARN="arn:aws:iam::${ACCOUNT_ID}:role/firehose-cwl-log-processor"
+FIREHOSE_PREPROCESS_LAMBDA_ARN="arn:aws:lambda:us-east-1:${ACCOUNT_ID}:function:Firehose-CWL-Processor"
 FIREHOSE_DELIVERY_STREAM_ARN=$(aws firehose describe-delivery-stream --delivery-stream-name $FIREHOSE_DELIVERY_STREAM_NAME | jq -r '.DeliveryStreamDescription.DeliveryStreamARN')
 set +a
