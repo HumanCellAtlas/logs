@@ -10,4 +10,6 @@ terraform "$ACTION" \
   -var "cloudtrail_name=${CLOUDTRAIL_NAME}" \
   -var "es_email_principals=${ES_AUTHORIZED_EMAILS}" \
   -var "cloudtrail_s3_bucket=${CLOUDTRAIL_S3_BUCKET}" \
-  -var "es_domain_name=${ES_DOMAIN_NAME}"
+  -var "es_domain_name=${ES_DOMAIN_NAME}" \
+  -var "travis_user=${TRAVIS_USER}" \
+  $([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")

@@ -1,7 +1,7 @@
-.PHONY: dev
-dev:
-	$(MAKE) -C exporters/gcp_to_cwl/ dev
-	$(MAKE) -C es_managers/es_idx_manager/ dev
+.PHONY: install
+install:
+	$(MAKE) -C exporters/gcp_to_cwl/ install
+	$(MAKE) -C es_managers/es_idx_manager/ install
 
 .PHONY: test
 test:
