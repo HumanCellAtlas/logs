@@ -1,7 +1,7 @@
 {
   "RoleARN": "${FIREHOSE_ROLE_ARN}",
   "DomainARN": "${ES_ARN}",
-  "IndexName": "sup",
+  "IndexName": "cwl",
   "TypeName": "fromFirehose",
   "IndexRotationPeriod": "OneDay",
   "BufferingHints": {
