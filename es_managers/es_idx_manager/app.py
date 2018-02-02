@@ -17,10 +17,10 @@ else:
     from urllib import quote
 import datetime
 import json
-import time
 import os
 import yaml
 import domovoi
+
 
 class ESException(Exception):
     """Exception capturing status_code from Client Request"""
@@ -160,7 +160,10 @@ class ESCleanup(object):
                 self.delete_index(index_name)
         return self.get_indices()
 
+
 app = domovoi.Domovoi()
+
+
 @app.scheduled_function("rate(12 hours)")
 def handler(event, context):
     """Main Lambda function
