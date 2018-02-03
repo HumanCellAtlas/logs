@@ -13,6 +13,7 @@ addons:
     - jq
     - curl
     - unzip
+    - moreutils
 before_install:
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
