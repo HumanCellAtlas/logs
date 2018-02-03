@@ -21,10 +21,11 @@ deploy-gcp-to-cwl:
 
 .PHONY: deploy-es-idx-manager
 deploy-es-idx-manager:
-	make -C es_managers/es_idx_manager/ build deploy
+	DEPLOYMENT_STAGE=staging make -C es_managers/es_idx_manager/ build deploy
 
 .PHONY: encrypt
 encrypt:
+	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in authorized_emails -out authorized_emails.enc
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in environment -out environment.enc
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in terraform.tfstate -out terraform.tfstate.enc
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in terraform.tfstate.backup -out terraform.tfstate.backup.enc

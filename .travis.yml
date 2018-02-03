@@ -6,7 +6,7 @@ cache:
   - es_managers/es_idx_manager/venv
 python:
 - 3.6
-dist: jessie
+dist: trusty
 addons:
   apt:
     packages:
@@ -15,18 +15,24 @@ addons:
     - unzip
     - moreutils
 before_install:
+# terraform
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip -o /tmp/terraform.zip
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
 - export PATH=$PATH:./external_binaries/
 - terraform init
+# secured files
+- openssl aes-256-cbc -k "$encryption_key" -in authorized_emails.enc -out authorized_emails -d
 - openssl aes-256-cbc -k "$encryption_key" -in gcp-credentials.json.enc -out gcp-credentials.json -d
 - openssl aes-256-cbc -k "$encryption_key" -in environment.enc -out environment -d
 - openssl aes-256-cbc -k "$encryption_key" -in ES_IDX_MANAGER_SETTINGS.yaml.enc -out ES_IDX_MANAGER_SETTINGS.yaml -d
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.enc -out terraform.tfstate -d
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.backup.enc -out terraform.tfstate.backup -d
+# environment
 - source environment
+# aws
+- pip install awscli --upgrade
 install:
 - make install
 script:
@@ -34,9 +40,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script:
-  - cd exporters/gcp_to_cwl/ && make build deploy
-  - cd es_managers/es_idx_manager/ && make build deploy
+  script: make deploy-apps
   skip_cleanup: true
   on:
     branch: master

@@ -134,3 +134,52 @@ resource "aws_cloudformation_stack" "alerts" {
   name = "CloudTrail-Monitoring"
   template_body = "${file("config/cloudformation/CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
 }
+
+
+////
+// GCP to CloudWatch Logs exporter
+//
+
+resource "aws_iam_role" "gcp_to_cwl" {
+  name               = "gcp-to-cwl-exporter-staging"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "gcp_to_cwl" {
+  name   = "gcp-to-cwl-exporter-staging"
+  role   = "gcp-to-cwl-exporter-staging"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:DescribeLogStreams",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}
