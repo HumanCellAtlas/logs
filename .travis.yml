@@ -36,7 +36,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script: make deploy-apps
+  script: bash -c 'make deploy-apps'
   skip_cleanup: true
   on:
     branch: master
