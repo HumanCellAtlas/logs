@@ -12,6 +12,7 @@ from datetime import datetime
 from contextlib import contextmanager
 from cloudwatchlogs import CloudWatchLogs
 from botocore.exceptions import ClientError
+from test import eventually
 
 
 class TestCloudWatchLogsClient(unittest.TestCase):
@@ -34,24 +35,28 @@ class TestCloudWatchLogsClient(unittest.TestCase):
         with self.test_context() as (log_group, log_stream):
             cloudwatchlogs = CloudWatchLogs()
             token = cloudwatchlogs.prepare(log_group, log_stream)
-            result = cloudwatchlogs.client.describe_log_groups(
-                logGroupNamePrefix=log_group,
-                limit=2
-            )
-            self.assertEqual(
-                [ele['logGroupName'] for ele in result['logGroups']],
-                [log_group]
-            )
-            result = cloudwatchlogs.client.describe_log_streams(
-                logGroupName=log_group,
-                logStreamNamePrefix=log_stream,
-                limit=2
-            )
-            self.assertEqual(
-                [ele['logStreamName'] for ele in result['logStreams']],
-                [log_stream]
-            )
-            self.assertEqual(token, None)
+
+            @eventually(5.0, 1.5)
+            def test():
+                result = cloudwatchlogs.client.describe_log_groups(
+                    logGroupNamePrefix=log_group,
+                    limit=2
+                )
+                self.assertEqual(
+                    [ele['logGroupName'] for ele in result['logGroups']],
+                    [log_group]
+                )
+                result = cloudwatchlogs.client.describe_log_streams(
+                    logGroupName=log_group,
+                    logStreamNamePrefix=log_stream,
+                    limit=2
+                )
+                self.assertEqual(
+                    [ele['logStreamName'] for ele in result['logStreams']],
+                    [log_stream]
+                )
+                self.assertEqual(token, None)
+            test()
 
     def test_put_log_events_valid_token(self):
         response = self._test_put(valid_token=True)
