@@ -7,7 +7,7 @@
    "Environment": {},
    "FunctionName": "Firehose-CWL-Processor",
    "Handler": "index.handler",
-   "MemorySize": 128,
+   "MemorySize": 512,
    "Publish": true,
    "Role": "${FIREHOSE_CWL_ROLE_ARN}",
    "Runtime": "nodejs6.10",

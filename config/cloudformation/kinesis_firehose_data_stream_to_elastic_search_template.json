@@ -6,7 +6,7 @@
   "IndexRotationPeriod": "OneDay",
   "BufferingHints": {
     "IntervalInSeconds": 60,
-    "SizeInMBs": 5
+    "SizeInMBs": 1
   },
   "RetryOptions": {
     "DurationInSeconds": 5
@@ -22,7 +22,7 @@
     "BucketARN": "${FIREHOSE_S3_BUCKET_ARN}",
     "Prefix": "firehose",
     "BufferingHints": {
-      "SizeInMBs": 5,
+      "SizeInMBs": 1,
       "IntervalInSeconds": 60
     },
     "CompressionFormat": "GZIP",
