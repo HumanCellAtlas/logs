@@ -1,0 +1,49 @@
+language: python
+cache:
+  pip: true
+  directories:
+  - exporters/gcp_to_cwl/venv
+  - es_managers/es_idx_manager/venv
+python:
+- 3.6
+dist: jessie
+addons:
+  apt:
+    packages:
+    - jq
+    - curl
+    - unzip
+    - moreutils
+before_install:
+- mkdir ./external_binaries
+- curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip -o /tmp/terraform.zip
+- unzip /tmp/terraform.zip -d ./external_binaries/
+- rm /tmp/terraform.zip
+- export PATH=$PATH:./external_binaries/
+- terraform init
+- openssl aes-256-cbc -k "$encryption_key" -in gcp-credentials.json.enc -out gcp-credentials.json -d
+- openssl aes-256-cbc -k "$encryption_key" -in environment.enc -out environment -d
+- openssl aes-256-cbc -k "$encryption_key" -in ES_IDX_MANAGER_SETTINGS.yaml.enc -out ES_IDX_MANAGER_SETTINGS.yaml -d
+- openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.enc -out terraform.tfstate -d
+- openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.backup.enc -out terraform.tfstate.backup -d
+- source environment
+install:
+- make install
+script:
+- "./infrastructure.sh plan"
+- make test
+deploy:
+- provider: script
+  script:
+  - cd exporters/gcp_to_cwl/ && make build deploy
+  - cd es_managers/es_idx_manager/ && make build deploy
+  skip_cleanup: true
+  on:
+    branch: master
+env:
+  global:
+  - secure: RgHvolt5mo3lJE+UKNfD9nOSNTPMRpmOrQApAK4kS7nv1TgY+oNUAJbeuM2WTWYhkeE0q0EEOPuX0DKqrtMcnC0B1hjniOiGvwGTQGf1XMmiq6K6SxxEX+/iuYIR3e1mtql3SgvnzX2QhVfqQFxbMzxtz6Fc38x6XR+LMYuyOTWJ+bfPcTT3bHGwUsSD1i2hNA354/j/QGVrkAQ7zFZJ9n9ARIj5ULyKoGkWVT76+778NzjPkg/vavKJXh5sQMfRHmWuN5rOBKRm0oR9RYhjpcmZFSc9zq29BjP/q64dmB2UJ4gMf0UCKWq1jcZufJOzzdToB30jxrObskLo6lxZTeT2TcF66UPC0uYby2uR0i5AWI+QPDBsU4R1RpcF4hO9nDRMLpNmatY2w2zfgfPkeRkdfNeeDQWHFAiOod8Zp9SnhmU3BULgcl1EzvAubuP25fDlnvIOwAuypjzS7yYZycmSduMjbmPWvOoC3t5AHQNKMVFFrZGyhfuUGwSUbk4CcC4rMpBWUoChWuTPr33+AZtm+/DvNNcK45zJWNSbyVN7ePFgiYGnX3Pi37RSFbLY4LqLvLpmTtFgOmKyGVOrXZmJIYC3wjOsoo31ObJaGJFpNNUHcF4hY3toBggNLkjBG12X0UENl6ILpqpvfComTqmrD7ibIvj/oB4yTYu2R1I=
+  - secure: EVFq7LWaYsFeCP3a8wlx4nnM/0YvMlrdnrD3biACefSbcR/sXmSIR3lIoOuntkBYsScovGHTKPN7+Gp9jByzzUMokXhL305kBYC6wjDOVpvEdcJW4TEvqsdTsShz39+R1qppz4uS6/UQZts4EQboHBNhirAqSKgsuuS39PR4EvOxnJrHtHE7m+zafje+J8EwswL4yMgNjkHdsZbwhO0lHzDtzdL7fTp5g2MVVRC78OuvsLtRHs/KqGuOZW9sz1HTmz0RWbYp70OOxc8FwyTjMElRbU2WY5n4zhqugBTZUzOuAyoA0l5w+po5kfPzsdnxKjFkapsE4V822P2TgKnL+iBZvqRYMWapBAjiPnZNv70Ch6hm04QGY0ngHFWXXYOvEbvHJ2Dv6qo5g+iDGEQODqpMMLC6kotTpa6OHpoMpGiRku1JOIXys87fSMUPvm8MtsLKTsFtTzJwH23tyXZ71sCGu2bKXJwzMN1re/f7WGEX4tFcLZTMrzZ9ZpuPKaNECLxqnLb2mQ4abJ7AMAVB6rRpJFxbMMXV9nQq+NfFu3d1CHRzOhy+2JKb3K8QudXIBS8rydqqUEhCLQHhbVK4xIIo94PT0DekKoiAql5anaFF8r0CvGsW169zK89uMVnVssE2EQxlDRNKm6TURvSlBcPPAemz/J7GPE9mVA/pr3o=
+  - secure: ZCwGqGQaeeCZeZYbUa71IUBuTLMUbsY6w8LwB2wYl9Uzlhg16Z9+wGq8zY3RvuCnsisyk0P8T/vxBBaYwDp29GaPWMkm46HgAoTxY/pVirV/afQjhPuSoCutE8evtjzhRd2N5wbZD+DzVkvlbqMJpAw5VRBun8o9OLi+saXNpuYofAtC4kCMAoKV/Ps5aD3HOi2MCxLunfR/j2CkbtNTZEG4gWQjZsa0I6gg4/h6QZhHFkQl88lBYE+QeeI+j2ftMyfHqpGeqvXrmxTvnsROP34oqPr1l+O4EJc7lzhPlS0H9TdSZKEcU1L++L6EleyYFebWqZf/zCK6ZpP20S9cR4fLAPSXATgs5sCxI3XnN21tzA1vjqscyWj+gppCCmQz3MZtN9RGMVaB1bZCxilmjikmucXGk0vfwYEm326m1wbrSkKlM3IstyB07gPZ3u9RGmh2GUZBVnKtYBo/K9acklILma/E4fFNnSoGHjlWiHq44XFHvDPREvULDXGyyySKYnT82oHYnzfaNIEM0BbC3gBW8826o7Jhp0FqK/WsgH7XOsOkGGpAKI6+sCeUWNxDA3au5TdJVH13Ob1TN0WQSS9d6xUR82a0uft/PtD4R/WtKGS7qteHm8HxJUO2fdJKAiSgg8Mrw1Awc39M0sM1tjPndy7ZCRFzic3YAyreAaM=
+  - secure: JGl++BRJ+g4VzsPfuJpEEXW4Ctzg9VeWrit4reLVBhEuW8H2eIaJsHlfr2Ml7jh8+yqrgJ7OQdPmit+R773xJ/mfsu9CtONeUInk4hD8gDJHx3sq+GHEFvcMkXU4Otn7/MuVE/qezkb/bqIWnKjltuUcoYQ7FceuEEnl84mKmBJ2zPOwLJSEJRyEkSmCecgBPNBakIRVjDa0GiXKlQoFDYdUnlOHCnIXzAm/NH1Kc9rrCkRr0hKz7u/sIoGghfAFKud/4lFHbmUGzShVdRIU6Q43ABy8xLHMRXN1y1g1u0vXeMV8bgSg+tiSl+J7BiroNvtz84LRemDqIpCfNUtM8tIPTbWUR0Ju4S/SGjiUc7GZla1cXsJ9uHfrBKNwQwUaqJGbSw+Z6XTf1N7H4zrtAT1Ts4BZYUoT3mWpv6D41OdE8WVBf3bUAmHUIVA09B64nvRRr+G0E326qqYDKawUHHw3wqgM42u493FzWDV4KKAggyR8ZArLFFV8Q7VQELf+qZPXlWxornURNgw3DBXahPR4cy6gyAVwKSJoPuot6HVrdiWfuYKuHCCk+yr6sCQFHIof4EnhAdX8hsUfRHgAkGDGHFdr23YY/kzsh6Z9/PutMH9YFHHM9YbzCn/0DDsXYF1J2p4xIVD1YbwFb05LIrjyBXGuDOVvnaFrW9DJm1o=
+  - secure: EnsggtnUpJV3Pq6HNY3N2r5/NxBsltGeDg4u03yo6RO6abD5QVlWxxvVs8YH+Q91MfM+26cHz9Sm/89dKej/y+ZJOQGT2zxqygs1YcZoSCWGzgoE2L0V3LZDfdfPwOHZ+RzWtteBAd9qu5UuoNbfXYupniel3rl7/9fGPaS2y9TEOLaTygxnbe4tlKhny4cNUZYeKz/yWmbmF7c3lebmSfMxnvCQVNLaPzJt/y3p3JrJ21s5guamyILdypJLUETY7Idcn0Fcb9gA62QAiF6KXrDArJ5/DVt6TTPm4ySCdAj+RN2li21Y7VG6i4tiz67R0es9vElJpUHNCQb4OifZ96hfSK3rD1/oJ7JmBa6wnwp069BR+3bt+pzRoOsf1Bi+V1rlN55aFIm20jCXER95t5hRnuwWuxNtQvrZ/K3HTMZgzoG01gLs0uCGitYMmBrXKfrsH46AAliKFFb01oPYh7/lzwHKx6BS7PdAVaxWyUX7JSlGg9nOdfAB3DaabWZC16AmAc3+PKj1ttG+fCrXxS3cw5V1tOT6iu1ZN5HmpTkhSXNuIyRnctM2ahXoRz/pYU8cVZ18Hjdxi3atqb47K3/6EFNkpy8joJ7g1lv9FIdF/ZoO7+t4Y5Mqsuz45vnwcqLLxCxIfzwh1iqJbByLQY59o+xlVlgIbzLHps9rYms=

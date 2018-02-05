@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 import os
-import sys
 import unittest
-from copy import deepcopy
 import yaml
 from app import ESException, ESCleanup
 import datetime
@@ -18,6 +16,13 @@ class TestApp(unittest.TestCase):
             test_config = cluster_config
 
     es = ESCleanup(None, None, test_config)
+
+    @classmethod
+    def setUpClass(cls):
+        for index in cls.es.get_indices():
+            index_name = index["index"]
+            if index_name.startswith('test-'):
+                cls.es.delete_index(index_name)
 
     def test_deletion_rule(self):
         index_format = self.test_config["index_format"]
