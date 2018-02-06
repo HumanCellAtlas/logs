@@ -30,7 +30,7 @@ before_install:
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.enc -out terraform.tfstate -d
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.backup.enc -out terraform.tfstate.backup -d
 # environment
-- source environment
+- source config/environment
 # aws
 - pip install awscli --upgrade
 install:
