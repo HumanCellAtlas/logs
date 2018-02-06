@@ -19,5 +19,5 @@ build:
 
 .PHONY: deploy
 deploy:
-	. venv/bin/activate && $(PROJECT_ROOT)/utils/build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
+	. venv/bin/activate && $(PROJECT_ROOT)/scripts/build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
 	. venv/bin/activate && domovoi deploy --stage $(DEPLOYMENT_STAGE)
