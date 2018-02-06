@@ -15,9 +15,9 @@ test:
 build:
 	mkdir -p domovoilib
 	cp "$(GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
-	shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done
+	bash -c 'shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done'
 
 .PHONY: deploy
 deploy:
-	. venv/bin/activate && $(PROJECT_ROOT)/utils/build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
+	. venv/bin/activate && $(PROJECT_ROOT)/scripts/build_deploy_config.sh gcp-to-cwl-exporter $(DEPLOYMENT_STAGE)
 	. venv/bin/activate && domovoi deploy --stage $(DEPLOYMENT_STAGE)

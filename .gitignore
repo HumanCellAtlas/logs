@@ -117,6 +117,7 @@ ENV/
 # environment/credentials
 gcp-credentials.json
 environment
+authorized_emails
 es_managers/es_idx_manager/domovoilib/
 serverless-curator.yaml
 deployed.json

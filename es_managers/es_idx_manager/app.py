@@ -122,13 +122,17 @@ class ESCleanup(object):
         """
         return self.send_to_es(index_name, "PUT")
 
-    def get_indices(self):
+    def get_indices(self, filter_prefix=None):
         """ES Get indices
 
         Returns:
             list: ES answer
         """
-        return self.send_to_es("/_cat/indices")
+        indices = self.send_to_es("/_cat/indices")
+        if filter_prefix:
+            return [i for i in indices if i['index'].startswith(filter_prefix)]
+        else:
+            return indices
 
     def should_delete_index(self, index):
         """Evaluate index for deletion
@@ -142,6 +146,7 @@ class ESCleanup(object):
         should_delete = False
         index_name = '-'.join(word for word in index["index"].split("-", 1)[:-1])
         index_date = index["index"].split("-", 1)[-1]
+        # TODO: fix this bit
         if index_name in self.cfg["index"] or "all" in self.cfg["index"]:
             if index_date <= self.cfg["earliest_to_keep"].strftime(self.cfg["index_format"]):
                 should_delete = True
