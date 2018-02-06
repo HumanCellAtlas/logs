@@ -23,10 +23,10 @@ before_install:
 - export PATH=$PATH:./external_binaries/
 - terraform init
 # secured files
-- openssl aes-256-cbc -k "$encryption_key" -in authorized_emails.enc -out authorized_emails -d
-- openssl aes-256-cbc -k "$encryption_key" -in gcp-credentials.json.enc -out gcp-credentials.json -d
-- openssl aes-256-cbc -k "$encryption_key" -in environment.enc -out environment -d
-- openssl aes-256-cbc -k "$encryption_key" -in ES_IDX_MANAGER_SETTINGS.yaml.enc -out ES_IDX_MANAGER_SETTINGS.yaml -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/authorized_emails.enc -out config/authorized_emails -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/gcp-credentials.json.enc -out config/gcp-credentials.json -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/environment.enc -out config/environment -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc -out config/ES_IDX_MANAGER_SETTINGS.yaml -d
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.enc -out terraform.tfstate -d
 - openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.backup.enc -out terraform.tfstate.backup -d
 # environment

@@ -1,3 +1,7 @@
+.PHONY: infrastructure
+infrastructure:
+	./infrastructure.sh apply
+
 .PHONY: install
 install:
 	$(MAKE) -C exporters/gcp_to_cwl/ install
@@ -8,11 +12,7 @@ test:
 	$(MAKE) -C exporters/gcp_to_cwl/ test
 	$(MAKE) -C es_managers/es_idx_manager/ test
 
-.PHONY: infrastructure
-infrastructure:
-	./infrastructure.sh apply
-
-.PHONY: deploy-apps
+.PHONY: deploy
 deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager
 
 .PHONY: deploy-gcp-to-cwl
@@ -25,9 +25,9 @@ deploy-es-idx-manager:
 
 .PHONY: encrypt
 encrypt:
-	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in authorized_emails -out authorized_emails.enc
-	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in environment -out environment.enc
+	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/authorized_emails -out config/authorized_emails.enc
+	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/environment -out config/environment.enc
+	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/gcp-credentials.json -out config/gcp-credentials.json.enc
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in terraform.tfstate -out terraform.tfstate.enc
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in terraform.tfstate.backup -out terraform.tfstate.backup.enc
-	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in gcp-credentials.json -out gcp-credentials.json.enc
 
