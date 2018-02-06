@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-
 set -a
-export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-ACCOUNT_ID=$(aws sts get-caller-identity | jq -r .Account)
+# hardcoded or derived variables
+ENCRYPTION_KEY=undefined
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
@@ -16,6 +17,7 @@ GCLOUD_PROJECT=undefined
 GOOGLE_APPLICATION_CREDENTIALS=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 REGION=undefined
+TRAVIS_USER=undefined
 
 USER_DEFINED_VAR_ARRAY=(
   CLOUDTRAIL_LOG_GROUP_NAME
@@ -24,13 +26,12 @@ USER_DEFINED_VAR_ARRAY=(
   CODE_DEPLOYMENT_BUCKET
   ES_DOMAIN_NAME
   ES_AUTHORIZED_EMAILS
-  ES_IDX_MANAGER_SETTINGS
   GCLOUD_PROJECT
   GOOGLE_APPLICATION_CREDENTIALS
   LOG_TOPIC_SUBSCRIPTION_NAME
   REGION
 )
 
-# derived variables
 ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
 set +a
+
