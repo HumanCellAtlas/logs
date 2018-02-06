@@ -15,7 +15,6 @@ test:
 build:
 	mkdir -p domovoilib
 	cp "$(ES_IDX_MANAGER_SETTINGS)" domovoilib/es-idx-manager-settings.yaml
-	shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done
 
 .PHONY: deploy
 deploy: build
