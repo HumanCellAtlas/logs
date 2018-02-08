@@ -102,3 +102,16 @@ exports.handler = (event, context, callback) => {
         }
     })).then(recs => callback(null, { records: recs }));
 };
+
+function parseJson(str) {
+    try {
+        const startIndex = str.indexOf('{');
+        if (startIndex == -1) {
+            return {};
+        }
+        const probablyJsonString = str.slice(startIndex, str.length);
+        return JSON.parse(probablyJsonString);
+    } catch (e) {
+        return {};
+    }
+}
