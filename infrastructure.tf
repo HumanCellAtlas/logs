@@ -6,6 +6,17 @@ provider "aws" {
   region = "${var.region}"
 }
 
+////
+// general setup
+//
+
+// the bucket must be configured with the -backend-config flag on `terraform init`
+terraform {
+  backend "s3" {
+    key = "logs/terraform.tfstate"
+    region = "us-east-1"
+  }
+}
 
 ////
 // CloudTrail
@@ -113,7 +124,7 @@ resource "aws_elasticsearch_domain" "es" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          ${join(",", formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals))},
+          ${join(", ", formatlist("\"arn:aws:sts::%s:assumed-role/dss-elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals))},
           "arn:aws:iam::${var.account_id}:user/${var.travis_user}"
         ]
       },

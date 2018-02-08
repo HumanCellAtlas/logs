@@ -2,8 +2,6 @@
 
 ACTION=$1
 
-[[ "$ACTION" != "apply" && "$ACTION" != "plan" ]] && echo "usage: $0 {apply,plan}" && exit 1
-
 terraform "$ACTION" \
   -var "account_id=${ACCOUNT_ID}" \
   -var "cloudtrail_log_group_name=${CLOUDTRAIL_LOG_GROUP_NAME}" \
