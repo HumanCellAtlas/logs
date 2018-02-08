@@ -91,6 +91,16 @@ exports.handler = (event, context, callback) => {
                     "@log_stream": data.logStream,
                     "@timestamp": payload.timestamp
                 };
+                // load the first level of keys into the output; this way ES can
+                // use dynamic mapping to index the most important fields
+                // without overloading the total number of fields
+                const json = parseJson(payload.message);
+                for (var key of Object.keys(json)) {
+                    if (typeof json[key] === "object") {
+                        output[key] = JSON.stringify(json[key])
+                    }
+                }
+                // final serialization
                 const output_str = JSON.stringify(output);
                 const encoded = new Buffer(output_str).toString('base64');
                 return {
@@ -102,3 +112,11 @@ exports.handler = (event, context, callback) => {
         }
     })).then(recs => callback(null, { records: recs }));
 };
+
+function parseJson(str) {
+    try {
+        return JSON.parse(str);
+    } catch (e) {
+        return {};
+    }
+}
