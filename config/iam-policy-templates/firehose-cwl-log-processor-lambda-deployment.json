@@ -9,7 +9,7 @@
    "Handler": "index.handler",
    "MemorySize": 512,
    "Publish": true,
-   "Role": "${FIREHOSE_CWL_ROLE_ARN}",
+   "Role": "arn:aws:iam::${ACCOUNT_ID}:role/firehose-cwl-log-processor-staging",
    "Runtime": "nodejs6.10",
-   "Timeout": 60
+   "Timeout": 120
 }

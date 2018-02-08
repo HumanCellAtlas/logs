@@ -183,3 +183,229 @@ resource "aws_iam_role_policy" "gcp_to_cwl" {
 }
 EOF
 }
+
+////
+// Firehose CWL Log processor
+//
+
+resource "aws_iam_role" "firehose_processor" {
+  name               = "firehose-cwl-log-processor-staging"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "firehose_processor" {
+  name   = "firehose-cwl-log-processor-staging"
+  role   = "firehose-cwl-log-processor-staging"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "firehose:*",
+            "Resource": "arn:aws:firehose:*:*:*"
+        }
+    ]
+}
+EOF
+}
+
+////
+// Firehose to ES
+//
+
+resource "aws_iam_role" "kinesis-firehose-es" {
+  name               = "kinesis-firehose-es-staging"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "firehose.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "kinesis-firehose-es" {
+  name   = "kinesis-firehose-es-staging"
+  role   = "kinesis-firehose-es-staging"
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:DescribeLogStreams",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "logs:CreateLogGroup",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "es:*",
+            "Resource": "arn:aws:es:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::*"
+        },
+        {
+       "Sid": "UseLambdaFunction",
+       "Effect": "Allow",
+       "Action": [
+           "lambda:InvokeFunction",
+           "lambda:GetFunctionConfiguration"
+       ],
+       "Resource": "arn:aws:lambda:*:*:*"
+   }
+    ]
+}
+EOF
+}
+
+////
+// Firehose S3 Bucket
+//
+
+resource "aws_s3_bucket" "kinesis-es-firehose-failures-staging" {
+  bucket = "kinesis-es-firehose-failures-staging"
+  acl    = "private"
+
+  tags {
+    Name        = "kinesis-es-firehose-failures-staging"
+    Environment = "Staging"
+  }
+}
+
+////
+// Firehose ES Delivery Stream
+//
+
+variable "firehose_lambda_arn" {}
+
+resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
+  name        = "Kinesis-Firehose-ELK-staging"
+  destination = "elasticsearch"
+  s3_configuration {
+    role_arn           = "${aws_iam_role.kinesis-firehose-es.arn}"
+    bucket_arn         = "${aws_s3_bucket.kinesis-es-firehose-failures-staging.arn}"
+    buffer_size        = 1
+    buffer_interval    = 60
+    compression_format = "GZIP"
+    prefix = "firehose"
+    cloudwatch_logging_options {
+      enabled = true
+      log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+      log_stream_name = "S3Delivery"
+    }
+  }
+  elasticsearch_configuration {
+    domain_arn = "${aws_elasticsearch_domain.es.arn}"
+    role_arn   = "${aws_iam_role.kinesis-firehose-es.arn}"
+    index_name = "cwl"
+    type_name  = "fromFirehose"
+    buffering_interval = 60
+    buffering_size = 1
+    retry_duration = 300
+    index_rotation_period = "OneDay"
+    s3_backup_mode = "FailedDocumentsOnly"
+    cloudwatch_logging_options {
+      enabled = true
+      log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+      log_stream_name = "ElasticsearchDelivery"
+    }
+  }
+}
+
+data "external" "example" {
+  program = ["python", "${path.module}/scripts/setup_firehose_processing_config.py"]
+
+  query = {
+    # arbitrary map from strings to strings, passed
+    # to the external program as the data query.
+    delivery_stream_name = "Kinesis-Firehose-ELK-staging",
+    lambda_name = "Firehose-CWL-Processor"
+  }
+  
+  depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
+}
+
+////
+// CWL to firehose
+//
+
+resource "aws_iam_role" "cwl-firehose" {
+  name               = "cwl-firehose-staging"
+  assume_role_policy = <<EOF
+{
+  "Statement": {
+    "Effect": "Allow",
+    "Principal": { "Service": "logs.us-east-1.amazonaws.com" },
+    "Action": "sts:AssumeRole"
+  }
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "cwl-firehose-staging" {
+  name   = "cwl-firehose-staging"
+  role   = "cwl-firehose-staging"
+  policy = <<EOF
+{
+    "Statement":[
+      {
+        "Effect":"Allow",
+        "Action":["firehose:*"],
+        "Resource":["arn:aws:firehose:*:*:*"]
+      },
+      {
+        "Effect":"Allow",
+        "Action":["iam:PassRole"],
+        "Resource":[
+          "${aws_iam_role.cwl-firehose.arn}"
+        ]
+      }
+    ]
+}
+EOF
+}

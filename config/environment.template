@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -a
 # hardcoded or derived variables
-ENCRYPTION_KEY=undefined
-export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
+export PROJECT_ROOT="$( cd .. && cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
@@ -19,14 +18,6 @@ LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 REGION=undefined
 TRAVIS_USER=undefined
 
-CWL_TO_KINESIS_ROLE=undefined
-FIREHOSE_DELIVERY_STREAM_NAME=undefined
-FIREHOSE_ROLE_NAME=undefined
-FIREHOSE_LOG_GROUP_NAME=undefined
-FIREHOSE_S3_BUCKET_NAME=undefined
-FIREHOSE_S3_LOG_GROUP_NAME=undefined
-AWS_KMS_KEY=undefined
-
 USER_DEFINED_VAR_ARRAY=(
   CLOUDTRAIL_LOG_GROUP_NAME
   CLOUDTRAIL_NAME
@@ -34,11 +25,16 @@ USER_DEFINED_VAR_ARRAY=(
   CODE_DEPLOYMENT_BUCKET
   ES_DOMAIN_NAME
   ES_AUTHORIZED_EMAILS
+  ES_IDX_MANAGER_SETTINGS
   GCLOUD_PROJECT
   GOOGLE_APPLICATION_CREDENTIALS
   LOG_TOPIC_SUBSCRIPTION_NAME
   REGION
+  TRAVIS_USER
 )
 
 ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
+FIREHOSE_LAMBDA_NAME=$(cat ${PROJECT_ROOT}/config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json | jq -r '.FunctionName')
+FIREHOSE_LAMBDA_ARN=$(aws lambda get-function --function-name $FIREHOSE_LAMBDA_NAME | jq -r '.Configuration.FunctionArn')
 set +a
+
