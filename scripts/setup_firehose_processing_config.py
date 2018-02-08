@@ -12,7 +12,7 @@ import os
 firehose_client = boto3.client('firehose')
 lambda_client = boto3.client('lambda')
 
-def handler(**args):
+def handler(args):
     '''
         This function updates the firehose with a processing configuration, since terraform does not currently support this option.
         Input:
@@ -20,14 +20,14 @@ def handler(**args):
         Output:
             dict
     '''
-    delivery_stream_name = arguments["delivery_stream_name"]
+    delivery_stream_name = args["delivery_stream_name"]
     delivery_stream = firehose_client.describe_delivery_stream(DeliveryStreamName=delivery_stream_name)
     delivery_stream_desc = delivery_stream["DeliveryStreamDescription"]
     delivery_stream_version_id = delivery_stream_desc["VersionId"]
     destination = delivery_stream_desc["Destinations"][0]
     destination_id = destination["DestinationId"]
 
-    lambda_function_name = arguments["lambda_name"]
+    lambda_function_name = args["lambda_name"]
     processing_lambda_func = lambda_client.get_function(FunctionName=lambda_function_name)
     processing_lambda_func_arn = processing_lambda_func["Configuration"]["FunctionArn"]
     processing_lambda_role_arn = "arn:aws:iam::{0}:role/kinesis-firehose-es-staging".format(os.environ["ACCOUNT_ID"])
