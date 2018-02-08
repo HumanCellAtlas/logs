@@ -15,22 +15,20 @@ addons:
     - unzip
     - moreutils
 before_install:
+# secured files
+- openssl aes-256-cbc -k "$encryption_key" -in config/authorized_emails.enc -out config/authorized_emails -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/gcp-credentials.json.enc -out config/gcp-credentials.json -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/environment.enc -out config/environment -d
+- openssl aes-256-cbc -k "$encryption_key" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc -out config/ES_IDX_MANAGER_SETTINGS.yaml -d
+# environment
+- source config/environment
 # terraform
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip -o /tmp/terraform.zip
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
 - export PATH=$PATH:./external_binaries/
-- terraform init
-# secured files
-- openssl aes-256-cbc -k "$encryption_key" -in config/authorized_emails.enc -out config/authorized_emails -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/gcp-credentials.json.enc -out config/gcp-credentials.json -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/environment.enc -out config/environment -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc -out config/ES_IDX_MANAGER_SETTINGS.yaml -d
-- openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.enc -out terraform.tfstate -d
-- openssl aes-256-cbc -k "$encryption_key" -in terraform.tfstate.backup.enc -out terraform.tfstate.backup -d
-# environment
-- source config/environment
+- terraform init -backend-config="bucket=$TERRAFORM_BUCKET"
 # aws
 - pip install awscli --upgrade
 install:
