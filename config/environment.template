@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -a
 # hardcoded or derived variables
-export PROJECT_ROOT="$( cd .. && cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
@@ -17,6 +17,7 @@ GOOGLE_APPLICATION_CREDENTIALS=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 REGION=undefined
 TRAVIS_USER=undefined
+TERRAFORM_BUCKET=undefined
 
 USER_DEFINED_VAR_ARRAY=(
   CLOUDTRAIL_LOG_GROUP_NAME
@@ -31,6 +32,7 @@ USER_DEFINED_VAR_ARRAY=(
   LOG_TOPIC_SUBSCRIPTION_NAME
   REGION
   TRAVIS_USER
+  TERRAFORM_BUCKET
 )
 
 ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')

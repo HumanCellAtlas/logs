@@ -368,7 +368,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
   }
 }
 
-data "external" "example" {
+data "external" "processing_configuration" {
   program = ["python", "${path.module}/scripts/setup_firehose_processing_config.py"]
 
   query = {

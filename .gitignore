@@ -2,7 +2,6 @@
 .terraform/
 *.tfstate
 *.tfstate.backup
-authorized_emails
 # IDE
 .idea/
 .vscode/
