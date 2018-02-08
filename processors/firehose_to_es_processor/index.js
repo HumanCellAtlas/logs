@@ -115,7 +115,12 @@ exports.handler = (event, context, callback) => {
 
 function parseJson(str) {
     try {
-        return JSON.parse(str);
+        const startIndex = str.indexOf('{');
+        if (startIndex == -1) {
+            return {};
+        }
+        const probablyJsonString = str.slice(startIndex, str.length);
+        return JSON.parse(probablyJsonString);
     } catch (e) {
         return {};
     }
