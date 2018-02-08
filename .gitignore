@@ -1,3 +1,8 @@
+# terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+authorized_emails
 # IDE
 .idea/
 .vscode/
@@ -11,9 +16,7 @@ __pycache__/
 # C extensions
 *.so
 
-# Distribution / packaging
-.Python
-env/
+# Distribution / packaging .Python env/
 build/
 develop-eggs/
 dist/
@@ -114,9 +117,11 @@ ENV/
 # environment/credentials
 gcp-credentials.json
 environment
+authorized_emails
 es_managers/es_idx_manager/domovoilib/
 serverless-curator.yaml
 deployed.json
+ES_IDX_MANAGER_SETTINGS.yaml
 
 # test code
 hand_test.js
