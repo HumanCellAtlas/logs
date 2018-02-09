@@ -15,7 +15,7 @@ Once you have specified all of these credentials, source the environment.
 source environment
 ```
 
-To 
+To install the development environemnt run `make install`.
 
 ## Testing
 
@@ -23,14 +23,4 @@ To run unit tests, run `make test`.
 
 ## Deploy
 
-To deploy all applications run `make deploy`. In the case of failures, check to make sure that all the intermediate infrastructure deployment has succeeded.
-
-## Exporing logs
-
-### From GCP to CloudWatch
-
-Add an export from your application to the `logs` sink.
-
-### From CloudWatch Logs to ElasticSearch
-
-Use the `exporters/cwl_to_elk/add_log_group.sh` command.
+To deploy all applications run `make deploy`. In the case of failures, check to make sure that all the necessary infrastructure is in place with `./infrastructure.sh plan`.
