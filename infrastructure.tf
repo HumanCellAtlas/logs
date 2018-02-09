@@ -129,7 +129,7 @@ resource "aws_elasticsearch_domain" "es" {
         ]
       },
       "Action": "es:*",
-      "Resource": "arn:aws:es:${var.region}:${var.account_id}:domain/${var.es_domain_name}/*"
+      "Resource": "arn:aws:es:*:*:*"
     }
   ]
 }
@@ -295,7 +295,7 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
         {
             "Effect": "Allow",
             "Action": "es:*",
-            "Resource": "arn:aws:es:${var.region}:${var.account_id}:domain/${var.es_domain_name}/*"
+            "Resource": "arn:aws:es:*:*:*"
         },
         {
             "Effect": "Allow",
@@ -309,7 +309,7 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
            "lambda:InvokeFunction",
            "lambda:GetFunctionConfiguration"
        ],
-       "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:Firehose-CWL-Processor"
+       "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:Firehose-CWL-Processor"
    }
     ]
 }
