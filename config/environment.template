@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -a
 # hardcoded or derived variables
-export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+ENCRYPTION_KEY=undefined
+export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables

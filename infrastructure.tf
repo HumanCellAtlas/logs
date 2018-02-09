@@ -240,11 +240,13 @@ resource "aws_iam_role_policy" "firehose_processor" {
         {
             "Effect": "Allow",
             "Action": "firehose:*",
-            "Resource": "arn:aws:firehose:*:*:*"
+            "Resource": "${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.arn}"
         }
     ]
 }
 EOF
+
+depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
 }
 
 ////
@@ -293,7 +295,7 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
         {
             "Effect": "Allow",
             "Action": "es:*",
-            "Resource": "arn:aws:es:*:*:*"
+            "Resource": "arn:aws:es:${var.region}:${var.account_id}:domain/${var.es_domain_name}/*"
         },
         {
             "Effect": "Allow",
@@ -307,7 +309,7 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
            "lambda:InvokeFunction",
            "lambda:GetFunctionConfiguration"
        ],
-       "Resource": "arn:aws:lambda:*:*:*"
+       "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:Firehose-CWL-Processor"
    }
     ]
 }
@@ -378,7 +380,7 @@ data "external" "processing_configuration" {
     lambda_name = "Firehose-CWL-Processor"
   }
   
-  depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
+  depends_on = ["aws_iam_role_policy.firehose_processor"]
 }
 
 ////
@@ -407,7 +409,7 @@ resource "aws_iam_role_policy" "cwl-firehose-staging" {
       {
         "Effect":"Allow",
         "Action":["firehose:*"],
-        "Resource":["arn:aws:firehose:*:*:*"]
+        "Resource":["${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.arn}"]
       },
       {
         "Effect":"Allow",
