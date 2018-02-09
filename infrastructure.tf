@@ -376,11 +376,10 @@ data "external" "processing_configuration" {
   query = {
     # arbitrary map from strings to strings, passed
     # to the external program as the data query.
-    delivery_stream_name = "Kinesis-Firehose-ELK-staging",
+    delivery_stream_name = "${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.name}",
     lambda_name = "Firehose-CWL-Processor"
   }
-  
-  depends_on = ["aws_iam_role_policy.firehose_processor"]
+
 }
 
 ////
@@ -391,6 +390,7 @@ resource "aws_iam_role" "cwl-firehose" {
   name               = "cwl-firehose-staging"
   assume_role_policy = <<EOF
 {
+  "Version": "2008-10-17",
   "Statement": {
     "Effect": "Allow",
     "Principal": { "Service": "logs.us-east-1.amazonaws.com" },
