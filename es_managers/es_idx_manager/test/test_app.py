@@ -11,7 +11,7 @@ class TestApp(unittest.TestCase):
     test_prefix_ele = '.'.join(
         [e for e in [os.environ.get('TRAVIS_BUILD_ID'), os.environ.get('TRAVIS_EVENT_TYPE')] if e]
     )
-    index_prefix = f"test{('-' + test_prefix_ele) if test_prefix_ele else ''}"""
+    index_prefix = f"test{('.' + test_prefix_ele) if test_prefix_ele else ''}"""
 
     with open(os.environ['ES_IDX_MANAGER_SETTINGS'], 'r') as config_file:
         config = yaml.load(config_file)
@@ -57,6 +57,7 @@ class TestApp(unittest.TestCase):
 
     def test_index_deletion_pipeline(self):
         # create 10 test indices backdating from today into the past
+
         index_format = self.test_config["index_format"]
         test_indices = []
         for subtract in range(0, 10):

@@ -1,11 +1,12 @@
-ZIP_FILE := LogsToElasticsearch_App.zip
+ZIP_FILE := FirehoseCWLLogsProcessor_App.zip
 TARGET := target/$(ZIP_FILE)
-LAMBDA_CONFIG := ../../config/iam-policy-templates/cwl-to-elk-exporter-lambda-deployment.json
+LAMBDA_CONFIG := ${PROJECT_ROOT}/config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json
 
 .PHONY: build
 build:
 	rm -rf target
 	mkdir target
+	npm install
 	zip -r $(TARGET) ./{*.js,node_modules,package.json,package-lock.json}
 
 .PHONY: publish
