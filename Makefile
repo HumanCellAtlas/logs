@@ -3,6 +3,10 @@ install:
 	$(MAKE) -C exporters/gcp_to_cwl/ install
 	$(MAKE) -C es_managers/es_idx_manager/ install
 
+.PHONY: image
+image:
+	docker build -t trusty-python3 .
+
 .PHONY: test
 test:
 	$(MAKE) -C exporters/gcp_to_cwl/ test
