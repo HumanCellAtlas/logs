@@ -169,7 +169,7 @@ class ESCleanup(object):
 app = domovoi.Domovoi()
 
 
-@app.scheduled_function("rate(1 minute)")
+@app.scheduled_function("rate(12 hours)")
 def handler(event, context):
     """Main Lambda function
     """
