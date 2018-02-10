@@ -31,6 +31,8 @@ before_install:
 - terraform init -backend-config="bucket=$TERRAFORM_BUCKET"
 # aws
 - pip install awscli --upgrade
+# needed for external data source
+- pip install boto3 --upgrade
 install:
 - make install
 script:
