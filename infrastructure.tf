@@ -393,7 +393,12 @@ resource "aws_iam_role" "cwl-firehose" {
   "Version": "2008-10-17",
   "Statement": {
     "Effect": "Allow",
-    "Principal": { "Service": "logs.us-east-1.amazonaws.com" },
+    "Principal": { 
+      "Service": [
+        "logs.us-east-1.amazonaws.com",
+        "lambda.amazonaws.com"
+      ]
+    },
     "Action": "sts:AssumeRole"
   }
 }
