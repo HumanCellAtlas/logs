@@ -18,11 +18,15 @@ infrastructure:
 	./infrastructure.sh apply
 
 .PHONY: deploy
-deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-firehose-cwl-processor
+deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-firehose-cwl-processor deploy-cwl-to-slack-notifier
 
 .PHONY: deploy-gcp-to-cwl
 deploy-gcp-to-cwl:
 	DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ build deploy
+
+.PHONY: deploy-cwl-to-slack-notifier
+deploy-cwl-to-slack-notifier:
+	DEPLOYMENT_STAGE=staging make -C exporters/cwl_to_slack/ build deploy
 
 .PHONY: deploy-es-idx-manager
 deploy-es-idx-manager:
