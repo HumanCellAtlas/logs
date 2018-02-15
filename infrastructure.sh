@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
+set -e
 
 ACTION=$1
 
-terraform "$ACTION" \
+shift 1
+
+source venv/bin/activate && terraform "$ACTION" \
   -var "account_id=${ACCOUNT_ID}" \
   -var "cloudtrail_log_group_name=${CLOUDTRAIL_LOG_GROUP_NAME}" \
   -var "cloudtrail_name=${CLOUDTRAIL_NAME}" \

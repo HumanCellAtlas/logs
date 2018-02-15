@@ -1,5 +1,6 @@
 .PHONY: install
 install:
+	virtualenv venv && . venv/bin/activate && pip install -r requirements.txt
 	$(MAKE) -C exporters/gcp_to_cwl/ install
 	$(MAKE) -C es_managers/es_idx_manager/ install
 
