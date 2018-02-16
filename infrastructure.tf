@@ -245,8 +245,7 @@ resource "aws_iam_role_policy" "firehose_processor" {
     ]
 }
 EOF
-
-depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
+  depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
 }
 
 ////
@@ -379,7 +378,6 @@ data "external" "processing_configuration" {
     delivery_stream_name = "${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.name}",
     lambda_name = "Firehose-CWL-Processor"
   }
-
 }
 
 ////
@@ -393,7 +391,12 @@ resource "aws_iam_role" "cwl-firehose" {
   "Version": "2008-10-17",
   "Statement": {
     "Effect": "Allow",
-    "Principal": { "Service": "logs.us-east-1.amazonaws.com" },
+    "Principal": {
+      "Service": [
+        "logs.${var.region}.amazonaws.com",
+        "lambda.amazonaws.com"
+      ]
+    },
     "Action": "sts:AssumeRole"
   }
 }
