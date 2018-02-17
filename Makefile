@@ -3,6 +3,7 @@ install:
 	virtualenv venv && . venv/bin/activate && pip install -r requirements.txt
 	$(MAKE) -C exporters/gcp_to_cwl/ install
 	$(MAKE) -C es_managers/es_idx_manager/ install
+	$(MAKE) -C subscribers/cwl_firehose_subscriber/ install
 
 .PHONY: image
 image:
@@ -12,13 +13,14 @@ image:
 test:
 	$(MAKE) -C exporters/gcp_to_cwl/ test
 	$(MAKE) -C es_managers/es_idx_manager/ test
+	$(MAKE) -C subscribers/cwl_firehose_subscriber/ test
 
 .PHONY: infrastructure
 infrastructure:
 	./infrastructure.sh apply
 
 .PHONY: deploy
-deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-firehose-cwl-processor deploy-cwl-to-slack-notifier
+deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-firehose-cwl-processor deploy-cwl-to-slack-notifier deploy-cwl-firehose-subscriber
 
 .PHONY: deploy-gcp-to-cwl
 deploy-gcp-to-cwl:
@@ -35,6 +37,10 @@ deploy-es-idx-manager:
 .PHONY: deploy-firehose-cwl-processor
 deploy-firehose-cwl-processor:
 	make -C processors/firehose_to_es_processor/ build publish deploy
+
+.PHONY: deploy-cwl-firehose-subscriber
+deploy-cwl-firehose-subscriber:
+	make -C subscribers/cwl_firehose_subscriber/ build deploy
 
 .PHONY: encrypt
 encrypt:
