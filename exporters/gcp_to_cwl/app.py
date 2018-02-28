@@ -78,8 +78,17 @@ def group_entries_into_requests(unformatted_log_entries) -> typing.List[dict]:
 def format_log_entry(unformatted_log_entry) -> dict:
     return {
         'timestamp': int(dt_parse(unformatted_log_entry['timestamp']).timestamp() * 1000),
-        'message': unformatted_log_entry['textPayload'] if 'textPayload' in unformatted_log_entry else unformatted_log_entry.get('protoPayload')
+        'message': get_log_message(unformatted_log_entry)
     }
+
+
+def get_log_message(unformatted_log_entry):
+    if 'textPayload' in unformatted_log_entry:
+        return unformatted_log_entry['textPayload']
+    elif 'jsonPayload' in unformatted_log_entry:
+        return json.dumps(unformatted_log_entry['jsonPayload'])
+    elif 'protoPayload' in unformatted_log_entry:
+        return str(unformatted_log_entry['protoPayload'])
 
 
 def get_log_group(unformatted_log_entry) -> str:
