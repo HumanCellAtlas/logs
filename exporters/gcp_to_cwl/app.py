@@ -34,7 +34,11 @@ def handler(input, context):
     for unformatted_log_entries in batch_client.to_generator(batch_size):
         requests = group_entries_into_requests(unformatted_log_entries)
         for request in requests:
-            cloudwatchlogs.put_log_events(request, sequence_token_cache)
+            try:
+                cloudwatchlogs.put_log_events(request, sequence_token_cache)
+            except Exception as e:
+                print("ERROR on input: " + str(unformatted_log_entries))
+                raise e
 
 
 @contextmanager
