@@ -66,7 +66,7 @@ def group_entries_into_requests(unformatted_log_entries) -> typing.List[dict]:
                 'logEvents': []
             }
 
-        if log_entry['timestamp'] > twenty_three_hours_ago:
+        if log_entry['timestamp'] > twenty_three_hours_ago and log_entry['message'] is not None:
             requests[log_group]['logEvents'].append(log_entry)
 
     for log_group, request in requests.items():
