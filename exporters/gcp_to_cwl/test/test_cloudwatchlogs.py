@@ -71,13 +71,12 @@ class TestCloudWatchLogsClient(unittest.TestCase):
     def _test_put(self, valid_token):
         with self.test_context() as (log_group, log_stream):
             if valid_token:
-                cache = {}
+                cache = dict()
             else:
                 cache = {
                     f"{log_group}.{log_stream}": 'trash'
                 }
             cloudwatchlogs = CloudWatchLogs()
-            cloudwatchlogs.prepare(log_group, log_stream)
             return cloudwatchlogs.put_log_events(
                 request={
                     'logGroupName': log_group,

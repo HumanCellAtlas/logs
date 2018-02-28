@@ -18,6 +18,15 @@ class CloudWatchLogs:
         self.client = client
 
     def put_log_events(self, request, sequence_token_cache):
+        try:
+            return self._put_log_events(request, sequence_token_cache)
+        except ClientError as e:
+            if e.response.get("Error", {}).get("Code") != 'ResourceNotFoundException':
+                raise e
+            self.prepare(request['logGroupName'], request['logStreamName'])
+            return self._put_log_events(request, sequence_token_cache)
+
+    def _put_log_events(self, request, sequence_token_cache):
         cache_key = f"{request['logGroupName']}.{request['logStreamName']}"
         try:
             if cache_key in sequence_token_cache:
@@ -36,15 +45,16 @@ class CloudWatchLogs:
                 )
             print(f"{request['logGroupName']}: put {len(request['logEvents'])} log events, next sequence token is {response['nextSequenceToken']}")
         except ClientError as e:
-            if e.response.get("Error", {}).get("Code") != 'InvalidSequenceTokenException':
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code not in {'InvalidSequenceTokenException', 'DataAlreadyAcceptedException'}:
                 raise e
             correct_sequence_token = str(e).split(' ')[-1]
-            print(f"{request['logGroupName']}: Invalid sequence token, new token is {correct_sequence_token}.")
+            print(f"{request['logGroupName']}: handling {error_code}, new token is {correct_sequence_token}.")
             if correct_sequence_token != 'null':
                 sequence_token_cache[cache_key] = correct_sequence_token
             else:
                 sequence_token_cache.pop(cache_key, None)
-            response = self.put_log_events(request, sequence_token_cache)
+            response = self._put_log_events(request, sequence_token_cache)
 
         sequence_token_cache[cache_key] = response['nextSequenceToken']
         return response
