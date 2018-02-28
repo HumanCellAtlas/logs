@@ -112,13 +112,39 @@ exports.handler = (event, context, callback) => {
     })).then(recs => callback(null, { records: recs }));
 };
 
+// braceBounds
+// a fast _heuristic_ for finding start and end indices of JSON in a log line
+// does not validate or extract multiple JSON objects
+function braceBounds(str) {
+    start = -1;
+    for (var i = 0; i < str.length-1; i++) {
+        c = str.charAt(i);
+        if (start == -1 && c == '{') {
+            start = i;
+            break
+        }
+    }
+    if (start != -1) {
+        for (var i = (str.length-1); i > start; i--) {
+            c = str.charAt(i);
+            if (c == '}') {
+                return {
+                    startIndex: start,
+                    endIndex: i,
+                };
+            }
+        }
+    }
+    return null;
+}
+
 function parseJson(str) {
     try {
-        const startIndex = str.indexOf('{');
-        if (startIndex == -1) {
+        const bounds = braceBounds(str);
+        if (bounds === null) {
             return {};
         }
-        const probablyJsonString = str.slice(startIndex, str.length);
+        const probablyJsonString = str.slice(bounds.startIndex, bounds.endIndex+1);
         return JSON.parse(probablyJsonString);
     } catch (e) {
         return {};
