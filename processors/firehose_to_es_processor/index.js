@@ -96,9 +96,8 @@ exports.handler = (event, context, callback) => {
                 // without overloading the total number of fields
                 const json = parseJson(payload.message);
                 for (var key of Object.keys(json)) {
-                    if (typeof json[key] === "object") {
-                        output[key] = JSON.stringify(json[key])
-                    }
+                    const value = (typeof json[key] === "object") ? JSON.stringify(json[key]) : json[key];
+                    output[key] = value;
                 }
                 // final serialization
                 const output_str = JSON.stringify(output);
