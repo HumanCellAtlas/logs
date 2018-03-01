@@ -13,14 +13,14 @@ build:
 
 .PHONY: plan
 plan:
-	@terraform plan \
+	terraform plan \
 		-var "account_id=$(ACCOUNT_ID)" \
 		-var "target_zip_path=$(TARGET)" \
 		-var "kms_key_arn=$(KMS_KEY_ARN)"
 
 .PHONY: deploy
 deploy:
-	@terraform apply \
+	terraform apply \
 		-var "account_id=$(ACCOUNT_ID)" \
 		-var "target_zip_path=$(TARGET)" \
 		-var "kms_key_arn=$(KMS_KEY_ARN)" \
