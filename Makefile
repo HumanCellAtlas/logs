@@ -20,7 +20,7 @@ infrastructure:
 	./infrastructure.sh apply
 
 .PHONY: deploy
-deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-firehose-cwl-processor deploy-cwl-to-slack-notifier deploy-cwl-firehose-subscriber
+deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-cwl-to-slack-notifier deploy-cwl-firehose-subscriber
 
 .PHONY: deploy-gcp-to-cwl
 deploy-gcp-to-cwl:
