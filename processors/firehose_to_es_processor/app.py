@@ -124,7 +124,16 @@ def processRecords(records, records_to_reingest):
                 }
 
 
-def putRecords(streamName, records, client, attemptsMade, maxAttempts):
+def chunk_put_records(streamName, records, client, attemptsMade, maxAttempts):
+    """Yield successive chunks from records."""
+    # remove hardcoded 450 into higher level variable
+    for i in xrange(0, len(records), 450):
+        chunked_records = records[i:i + 450]
+        print('Reingesting %d records chunked' % (len(chunked_records)))
+        put_record_chunk(streamName, chunked_records, client, attemptsMade, maxAttempts)
+
+
+def put_record_chunk(streamName, records, client, attemptsMade, maxAttempts):
     failedRecords = []
     codes = []
     errMsg = ''
@@ -147,8 +156,8 @@ def putRecords(streamName, records, client, attemptsMade, maxAttempts):
 
     if len(failedRecords) > 0:
         if attemptsMade + 1 < maxAttempts:
-            print('Some records failed while calling PutRecords, retrying. %s' % (errMsg))
-            putRecords(streamName, failedRecords, client, attemptsMade + 1, maxAttempts)
+            print('Some records failed while calling put_record_chunk, retrying. %s' % (errMsg))
+            put_record_chunk(streamName, failedRecords, client, attemptsMade + 1, maxAttempts)
         else:
             raise RuntimeError('Could not put records after %s attempts. %s' % (str(maxAttempts), errMsg))
 
@@ -175,12 +184,12 @@ def handler(event, context):
 
     if len(records_to_reingest) > 0:
         client = boto3.client('firehose', region_name=region)
-        putRecords(streamName, records_to_reingest, client, attemptsMade=0, maxAttempts=20)
-        print('Reingested %d records' % (len(records_to_reingest)))
+        chunk_put_records(streamName, records_to_reingest, client, attemptsMade=0, maxAttempts=20)
+        print('Reingested %d records total' % (len(records_to_reingest)))
     else:
         print('No records to be reingested')
 
-    print('records length');
-    print(len(records));
+    print('records length')
+    print(len(records))
 
     return {"records": records}
