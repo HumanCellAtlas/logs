@@ -18,9 +18,13 @@ build:
 	mkdir target
 	zip -r $(TARGET) *.py
 
+.PHONY: init
+init:
+	[[ -d .terraform ]] || terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
+
 .PHONY: deploy
 deploy: build
-	terraform apply \
+	@terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
 		-var "blacklisted_log_groups=${BLACKLISTED_LOG_GROUPS}" \

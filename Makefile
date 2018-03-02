@@ -15,6 +15,10 @@ test:
 	$(MAKE) -C es_managers/es_idx_manager/ test
 	$(MAKE) -C subscribers/cwl_firehose_subscriber/ test
 
+.PHONY: init
+init:
+	terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
+
 .PHONY: infrastructure
 infrastructure:
 	./infrastructure.sh apply
@@ -24,23 +28,23 @@ deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-cwl-to-slack-notifie
 
 .PHONY: deploy-gcp-to-cwl
 deploy-gcp-to-cwl:
-	DEPLOYMENT_STAGE=staging make -C exporters/gcp_to_cwl/ build deploy
+	DEPLOYMENT_STAGE=staging $(MAKE) -C exporters/gcp_to_cwl/ build deploy
 
 .PHONY: deploy-cwl-to-slack-notifier
 deploy-cwl-to-slack-notifier:
-	DEPLOYMENT_STAGE=staging make -C exporters/cwl_to_slack/ build deploy
+	DEPLOYMENT_STAGE=staging $(MAKE) -C exporters/cwl_to_slack/ build init deploy
 
 .PHONY: deploy-es-idx-manager
 deploy-es-idx-manager:
-	DEPLOYMENT_STAGE=staging make -C es_managers/es_idx_manager/ build deploy
+	DEPLOYMENT_STAGE=staging $(MAKE) -C es_managers/es_idx_manager/ build deploy
 
 .PHONY: deploy-firehose-cwl-processor
 deploy-firehose-cwl-processor:
-	make -C processors/firehose_to_es_processor/ build publish deploy
+	$(MAKE) -C processors/firehose_to_es_processor/ build publish deploy
 
 .PHONY: deploy-cwl-firehose-subscriber
 deploy-cwl-firehose-subscriber:
-	make -C subscribers/cwl_firehose_subscriber/ build deploy
+	$(MAKE) -C subscribers/cwl_firehose_subscriber/ build init deploy
 
 .PHONY: encrypt
 encrypt:
