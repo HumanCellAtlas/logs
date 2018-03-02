@@ -27,8 +27,8 @@ before_install:
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip -o /tmp/terraform.zip
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
-- export PATH=$PATH:./external_binaries/
-- terraform init -backend-config="bucket=$TERRAFORM_BUCKET"
+- export PATH=$PATH:`pwd`/external_binaries/
+- make init
 # aws
 - pip install awscli --upgrade
 # needed for external data source
@@ -40,7 +40,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script: "export PATH=$PATH:./external_binaries/ && make deploy-apps"
+  script: make deploy-apps
   skip_cleanup: true
   on:
     branch: master
