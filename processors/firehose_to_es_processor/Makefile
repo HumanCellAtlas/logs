@@ -7,7 +7,7 @@ build:
 	rm -rf target
 	mkdir target
 	npm install
-	zip -r $(TARGET) *.js package.json package-lock.json
+	zip -r $(TARGET) *.py
 
 .PHONY: publish
 publish:
