@@ -40,9 +40,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script:
-  - export PATH=$PATH:./external_binaries/
-  - make deploy-apps
+  script: "export PATH=$PATH:./external_binaries/ && make deploy-apps"
   skip_cleanup: true
   on:
     branch: master
