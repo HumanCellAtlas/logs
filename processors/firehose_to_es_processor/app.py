@@ -33,14 +33,10 @@ The code below will:
 1) Gunzip the data
 2) Parse the json
 3) Set the result to ProcessingFailed for any record whose messageType is not DATA_MESSAGE, thus redirecting them to the
-   processing error output. Such records do not contain any log events. You can modify the code to set the result to
-   Dropped instead to get rid of these records completely.
+   processing error output. Such records do not contain any log events.
 4) For records whose messageType is DATA_MESSAGE, extract the individual log events from the logEvents field, and pass
-   each one to the transformLogEvent method. You can modify the transformLogEvent method to perform custom
-   transformations on the log events.
-5) Concatenate the result from (4) together and set the result as the data of the record returned to Firehose. Note that
-   this step will not add any delimiters. Delimiters should be appended by the logic within the transformLogEvent
-   method.
+   each one to the transformLogEvent method. Individual parents with more than one children log records are transformed, encoded, and requeued for ingestion.
+5) Transformed records are sent back to kinesis firehose ready for the final destination.
 6) Any additional records which exceed 6MB will be re-ingested back into Firehose.
 
 """
@@ -51,6 +47,34 @@ import gzip
 import StringIO
 import boto3
 from datetime import datetime
+
+
+def json_bounds(data):
+    beginning_index = None
+    end_index = None
+
+    for idx, char in enumerate(data):
+        if beginning_index is None and char == "{":
+            beginning_index = idx
+        elif beginning_index and end_index is None and char == "}":
+            end_index = idx
+            break
+
+    if beginning_index and end_index:
+        return data[beginning_index:end_index + 1]
+
+    return data
+
+
+def parse_json(data):
+    formatted_data = json_bounds(data)
+    try:
+        json_valid_data = formatted_data.replace("'", '"')
+        formatted_data = json.loads(json_valid_data)
+    except:
+        pass
+
+    return formatted_data
 
 
 def transformLogEvent(log_event, data):
@@ -67,13 +91,20 @@ def transformLogEvent(log_event, data):
     timestamp_in_seconds = log_event["timestamp"] / 1000.0
     transformed_timestamp = datetime.fromtimestamp(timestamp_in_seconds).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
     transformed_payload = {
-        "@message": log_event["message"],
         "@id": log_event["id"],
         "@timestamp": transformed_timestamp,
         "@owner": data["owner"],
         "@log_group": data["logGroup"],
         "@log_stream": data["logStream"]
     }
+    transformed_message = parse_json(log_event["message"])
+    if type(transformed_message) == dict:
+        transformed_payload["@message"] = json.dumps(transformed_message)
+        for k, v in transformed_message.iteritems():
+            transformed_payload[k] = json.dumps(v)
+    else:
+        transformed_payload["@message"] = log_event["message"]
+
     return transformed_payload
 
 
@@ -189,7 +220,6 @@ def handler(event, context):
     else:
         print('No records to be reingested')
 
-    print('records length')
-    print(len(records))
+    print('%d records successfully processed for destination' % (len(records)))
 
     return {"records": records}
