@@ -27,5 +27,5 @@ deploy: build
 	@terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
-		# -auto-approve \
+		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
