@@ -195,27 +195,6 @@ resource "aws_iam_role_policy" "gcp_to_cwl" {
 EOF
 }
 
-////
-// Firehose CWL Log processor
-//
-
-resource "aws_iam_role" "firehose_processor" {
-  name               = "firehose-cwl-log-processor-staging"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
 
 resource "aws_iam_role_policy" "firehose_processor" {
   name   = "firehose-cwl-log-processor-staging"
