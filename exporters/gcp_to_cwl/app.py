@@ -96,6 +96,7 @@ def get_log_group(unformatted_log_entry) -> str:
         'gcs_bucket': 'bucket_name',
         'cloud_function': 'function_name',
         'gae_app': 'module_id',
+        'container': 'container_name',
     }
     project_id = unformatted_log_entry['resource']['labels']['project_id']
     resource_type = unformatted_log_entry['resource']['type']
