@@ -80,7 +80,7 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
     function_name = "Firehose-CWL-Processor"
     role = "${aws_iam_role.firehose_processor.arn}"
     handler = "app.handler"
-    runtime = "python2.7"
+    runtime = "python3.6"
     memory_size = 512
     timeout = 120
     source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"

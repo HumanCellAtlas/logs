@@ -32,10 +32,9 @@ The code below will:
 
 1) Gunzip the data
 2) Parse the json
-3) Set the result to ProcessingFailed for any record whose messageType is not DATA_MESSAGE, thus redirecting them to the
-   processing error output. Such records do not contain any log events.
+3) Set the result to Dropped for any record whose messageType is not DATA_MESSAGE. Such records do not contain any log events.
 4) For records whose messageType is DATA_MESSAGE, extract the individual log events from the logEvents field, and pass
-   each one to the transformLogEvent method. Individual parents with more than one children log records are transformed, encoded, and requeued for ingestion.
+   each one to the transform_log_event method. Individual parents with more than one children log records are transformed, encoded, and requeued for ingestion.
 5) Transformed records are sent back to kinesis firehose ready for the final destination.
 6) Any additional records which exceed 6MB will be re-ingested back into Firehose.
 
@@ -44,12 +43,22 @@ The code below will:
 import base64
 import json
 import gzip
-import StringIO
+from io import BytesIO
 import boto3
 from datetime import datetime
 
 
 def json_bounds(data):
+    """
+        Returns indices for opening and closing brackets in incoming data string
+
+        Args:
+        data (string): Input log event data
+
+        Returns
+        (beginning_index, end_index)
+
+    """
     beginning_index = None
     end_index = None
 
@@ -60,84 +69,94 @@ def json_bounds(data):
             end_index = idx
             break
 
-    if beginning_index and end_index:
-        return data[beginning_index:end_index + 1]
-
-    return data
+    return beginning_index, end_index
 
 
 def parse_json(data):
-    formatted_data = json_bounds(data)
-    try:
-        json_valid_data = formatted_data.replace("'", '"')
-        formatted_data = json.loads(json_valid_data)
-    except:
-        pass
+    """
+        Returns extracted JSON if valid or None if not found or invalid from data string
 
-    return formatted_data
+        Args:
+        data (string): Input log event data
+
+        Output:
+        dict
+    """
+    json_bound_loci = json_bounds(data)
+    beginning_index = json_bound_loci[0]
+    end_index = json_bound_loci[1]
+    if beginning_index and end_index:
+        try:
+            formatted_data = data[beginning_index:end_index + 1]
+            json_valid_data = formatted_data.replace("'", '"')
+            formatted_data = json.loads(json_valid_data)
+            return formatted_data
+        except:
+            return {}
+    return {}
 
 
-def transformLogEvent(log_event, data):
+def transform_log_event(log_event, data):
     """Transform each log event.
-
-    The default implementation below just extracts the message and appends a newline to it.
 
     Args:
     log_event (dict): The original log event. Structure is {"id": str, "timestamp": long, "message": str}
 
     Returns:
-    {"message": str, "id": str, "timestamp": str}
+    dict: transformed payload
     """
     timestamp_in_seconds = log_event["timestamp"] / 1000.0
     transformed_timestamp = datetime.fromtimestamp(timestamp_in_seconds).strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z'
     transformed_payload = {
+        "@message": log_event["message"],
         "@id": log_event["id"],
         "@timestamp": transformed_timestamp,
         "@owner": data["owner"],
         "@log_group": data["logGroup"],
         "@log_stream": data["logStream"]
     }
+
     transformed_message = parse_json(log_event["message"])
-    if type(transformed_message) == dict:
+    if transformed_message and type(transformed_message) == dict:
         transformed_payload["@message"] = json.dumps(transformed_message)
-        for k, v in transformed_message.iteritems():
+        for k, v in transformed_message.items():
             transformed_payload[k] = json.dumps(v)
-    else:
-        transformed_payload["@message"] = log_event["message"]
 
     return transformed_payload
 
 
-def processRecords(records, records_to_reingest):
-    for r in records:
-        data = base64.b64decode(r['data'])
-        striodata = StringIO.StringIO(data)
+def parse_records(records, records_to_reingest):
+    for rec in records:
+        data = base64.b64decode(rec['data'])
+        strio_data = BytesIO(data)
         try:
-            with gzip.GzipFile(fileobj=striodata, mode='r') as f:
+            with gzip.GzipFile(fileobj=strio_data, mode='r') as f:
                 data = json.loads(f.read())
-        except IOError:
+        except OSError:
             # likely the data was re-ingested into firehose
             pass
 
-        recId = r['recordId']
+        recId = rec['recordId']
         # re-ingested data into firehose
-        if type(data) == str:
+
+        if type(data) == bytes:
+            decoded = data.decode()
             yield {
-                'data': data,
+                'data': decoded,
                 'result': 'Ok',
                 'recordId': recId
             }
         elif data['messageType'] != 'DATA_MESSAGE':
             yield {
-                'result': 'ProcessingFailed',
+                'result': 'Dropped',
                 'recordId': recId
             }
         else:
-            transformed_events = [transformLogEvent(e, data) for e in data['logEvents']]
+            transformed_events = [transform_log_event(e, data) for e in data['logEvents']]
             if len(transformed_events) > 1:
                 for event in transformed_events:
                     json_event = json.dumps(event)
-                    data = base64.b64encode(buffer(json_event))
+                    data = base64.b64encode(json_event.encode()).decode()
                     records_to_reingest.append({
                         'Data': data
                     })
@@ -147,7 +166,7 @@ def processRecords(records, records_to_reingest):
                 }
             else:
                 json_event = json.dumps(transformed_events[0])
-                data = base64.b64encode(buffer(json_event))
+                data = base64.b64encode(json_event.encode()).decode()
                 yield {
                     'data': data,
                     'result': 'Ok',
@@ -155,58 +174,48 @@ def processRecords(records, records_to_reingest):
                 }
 
 
-def chunk_put_records(streamName, records, client, attemptsMade, maxAttempts):
+def chunk_put_records(stream_name, records, client, attempts_made, max_attempts, chunk_size=450):
     """Yield successive chunks from records."""
-    # remove hardcoded 450 into higher level variable
-    for i in xrange(0, len(records), 450):
-        chunked_records = records[i:i + 450]
+    for i in range(0, len(records), chunk_size):
+        chunked_records = records[i:i + chunk_size]
         print('Reingesting %d records chunked' % (len(chunked_records)))
-        put_record_chunk(streamName, chunked_records, client, attemptsMade, maxAttempts)
+        put_record_chunk(stream_name, chunked_records, client, attempts_made, max_attempts)
 
 
-def put_record_chunk(streamName, records, client, attemptsMade, maxAttempts):
-    failedRecords = []
-    codes = []
-    errMsg = ''
+def put_record_chunk(stream_name, records, client, attempts_made, max_attempts):
+    """Put record chunk to delivery stream with built in retry"""
+    failed_records = []
     try:
-        response = client.put_record_batch(DeliveryStreamName=streamName, Records=records)
+        response = client.put_record_batch(DeliveryStreamName=stream_name, Records=records)
     except Exception as e:
-        failedRecords = records
-        errMsg = str(e)
+        failed_records = records
 
-    # if there are no failedRecords (put_record_batch succeeded), iterate over the response to gather results
-    if not failedRecords and response['FailedPutCount'] > 0:
+    # if there are no failed_records (put_record_batch succeeded), iterate over the response to gather ind failures
+    if not failed_records and response['FailedPutCount'] > 0:
         for idx, res in enumerate(response['RequestResponses']):
-            if not res['ErrorCode']:
-                continue
+            if res.get('ErrorCode'):
+                failed_records.append(records[idx])
 
-            codes.append(res['ErrorCode'])
-            failedRecords.append(records[idx])
-
-        errMsg = 'Individual error codes: ' + ','.join(codes)
-
-    if len(failedRecords) > 0:
-        if attemptsMade + 1 < maxAttempts:
-            print('Some records failed while calling put_record_chunk, retrying. %s' % (errMsg))
-            put_record_chunk(streamName, failedRecords, client, attemptsMade + 1, maxAttempts)
+    if len(failed_records) > 0:
+        if attempts_made + 1 < max_attempts:
+            print('Some records failed while calling put_record_chunk, retrying')
+            put_record_chunk(stream_name, failed_records, client, attempts_made + 1, max_attempts)
         else:
-            raise RuntimeError('Could not put records after %s attempts. %s' % (str(maxAttempts), errMsg))
+            raise RuntimeError('Could not put records after %s attempts.' % (str(max_attempts)))
 
 
-def handler(event, context):
-    streamARN = event['deliveryStreamArn']
-    region = streamARN.split(':')[3]
-    streamName = streamARN.split('/')[1]
-
+def process_records(records, region, stream_name):
+    """Wraps processing of records, monitoring bytes and records to reingest"""
     records_to_reingest = []
-    records = list(processRecords(event['records'], records_to_reingest))
-    projectedSize = 0
+    records = list(parse_records(records, records_to_reingest))
+
+    project_size = 0
     for idx, rec in enumerate(records):
-        if rec['result'] == 'ProcessingFailed' or rec['result'] == 'Dropped':
+        if rec['result'] == 'Dropped':
             continue
-        projectedSize += len(rec['data']) + len(rec['recordId'])
-        # 4000000 instead of 6291456 to leave ample headroom for the stuff we didn't account for
-        if projectedSize > 4000000:
+        project_size += len(rec['data']) + len(rec['recordId'])
+        # Lambdas have limited output bytes
+        if project_size > 4000000:
             records_to_reingest.append({
                 'Data': rec['data']
             })
@@ -215,7 +224,7 @@ def handler(event, context):
 
     if len(records_to_reingest) > 0:
         client = boto3.client('firehose', region_name=region)
-        chunk_put_records(streamName, records_to_reingest, client, attemptsMade=0, maxAttempts=20)
+        chunk_put_records(stream_name, records_to_reingest, client, attempts_made=0, max_attempts=20)
         print('Reingested %d records total' % (len(records_to_reingest)))
     else:
         print('No records to be reingested')
@@ -223,3 +232,13 @@ def handler(event, context):
     print('%d records successfully processed for destination' % (len(records)))
 
     return {"records": records}
+
+
+def handler(event, context):
+    """Main function"""
+    stream_arn = event['deliveryStreamArn']
+    region = stream_arn.split(':')[3]
+    stream_name = stream_arn.split('/')[1]
+    input_records = event['records']
+    output = process_records(input_records, region, stream_name)
+    return output

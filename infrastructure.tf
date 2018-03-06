@@ -195,38 +195,6 @@ resource "aws_iam_role_policy" "gcp_to_cwl" {
 EOF
 }
 
-
-resource "aws_iam_role_policy" "firehose_processor" {
-  name   = "firehose-cwl-log-processor-staging"
-  role   = "firehose-cwl-log-processor-staging"
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:logs:*:*:*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:*:*:*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "firehose:*",
-            "Resource": "${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.arn}"
-        }
-    ]
-}
-EOF
-  depends_on = ["aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging"]
-}
-
 ////
 // Firehose to ES
 //
