@@ -68,9 +68,9 @@ def json_bounds(data):
             unclosed_brace_count += 1
             if beginning_index is None:
                 beginning_index = idx
-        elif beginning_index and char == "}":
+        elif char == "}":
             unclosed_brace_count -= 1
-            if end_index is None and unclosed_brace_count == 0:
+            if beginning_index is not None and end_index is None and unclosed_brace_count == 0:
                 end_index = idx
                 break
 
@@ -90,7 +90,7 @@ def parse_json(data):
     json_bound_loci = json_bounds(data)
     beginning_index = json_bound_loci[0]
     end_index = json_bound_loci[1]
-    if beginning_index and end_index:
+    if beginning_index is not None and end_index is not None:
         try:
             formatted_data = data[beginning_index:end_index + 1]
             json_valid_data = formatted_data.replace("'", '"')

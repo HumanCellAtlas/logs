@@ -59,6 +59,11 @@ class TestApp(unittest.TestCase):
         test_output = app.parse_json(test_input)
         self.assertEqual(test_output, {'hi': {'hi': 'hello'}})
 
+        # Should extract if message is only json
+        test_input = "{'test': {'hi': 'hello'}}"
+        test_output = app.parse_json(test_input)
+        self.assertEqual(test_output, {'test': {'hi': 'hello'}})
+
     def test_transform_log_event(self):
         # Test transform log event with embedded json
         test_data = {"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream"}
