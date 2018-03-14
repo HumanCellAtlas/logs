@@ -60,14 +60,19 @@ def json_bounds(data):
 
     """
     beginning_index = None
+    unclosed_brace_count = 0
     end_index = None
 
     for idx, char in enumerate(data):
-        if beginning_index is None and char == "{":
-            beginning_index = idx
-        elif beginning_index and end_index is None and char == "}":
-            end_index = idx
-            break
+        if char == "{":
+            unclosed_brace_count += 1
+            if beginning_index is None:
+                beginning_index = idx
+        elif beginning_index and char == "}":
+            unclosed_brace_count -= 1
+            if end_index is None and unclosed_brace_count == 0:
+                end_index = idx
+                break
 
     return beginning_index, end_index
 

@@ -28,6 +28,11 @@ class TestApp(unittest.TestCase):
         test_output = app.json_bounds(test_input)
         self.assertEqual(test_output, (4, 9))
 
+        # Should extract outer bounds if there is nested json
+        test_input = "blue{'hi': {'hi': hello'}}blueeee"
+        test_output = app.json_bounds(test_input)
+        self.assertEqual(test_output, (4, 25))
+
     def test_parse_json(self):
         # Should extract dict for valid json in data
         test_input = "blue{'hi': 'hello'}blueeee"
@@ -48,6 +53,11 @@ class TestApp(unittest.TestCase):
         test_input = 'blue{"hi"}blueeee'
         test_output = app.parse_json(test_input)
         self.assertEqual(test_output, {})
+
+        # Should extract valid nested json
+        test_input = "blue{'hi': {'hi': 'hello'}}blueeee"
+        test_output = app.parse_json(test_input)
+        self.assertEqual(test_output, {'hi': {'hi': 'hello'}})
 
     def test_transform_log_event(self):
         # Test transform log event with embedded json
