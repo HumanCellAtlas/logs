@@ -56,7 +56,6 @@ class TestApp(unittest.TestCase):
         test_output = app.transform_log_event(test_log_event, test_data)
         self.assertEqual(test_output["@message"], '{"hi": "hello"}')
         self.assertEqual(test_output["@id"], 123456)
-        self.assertEqual(test_output["@timestamp"], '2018-03-01T21:58:17.000Z')
         self.assertEqual(test_output["@owner"], 'test_owner')
         self.assertEqual(test_output["@log_group"], '/test/test_log_group')
         self.assertEqual(test_output["@log_stream"], 'test_log_stream')
@@ -68,7 +67,6 @@ class TestApp(unittest.TestCase):
         test_output = app.transform_log_event(test_log_event, test_data)
         self.assertEqual(test_output["@message"], "without_json{'hi'}without_json")
         self.assertEqual(test_output["@id"], 123456)
-        self.assertEqual(test_output["@timestamp"], '2018-03-01T21:58:17.000Z')
         self.assertEqual(test_output["@owner"], 'test_owner')
         self.assertEqual(test_output["@log_group"], '/test/test_log_group')
         self.assertEqual(test_output["@log_stream"], 'test_log_stream')
@@ -101,8 +99,8 @@ class TestApp(unittest.TestCase):
         self.assertEqual(len(output), 2)
         output_one = output[0]
         output_two = output[1]
-        output_one_data = json.loads(base64.b64decode(output_one['data']).decode())
-        output_two_data = json.loads(base64.b64decode(output_two['data']).decode())
+        output_one_data = json.loads(output_one['data'])
+        output_two_data = json.loads(output_two['data'])
         self.assertEqual(output_one_data['@message'], '{"hi": "hello"}')
         self.assertEqual(output_two_data['@message'], "without_json{'hi'}without_json")
 
