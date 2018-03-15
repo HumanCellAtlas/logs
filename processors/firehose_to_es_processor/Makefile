@@ -1,22 +1,31 @@
 ZIP_FILE := FirehoseCWLLogsProcessor_App.zip
 TARGET := target/$(ZIP_FILE)
-LAMBDA_CONFIG := ${PROJECT_ROOT}/config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json
+
+default: build
+
+.PHONY: install
+install:
+	virtualenv -p python3 venv
+	. venv/bin/activate && pip install -r requirements.txt
+
+.PHONY: test
+test:
+	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
 build:
 	rm -rf target
 	mkdir target
-	npm install
-	zip -r $(TARGET) *.js package.json package-lock.json
+	zip -r $(TARGET) *.py
 
-.PHONY: publish
-publish:
-	aws s3 rm s3://$(CODE_DEPLOYMENT_BUCKET)/$(ZIP_FILE)
-	aws s3 cp $(TARGET) s3://$(CODE_DEPLOYMENT_BUCKET)/$(ZIP_FILE)
+.PHONY: init
+init:
+	[[ -d .terraform ]] || terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
 
 .PHONY: deploy
-deploy:
-	aws lambda update-function-code \
-		--function-name $(shell cat $(LAMBDA_CONFIG) | jq -r '.FunctionName') \
-		--s3-bucket $(shell cat $(LAMBDA_CONFIG) | jq -r '.Code.S3Bucket') \
-		--s3-key $(shell cat $(LAMBDA_CONFIG) | jq -r '.Code.S3Key')
+deploy: build
+	@terraform apply \
+		-var "target_zip_path=${TARGET}" \
+		-var "account_id=${ACCOUNT_ID}" \
+		-auto-approve \
+		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
