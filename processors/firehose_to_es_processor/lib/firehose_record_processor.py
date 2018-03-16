@@ -1,6 +1,6 @@
 import json
 import base64
-from models.firehose_record import FirehoseRecord
+from lib.firehose_record import FirehoseRecord
 
 
 class FirehoseRecordProcessor():

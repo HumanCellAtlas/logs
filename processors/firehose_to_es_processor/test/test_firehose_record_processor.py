@@ -6,7 +6,7 @@ import gzip
 import base64
 
 
-class TestApp(unittest.TestCase):
+class TestFirehoseRecordProcessor(unittest.TestCase):
 
     def test_run_with_reingested_message_ready_for_es(self):
         data = {

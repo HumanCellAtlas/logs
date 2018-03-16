@@ -16,7 +16,7 @@ test:
 build:
 	rm -rf target
 	mkdir target
-	zip -r $(TARGET) *.py
+	zip -r $(TARGET) *.py lib/*.py
 
 .PHONY: init
 init:

@@ -3,10 +3,10 @@ import json
 from io import BytesIO
 import gzip
 import base64
-from models.firehose_record import FirehoseRecord
+from lib.firehose_record import FirehoseRecord
 
 
-class TestApp(unittest.TestCase):
+class TestFirehoseRecord(unittest.TestCase):
 
     data = {"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}
     data["logEvents"] = [{"id": 123456, "timestamp": 1519970297000, "message": "with_json{'hi': 'hello'}with_json"}, {"id": 123456, "timestamp": 1519970297000, "message": "with_json{'hi': 'hello'}with_json"}]
