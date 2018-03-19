@@ -14,8 +14,8 @@ class FirehoseRecord():
         self.message_type = None
 
     def decode_and_unzip(self):
-        decoded_data = base64.b64decode(self.data)
-        strio_data = BytesIO(decoded_data)
+        self.data = base64.b64decode(self.data)
+        strio_data = BytesIO(self.data)
         try:
             with gzip.GzipFile(fileobj=strio_data, mode='r') as f:
                 self.json_data = json.loads(f.read())

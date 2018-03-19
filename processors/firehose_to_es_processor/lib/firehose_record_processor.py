@@ -25,12 +25,7 @@ class FirehoseRecordProcessor():
             else:
                 # Normal record with one or multiple untransformed cloudwatch log events
                 record.transform_and_extract_from_log_events_in_record()
-                if len(record.transformed_log_events) == 1:
-                    json_event = json.dumps(record.transformed_log_events[0])
-                    record.data = base64.b64encode(json_event.encode())
-                    self._mark_record_ready_for_elastic_search(record)
-                else:
-                    self._mark_record_for_reingestion(record)
+                self._mark_record_for_reingestion(record)
 
         self._pare_down_records_for_max_output()
 

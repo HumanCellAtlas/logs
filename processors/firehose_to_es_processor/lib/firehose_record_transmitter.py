@@ -11,6 +11,7 @@ class FirehoseRecordTransmitter():
     def transmit(self):
         self._chunk_records()
         for record_chunk in self.record_chunks:
+            print('Reingesting %s records into firehose.' % (str(len(record_chunk))))
             self._transmit_record_chunk(record_chunk)
 
     def _transmit_record_chunk(self, record_chunk, attempts_made=0, max_attempts=20):
@@ -18,7 +19,7 @@ class FirehoseRecordTransmitter():
         failed_records = []
         try:
             response = self.client.put_record_batch(DeliveryStreamName=self.stream_name, Records=record_chunk)
-        except Exception as e:
+        except:
             failed_records = record_chunk
 
         # if there are no failed_records (put_record_batch succeeded), iterate over the response to gather ind failures
@@ -33,8 +34,6 @@ class FirehoseRecordTransmitter():
                 self._transmit_record_chunk(failed_records, attempts_made + 1, max_attempts)
             else:
                 raise RuntimeError('Could not put records after %s attempts.' % (str(max_attempts)))
-        else:
-            print('No records to be reingested')
 
     def _chunk_records(self, chunk_size=450):
         """Yield successive chunks from records."""

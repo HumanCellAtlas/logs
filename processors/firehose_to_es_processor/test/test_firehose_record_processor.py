@@ -27,7 +27,7 @@ class TestFirehoseRecordProcessor(unittest.TestCase):
         self.assertEqual(firehose_record_processor.output_records[0]['result'], 'Ok')
         self.assertEqual(output_records[0]["recordId"], "123")
 
-        json_b64_decoded_data = json.loads(base64.b64decode(output_records[0]["data"]).decode())
+        json_b64_decoded_data = json.loads(output_records[0]["data"])
         self.assertEqual(json_b64_decoded_data["@log_group"], "test log group")
         self.assertEqual(json_b64_decoded_data["@log_stream"], "test log stream")
         self.assertEqual(json_b64_decoded_data["@message"], "test message")
@@ -56,7 +56,7 @@ class TestFirehoseRecordProcessor(unittest.TestCase):
         firehose_record_processor = FirehoseRecordProcessor(input_records)
         firehose_record_processor.run()
         output_records = firehose_record_processor.output_records
-        self.assertEqual(output_records[0]['result'], 'Ok')
+        self.assertEqual(output_records[0]['result'], 'Dropped')
         self.assertEqual(output_records[0]["recordId"], "12345")
 
     def test_run_with_multiple_untransformed_log_events_in_record(self):

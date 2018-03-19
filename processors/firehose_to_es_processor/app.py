@@ -49,7 +49,8 @@ def handler(event, context):
     """Main function"""
 
     input_records = event['records']
-    firehose_record_processor = FirehoseRecordProcessor(input_records).run()
+    firehose_record_processor = FirehoseRecordProcessor(input_records)
+    firehose_record_processor.run()
 
     records_to_reingest = firehose_record_processor.records_to_reingest
     if len(records_to_reingest) > 0:
@@ -59,4 +60,5 @@ def handler(event, context):
         FirehoseRecordTransmitter(region, stream_name, records_to_reingest).transmit()
 
     output_records = firehose_record_processor.output_records
+    print('Output of %s completed records to firehose.' % (str(len(output_records))))
     return {"records": output_records}
