@@ -32,9 +32,14 @@ class SynchronousPullClient:
         self.client.acknowledge(self.subscription, ack_ids)
 
     def to_generator(self, batch_size):
-        messages = None
-        while messages is None or len(messages) == batch_size:
+        low_poll_count = 0
+        while low_poll_count < 2:
             messages, ack_ids = self.pull(batch_size)
+            if len(messages) < batch_size:
+                low_poll_count += 0
+            else:
+                low_poll_count = 0
+
             if len(messages) > 0:
                 yield messages
                 self.ack(ack_ids)
