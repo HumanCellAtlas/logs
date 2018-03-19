@@ -32,7 +32,9 @@ def handler(input, context):
     sequence_token_cache = {}
 
     for unformatted_log_entries in batch_client.to_generator(batch_size):
-        requests = group_entries_into_requests(unformatted_log_entries)
+        print(json.dumps({'operation': 'batch_pull', 'num_unformatted_log_entries': len(unformatted_log_entries)}))
+        requests, log_group_counts = group_entries_into_requests(unformatted_log_entries)
+        print(json.dumps({**{'operation': 'format_log_entries'}, **{'counts': log_group_counts}}))
         for request in requests:
             try:
                 cloudwatchlogs.put_log_events(request, sequence_token_cache)
@@ -50,29 +52,34 @@ def file(filename, mode):
         f.close()
 
 
-def group_entries_into_requests(unformatted_log_entries) -> typing.List[dict]:
+def group_entries_into_requests(unformatted_log_entries) -> (typing.List[dict], dict):
     twenty_three_hours_ago = (
         datetime.utcnow() - timedelta(hours=23)).timestamp() * 1000
     requests = {}
+    log_group_counts = {}
 
     for unformatted_entry in unformatted_log_entries:
         log_entry = format_log_entry(unformatted_entry)
         log_group = get_log_group(unformatted_entry)
 
         if log_group not in requests:
+            log_group_counts[log_group] = {'filtered': 0, 'unfiltered': 0}
             requests[log_group] = {
                 'logGroupName': log_group,
                 'logStreamName': 'default',
                 'logEvents': []
             }
 
+        log_group_counts[log_group]['unfiltered'] += 1
+
         if log_entry['timestamp'] > twenty_three_hours_ago and log_entry['message'] is not None:
+            log_group_counts[log_group]['filtered'] += 1
             requests[log_group]['logEvents'].append(log_entry)
 
     for log_group, request in requests.items():
         request['logEvents'].sort(key=lambda r: r['timestamp'])
 
-    return list(filter(lambda r: len(r['logEvents']) > 0, requests.values()))
+    return list(filter(lambda r: len(r['logEvents']) > 0, requests.values())), log_group_counts
 
 
 def format_log_entry(unformatted_log_entry) -> dict:
