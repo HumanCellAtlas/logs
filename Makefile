@@ -1,6 +1,6 @@
 .PHONY: install
 install:
-	virtualenv venv && . venv/bin/activate && pip install -r requirements.txt
+	$(MAKE) -C infrastructure/ install
 	$(MAKE) -C apps/gcp_to_cwl/ install
 	$(MAKE) -C apps/es_idx_manager/ install
 	$(MAKE) -C apps/cwl_firehose_subscriber/ install
@@ -21,9 +21,8 @@ test:
 init:
 	terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
 
-.PHONY: infrastructure
-infrastructure:
-	./infrastructure.sh apply
+infrastructure-%:
+	cd infrastructure && . venv/bin/activate && ./infrastructure.sh $*
 
 .PHONY: deploy
 deploy-apps: deploy-gcp-to-cwl deploy-es-idx-manager deploy-cwl-to-slack-notifier deploy-cwl-firehose-subscriber deploy-firehose-cwl-processor

@@ -36,7 +36,7 @@ before_install:
 install:
 - make install
 script:
-- "./infrastructure.sh plan"
+- make infrastructure-plan
 - make test
 deploy:
 - provider: script
