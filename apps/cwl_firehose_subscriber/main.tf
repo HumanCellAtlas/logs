@@ -16,6 +16,7 @@ terraform {
   backend "s3" {
     key = "logs/cwl-firehose-subscriber.tfstate"
     region = "us-east-1"
+    bucket = "org-humancellatlas-861229788715-terraform"
   }
 }
 
@@ -141,5 +142,3 @@ resource "aws_lambda_permission" "cwl_firehose_subscriber" {
   principal = "events.amazonaws.com"
   source_arn = "${aws_cloudwatch_event_rule.create_log_group.arn}"
 }
-
-

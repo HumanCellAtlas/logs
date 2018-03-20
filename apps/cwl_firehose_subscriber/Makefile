@@ -1,5 +1,6 @@
 ZIP_FILE := CWLFirehoseSubscriber_App.zip
-TARGET=${PROJECT_ROOT}/subscribers/cwl_firehose_subscriber/target/$(ZIP_FILE)
+TARGET=target/$(ZIP_FILE)
+MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 default: build
 
@@ -20,13 +21,13 @@ build:
 
 .PHONY: init
 init:
-	[[ -d .terraform ]] || terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
+	[[ -d .terraform ]] || terraform init
 
 .PHONY: deploy
 deploy: build
 	@terraform apply \
-		-var "target_zip_path=${TARGET}" \
-		-var "account_id=${ACCOUNT_ID}" \
-		-var "blacklisted_log_groups=${BLACKLISTED_LOG_GROUPS}" \
+		-var "target_zip_path=$(MAKEFILE_DIR)/$(TARGET)" \
+		-var "account_id=$(ACCOUNT_ID)" \
+		-var "blacklisted_log_groups=$(BLACKLISTED_LOG_GROUPS)" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")

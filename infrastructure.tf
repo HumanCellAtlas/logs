@@ -4,6 +4,7 @@ variable "region" {
 
 provider "aws" {
   region = "${var.region}"
+  profile = "hca"
 }
 
 ////
@@ -15,6 +16,7 @@ terraform {
   backend "s3" {
     key = "logs/terraform.tfstate"
     region = "us-east-1"
+    bucket = "org-humancellatlas-861229788715-terraform"
   }
 }
 
@@ -279,8 +281,6 @@ resource "aws_s3_bucket" "kinesis-es-firehose-failures-staging" {
 ////
 // Firehose ES Delivery Stream
 //
-
-variable "firehose_lambda_arn" {}
 
 resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
   name        = "Kinesis-Firehose-ELK-staging"
