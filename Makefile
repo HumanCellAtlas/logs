@@ -1,3 +1,12 @@
+MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+.PHONY: init
+init:
+	cd infrastructure/ && $(MAKEFILE_DIR)/scripts/init.sh
+	cd apps/cwl_to_slack/ && $(MAKEFILE_DIR)/scripts/init.sh
+	cd apps/firehose_to_es_processor/ && $(MAKEFILE_DIR)/scripts/init.sh
+	cd apps/cwl_firehose_subscriber/ && $(MAKEFILE_DIR)/scripts/init.sh
+
 .PHONY: install
 install:
 	$(MAKE) -C infrastructure/ install
@@ -25,7 +34,7 @@ deploy-gcp-to-cwl:
 
 .PHONY: deploy-cwl-to-slack-notifier
 deploy-cwl-to-slack-notifier:
-	DEPLOYMENT_STAGE=staging $(MAKE) -C apps/cwl_to_slack/ build init deploy
+	DEPLOYMENT_STAGE=staging $(MAKE) -C apps/cwl_to_slack/ build deploy
 
 .PHONY: deploy-es-idx-manager
 deploy-es-idx-manager:
@@ -33,11 +42,11 @@ deploy-es-idx-manager:
 
 .PHONY: deploy-firehose-cwl-processor
 deploy-firehose-cwl-processor:
-	$(MAKE) -C apps/firehose_to_es_processor/ build init deploy
+	$(MAKE) -C apps/firehose_to_es_processor/ build deploy
 
 .PHONY: deploy-cwl-firehose-subscriber
 deploy-cwl-firehose-subscriber:
-	$(MAKE) -C apps/cwl_firehose_subscriber/ build init deploy
+	$(MAKE) -C apps/cwl_firehose_subscriber/ build deploy
 
 .PHONY: encrypt
 encrypt:

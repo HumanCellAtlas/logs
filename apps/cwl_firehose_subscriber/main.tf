@@ -16,7 +16,6 @@ terraform {
   backend "s3" {
     key = "logs/cwl-firehose-subscriber.tfstate"
     region = "us-east-1"
-    bucket = "org-humancellatlas-861229788715-terraform"
   }
 }
 
