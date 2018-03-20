@@ -13,10 +13,6 @@ test:
 	$(MAKE) -C apps/cwl_firehose_subscriber/ test
 	$(MAKE) -C apps/firehose_to_es_processor/ test
 
-.PHONY: init
-init:
-	terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
-
 infrastructure-%:
 	cd infrastructure && . venv/bin/activate && ./infrastructure.sh $*
 
