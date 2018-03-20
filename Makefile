@@ -6,10 +6,6 @@ install:
 	$(MAKE) -C apps/cwl_firehose_subscriber/ install
 	$(MAKE) -C apps/firehose_to_es_processor/ install
 
-.PHONY: image
-image:
-	docker build -t trusty-python3 .
-
 .PHONY: test
 test:
 	$(MAKE) -C apps/gcp_to_cwl/ test
