@@ -43,4 +43,3 @@ class SynchronousPullClient:
             if len(messages) > 0:
                 yield messages
                 self.ack(ack_ids)
-

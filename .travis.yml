@@ -28,15 +28,15 @@ before_install:
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
 - export PATH=$PATH:`pwd`/external_binaries/
-- make init
 # aws
 - pip install awscli --upgrade
 # needed for external data source
 - pip install boto3 --upgrade
 install:
+- make init
 - make install
 script:
-- "./infrastructure.sh plan"
+- make infrastructure-plan
 - make test
 deploy:
 - provider: script

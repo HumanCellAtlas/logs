@@ -74,7 +74,7 @@ class TestApp(unittest.TestCase):
                 'logEvents': [recent_log_entry, recent_log_entry]
             },
         ]
-        self.assertEqual(expected, result)
+        self.assertEqual(result, expected)
 
     def test_get_log_group(self):
         self.assertEqual(

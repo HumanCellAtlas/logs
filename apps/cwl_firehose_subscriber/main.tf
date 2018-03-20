@@ -141,5 +141,3 @@ resource "aws_lambda_permission" "cwl_firehose_subscriber" {
   principal = "events.amazonaws.com"
   source_arn = "${aws_cloudwatch_event_rule.create_log_group.arn}"
 }
-
-

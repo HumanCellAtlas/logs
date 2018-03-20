@@ -4,6 +4,7 @@ variable "region" {
 
 provider "aws" {
   region = "${var.region}"
+  profile = "hca"
 }
 
 terraform {
