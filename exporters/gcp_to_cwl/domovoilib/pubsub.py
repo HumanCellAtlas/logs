@@ -36,7 +36,7 @@ class SynchronousPullClient:
         while low_poll_count < 2:
             messages, ack_ids = self.pull(batch_size)
             if len(messages) < batch_size:
-                low_poll_count += 0
+                low_poll_count += 1
             else:
                 low_poll_count = 0
 
