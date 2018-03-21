@@ -59,23 +59,22 @@ class TestApp(unittest.TestCase):
         recent_log_entry['timestamp'] = int(dt_parse(recent_timestamp).timestamp() * 1000)
         unformatted_fn2 = deepcopy(recent_unformatted_log_entry)
         unformatted_fn2['resource']['labels']['function_name'] = 'Fn2'
-        self.assertEqual(
-            app.group_entries_into_requests(
-                [recent_unformatted_log_entry, unformatted_fn2, unformatted_fn2],
-            ),
-            [
-                {
-                    'logGroupName': '/gcp/cool-project/cloud_function/Fn1',
-                    'logStreamName': 'default',
-                    'logEvents': [recent_log_entry]
-                },
-                {
-                    'logGroupName': '/gcp/cool-project/cloud_function/Fn2',
-                    'logStreamName': 'default',
-                    'logEvents': [recent_log_entry, recent_log_entry]
-                },
-            ]
+        result, counts = app.group_entries_into_requests(
+            [recent_unformatted_log_entry, unformatted_fn2, unformatted_fn2],
         )
+        expected = [
+            {
+                'logGroupName': '/gcp/cool-project/cloud_function/Fn1',
+                'logStreamName': 'default',
+                'logEvents': [recent_log_entry]
+            },
+            {
+                'logGroupName': '/gcp/cool-project/cloud_function/Fn2',
+                'logStreamName': 'default',
+                'logEvents': [recent_log_entry, recent_log_entry]
+            },
+        ]
+        self.assertEqual(result, expected)
 
     def test_get_log_group(self):
         self.assertEqual(

@@ -4,6 +4,7 @@ variable "region" {
 
 provider "aws" {
   region = "${var.region}"
+  profile = "hca"
 }
 
 ////
@@ -14,7 +15,6 @@ provider "aws" {
 terraform {
   backend "s3" {
     key = "logs/terraform.tfstate"
-    region = "us-east-1"
   }
 }
 
@@ -143,7 +143,7 @@ EOF
 
 resource "aws_cloudformation_stack" "alerts" {
   name = "CloudTrail-Monitoring"
-  template_body = "${file("config/cloudformation/CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
+  template_body = "${file("./CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
 }
 
 
@@ -280,8 +280,6 @@ resource "aws_s3_bucket" "kinesis-es-firehose-failures-staging" {
 // Firehose ES Delivery Stream
 //
 
-variable "firehose_lambda_arn" {}
-
 resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
   name        = "Kinesis-Firehose-ELK-staging"
   destination = "elasticsearch"
@@ -317,7 +315,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
 }
 
 data "external" "processing_configuration" {
-  program = ["python", "${path.module}/scripts/setup_firehose_processing_config.py"]
+  program = ["python", "./setup_firehose_processing_config.py"]
 
   query = {
     # arbitrary map from strings to strings, passed

@@ -1,45 +1,42 @@
 #!/usr/bin/env bash
 set -a
 # hardcoded or derived variables
-ENCRYPTION_KEY=undefined
 export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
+ENCRYPTION_KEY=undefined
+AWS_REGION=undefined
+BLACKLISTED_LOG_GROUPS=undefined_space_separated
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
 CLOUDTRAIL_NAME=undefined
 CLOUDTRAIL_S3_BUCKET=undefined
 CODE_DEPLOYMENT_BUCKET=undefined
-ES_AUTHORIZED_EMAILS=undefined
+ES_AUTHORIZED_EMAILS=undefined_comma_separated
 ES_DOMAIN_NAME=undefined
-ES_IDX_MANAGER_SETTINGS=undefined
+ES_IDX_MANAGER_SETTINGS=$PROJECT_ROOT/config/ES_IDX_MANAGER_SETTINGS.yaml
 GCLOUD_PROJECT=undefined
+GCP_REGION=undefined
 GOOGLE_APPLICATION_CREDENTIALS=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
-REGION=undefined
-TRAVIS_USER=undefined
 TERRAFORM_BUCKET=undefined
-KMS_KEY_ARN=undefined
-BLACKLISTED_LOG_GROUPS=undefined
+TRAVIS_USER=undefined
 
 USER_DEFINED_VAR_ARRAY=(
+  AWS_REGION
   CLOUDTRAIL_LOG_GROUP_NAME
   CLOUDTRAIL_NAME
   CLOUDTRAIL_S3_BUCKET
   CODE_DEPLOYMENT_BUCKET
-  ES_DOMAIN_NAME
   ES_AUTHORIZED_EMAILS
-  ES_IDX_MANAGER_SETTINGS
+  ES_DOMAIN_NAME
   GCLOUD_PROJECT
+  GCP_REGION
   GOOGLE_APPLICATION_CREDENTIALS
   LOG_TOPIC_SUBSCRIPTION_NAME
-  REGION
-  TRAVIS_USER
   TERRAFORM_BUCKET
+  TRAVIS_USER
 )
 
 ES_ENDPOINT=$(aws es describe-elasticsearch-domain --domain $ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
-FIREHOSE_LAMBDA_NAME=$(cat ${PROJECT_ROOT}/config/iam-policy-templates/firehose-cwl-log-processor-lambda-deployment.json | jq -r '.FunctionName')
-FIREHOSE_LAMBDA_ARN=$(aws lambda get-function --function-name $FIREHOSE_LAMBDA_NAME | jq -r '.Configuration.FunctionArn')
 set +a
-

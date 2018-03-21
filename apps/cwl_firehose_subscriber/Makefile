@@ -1,5 +1,6 @@
-ZIP_FILE := FirehoseCWLLogsProcessor_App.zip
-TARGET := target/$(ZIP_FILE)
+ZIP_FILE := CWLFirehoseSubscriber_App.zip
+TARGET=target/$(ZIP_FILE)
+MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 default: build
 
@@ -16,16 +17,13 @@ test:
 build:
 	rm -rf target
 	mkdir target
-	zip -r $(TARGET) *.py lib/*.py
-
-.PHONY: init
-init:
-	[[ -d .terraform ]] || terraform init -backend-config="bucket=$(TERRAFORM_BUCKET)"
+	zip -r $(TARGET) *.py
 
 .PHONY: deploy
 deploy: build
 	@terraform apply \
-		-var "target_zip_path=${TARGET}" \
-		-var "account_id=${ACCOUNT_ID}" \
+		-var "target_zip_path=$(MAKEFILE_DIR)/$(TARGET)" \
+		-var "account_id=$(ACCOUNT_ID)" \
+		-var "blacklisted_log_groups=$(BLACKLISTED_LOG_GROUPS)" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
