@@ -15,14 +15,7 @@ addons:
     - unzip
     - moreutils
 before_install:
-- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/authorized_emails.enc -out config/authorized_emails
-  -d
-- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/gcp-credentials.json.enc -out
-  config/gcp-credentials.json -d
-- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/environment.enc -out config/environment
-  -d
-- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc
-  -out config/ES_IDX_MANAGER_SETTINGS.yaml -d
+- make decrypt
 - source config/environment
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip

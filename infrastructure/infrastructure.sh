@@ -13,5 +13,8 @@ source venv/bin/activate && terraform "$ACTION" \
   -var "cloudtrail_s3_bucket=${CLOUDTRAIL_S3_BUCKET}" \
   -var "es_domain_name=${ES_DOMAIN_NAME}" \
   -var "travis_user=${TRAVIS_USER}" \
+  -var "aws_region=${AWS_REGION}" \
+  -var "gcp_region=${GCP_REGION}" \
+  -var "gcp_pubsub_authorized_service_accounts=${GCP_PUBSUB_AUTHORIZED_SERVICE_ACCOUNTS}" \
   $([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "") \
   "$@"
