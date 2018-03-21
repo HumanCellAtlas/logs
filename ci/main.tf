@@ -1,6 +1,7 @@
 variable "region" {}
 variable "account_id" {}
 variable "terraform_bucket" {}
+variable "travis_user" {}
 
 provider "aws" {
     region = "${var.region}"
@@ -20,7 +21,7 @@ terraform {
 
 
 resource "aws_iam_user" "logs-travis" {
-    name = "logs-travis"
+    name = "${var.travis_user}"
     path = "/"
 }
 
