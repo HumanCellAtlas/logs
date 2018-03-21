@@ -2,6 +2,8 @@ import unittest
 import app
 import boto3
 import os
+import uuid
+
 
 class TestApp(unittest.TestCase):
 
@@ -30,11 +32,11 @@ class TestApp(unittest.TestCase):
 
     def test_subscription_filter(self):
         logs_client = boto3.client('logs')
+        log_group_name = f"/aws/lambda/test_log_group-{uuid.uuid4()}"
         try:
             # create test log group
             logs_client = boto3.client('logs')
-            log_group_name = "/aws/lambda/test_log_group"
-            logs_client.create_log_group(logGroupName="/aws/lambda/test_log_group")
+            logs_client.create_log_group(logGroupName=log_group_name)
 
             # put subscription filter to kinesis on log group
             account_id = os.environ["ACCOUNT_ID"]
@@ -48,4 +50,4 @@ class TestApp(unittest.TestCase):
             self.assertEqual(filter_name, 'firehose')
 
         finally:
-            logs_client.delete_log_group(logGroupName="/aws/lambda/test_log_group")
+            logs_client.delete_log_group(logGroupName=log_group_name)
