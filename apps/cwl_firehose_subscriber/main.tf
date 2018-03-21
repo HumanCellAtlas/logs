@@ -15,7 +15,6 @@ provider "aws" {
 terraform {
   backend "s3" {
     key = "logs/cwl-firehose-subscriber.tfstate"
-    region = "us-east-1"
   }
 }
 

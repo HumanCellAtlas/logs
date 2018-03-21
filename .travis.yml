@@ -40,7 +40,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script: make deploy-apps
+  script: "export DEPLOYMENT_STAGE=staging ; make deploy"
   skip_cleanup: true
   on:
     branch: master

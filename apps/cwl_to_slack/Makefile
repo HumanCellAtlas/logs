@@ -11,10 +11,6 @@ build:
 	npm install
 	zip -r $(TARGET) *.js package-lock.json
 
-.PHONY: init
-init:
-	[[ -d .terraform ]] || terraform init
-
 .PHONY: plan
 plan:
 	@terraform plan \
