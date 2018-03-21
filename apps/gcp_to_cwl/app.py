@@ -21,7 +21,7 @@ app = domovoi.Domovoi()
 @app.scheduled_function("rate(2 minutes)")
 def handler(input, context):
     batch_size = 1000
-    log_subscription = os.environ['LOG_TOPIC_SUBSCRIPTION_NAME']
+    log_subscription = os.environ['GCP_LOG_TOPIC_SUBSCRIPTION_NAME']
 
     with file(os.environ['GOOGLE_APPLICATION_CREDENTIALS'], 'r') as f:
         credentials = json.load(f)
