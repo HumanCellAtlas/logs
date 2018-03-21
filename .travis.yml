@@ -36,6 +36,7 @@ install:
 - make init
 - make install
 script:
+- source config/environment
 - make infrastructure-plan
 - make test
 deploy:
