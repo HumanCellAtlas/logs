@@ -15,7 +15,6 @@ provider "aws" {
 terraform {
   backend "s3" {
     key = "logs/firehose-to-es-processor.tfstate"
-    region = "us-east-1"
   }
 }
 

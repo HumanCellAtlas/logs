@@ -10,7 +10,6 @@ provider "aws" {
 terraform {
   backend "s3" {
     key = "logs/cwl-to-slack-notifier.tfstate"
-    region = "us-east-1"
   }
 }
 

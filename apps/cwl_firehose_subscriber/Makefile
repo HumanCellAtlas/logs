@@ -19,10 +19,6 @@ build:
 	mkdir target
 	zip -r $(TARGET) *.py
 
-.PHONY: init
-init:
-	[[ -d .terraform ]] || terraform init
-
 .PHONY: deploy
 deploy: build
 	@terraform apply \
