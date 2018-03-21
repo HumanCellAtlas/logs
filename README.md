@@ -4,15 +4,32 @@ This repository holds the configuration for HCA'a centralized logging, monitorin
 
 ## Installation
 
-First define all required variables in the `environment`.
+### Environment
+First define all required variables in the `config/environment.template`.
 
 Make sure to specify `GOOGLE_APPLICATION_CREDENTIALS` with _non-privileged_
 test credentials.
 
 Once you have specified all of these credentials, source the environment.
 
+### CI User
+To run this repository a CI user must be set up in your AWS account. To do this run the following commands.
+
+First set up terraform for the repo.
+
 ```bash
-source environment
+make init
+```
+
+Then, apply the ci user to your account.
+
+```bash
+cd ci
+make apply
+```
+
+```bash
+source config/environment
 ```
 
 To install the development environemnt run `make install`.
