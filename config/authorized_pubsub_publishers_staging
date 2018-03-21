@@ -1,0 +1,9 @@
+logs-cloud-function@logging-79720343313.iam.gserviceaccount.com
+logs-exporter@human-cell-atlas-logs.iam.gserviceaccount.com
+logs-gcs@logging-79720343313.iam.gserviceaccount.com
+logs-iam@logging-79720343313.iam.gserviceaccount.com
+logs-oauth2@logging-79720343313.iam.gserviceaccount.com
+logs-pipelines-integration-l@logging-1037839730885.iam.gserviceaccount.com
+logs-pipelines-staging-lira@logging-154609999906.iam.gserviceaccount.com
+logs-project@logging-79720343313.iam.gserviceaccount.com
+travis-test@human-cell-atlas-travis-test.iam.gserviceaccount.com

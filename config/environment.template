@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -a
 # hardcoded or derived variables
-ENCRYPTION_KEY=Az2yKl8uShoQxRah
 export PROJECT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
+ENCRYPTION_KEY=undefined
 AWS_REGION=undefined
 BLACKLISTED_LOG_GROUPS=undefined_space_separated
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
@@ -16,6 +16,7 @@ ES_AUTHORIZED_EMAILS=undefined_comma_separated
 ES_DOMAIN_NAME=undefined
 ES_IDX_MANAGER_SETTINGS=$PROJECT_ROOT/config/ES_IDX_MANAGER_SETTINGS.yaml
 GCLOUD_PROJECT=undefined
+GCP_REGION=undefined
 GOOGLE_APPLICATION_CREDENTIALS=undefined
 LOG_TOPIC_SUBSCRIPTION_NAME=undefined
 TERRAFORM_BUCKET=undefined
@@ -30,6 +31,7 @@ USER_DEFINED_VAR_ARRAY=(
   ES_AUTHORIZED_EMAILS
   ES_DOMAIN_NAME
   GCLOUD_PROJECT
+  GCP_REGION
   GOOGLE_APPLICATION_CREDENTIALS
   LOG_TOPIC_SUBSCRIPTION_NAME
   TERRAFORM_BUCKET
