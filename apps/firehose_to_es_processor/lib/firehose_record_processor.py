@@ -9,6 +9,7 @@ class FirehoseRecordProcessor():
         self.input_records = input_records
         self.output_records = []
         self.records_to_reingest = []
+        self.output_byte_size = 0
 
     def run(self):
         for rec in self.input_records:
@@ -18,7 +19,10 @@ class FirehoseRecordProcessor():
 
             if type(record.data) == bytes and record.message_type is None:
                 # Likely on its second round from firehose, ready for elastic search
-                self._mark_record_ready_for_elastic_search(record)
+                if self._is_record_crossing_max_output_size_threshold(record):
+                    self._mark_record_for_reingestion(record)
+                else:
+                    self._mark_record_ready_for_elastic_search(record)
             elif record.message_type != 'DATA_MESSAGE':
                 # Not worthy of passing along as there is no data, mark for dropping
                 self._mark_record_for_dropping(record)
@@ -27,23 +31,14 @@ class FirehoseRecordProcessor():
                 record.transform_and_extract_from_log_events_in_record()
                 self._mark_record_for_reingestion(record)
 
-        self._pare_down_records_for_max_output()
+    def _is_record_crossing_max_output_size_threshold(self, record):
+        self.output_byte_size += len(record.data) + len(record.id)
 
-    def _pare_down_records_for_max_output(self):
-
-        byte_size = 0
-        for idx, rec in enumerate(self.output_records):
-            if rec['result'] == 'Dropped':
-                continue
-            byte_size += len(rec['data']) + len(rec['recordId'])
-
-            # Lambdas have limited output bytes
-            if byte_size > 4000000:
-                self.records_to_reingest.append({
-                    'Data': rec['data']
-                })
-                self.output_records[idx]['result'] = 'Dropped'
-                del(self.output_records[idx]['data'])
+        # Lambdas have limited output bytes
+        if self.output_byte_size > 4000000:
+            return True
+        else:
+            return False
 
     def _mark_record_ready_for_elastic_search(self, record):
         output = {
@@ -61,11 +56,16 @@ class FirehoseRecordProcessor():
         self.output_records.append(output)
 
     def _mark_record_for_reingestion(self, record):
-        for event in record.transformed_log_events:
-            json_event = json.dumps(event)
-            data = base64.b64encode(json_event.encode()).decode()
+        if record.transformed_log_events:
+            for event in record.transformed_log_events:
+                json_event = json.dumps(event)
+                data = base64.b64encode(json_event.encode()).decode()
+                self.records_to_reingest.append({
+                    'Data': data
+                })
+        else:
             self.records_to_reingest.append({
-                'Data': data
+                'Data': record.data.decode()
             })
         output = {
             'result': 'Dropped',

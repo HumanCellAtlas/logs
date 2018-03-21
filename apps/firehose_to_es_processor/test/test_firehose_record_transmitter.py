@@ -13,9 +13,9 @@ class TestFirehoseRecordTransmitter(unittest.TestCase):
 
     def test_chunk_records(self):
         records_to_transmit = list(range(0, 700))
-        firehose_rec_transmitter = FirehoseRecordTransmitter(self.region, self.stream_name, records_to_transmit)
-        firehose_rec_transmitter._chunk_records(100)
-        self.assertEqual(len(firehose_rec_transmitter.record_chunks), 7)
+        firehose_rec_transmitter = FirehoseRecordTransmitter(self.region, self.stream_name)
+        record_chunks = firehose_rec_transmitter._chunk_records(100, records_to_transmit)
+        self.assertEqual(len(record_chunks), 7)
 
     def test_transmit(self):
         data = {"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}
@@ -30,5 +30,5 @@ class TestFirehoseRecordTransmitter(unittest.TestCase):
 
         records_to_reingest = firehose_record_processor.records_to_reingest
         self.assertEqual(len(records_to_reingest), 2)
-        firehose_rec_transmitter = FirehoseRecordTransmitter(self.region, self.stream_name, records_to_reingest)
-        firehose_rec_transmitter.transmit()
+        firehose_rec_transmitter = FirehoseRecordTransmitter(self.region, self.stream_name)
+        firehose_rec_transmitter.transmit(records_to_reingest)

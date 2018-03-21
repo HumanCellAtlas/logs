@@ -12,6 +12,7 @@ class FirehoseRecord():
         self.id = record['recordId']
         self.data = record["data"]
         self.message_type = None
+        self.transformed_log_events = None
 
     def decode_and_unzip(self):
         self.data = base64.b64decode(self.data)

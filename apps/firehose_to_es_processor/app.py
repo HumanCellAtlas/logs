@@ -57,7 +57,7 @@ def handler(event, context):
         stream_arn = event['deliveryStreamArn']
         region = stream_arn.split(':')[3]
         stream_name = stream_arn.split('/')[1]
-        FirehoseRecordTransmitter(region, stream_name, records_to_reingest).transmit()
+        FirehoseRecordTransmitter(region, stream_name).transmit(records_to_reingest)
 
     output_records = firehose_record_processor.output_records
     print('Output of %s completed records to firehose.' % (str(len(output_records))))

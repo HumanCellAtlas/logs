@@ -17,8 +17,7 @@ def extract_json(message):
         if beginning_index is not None and end_index is not None:
             try:
                 formatted_data = message[beginning_index:end_index + 1]
-                json_valid_data = formatted_data.replace("'", '"')
-                json_body = json.loads(json_valid_data)
+                json_body = json.loads(formatted_data)
                 return json_body
             except:
                 return {}

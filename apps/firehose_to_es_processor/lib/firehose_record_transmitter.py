@@ -3,14 +3,13 @@ import boto3
 
 class FirehoseRecordTransmitter():
 
-    def __init__(self, region, stream_name, records_to_transmit):
+    def __init__(self, region, stream_name):
         self.stream_name = stream_name
         self.client = boto3.client('firehose', region_name=region)
-        self.records_to_transmit = records_to_transmit
 
-    def transmit(self):
-        self._chunk_records()
-        for record_chunk in self.record_chunks:
+    def transmit(self, records):
+        record_chunks = self._chunk_records(records=records)
+        for record_chunk in record_chunks:
             print('Reingesting %s records into firehose.' % (str(len(record_chunk))))
             self._transmit_record_chunk(record_chunk)
 
@@ -35,9 +34,10 @@ class FirehoseRecordTransmitter():
             else:
                 raise RuntimeError('Could not put records after %s attempts.' % (str(max_attempts)))
 
-    def _chunk_records(self, chunk_size=450):
+    def _chunk_records(self, chunk_size=450, records=[]):
         """Yield successive chunks from records."""
-        self.record_chunks = []
-        for i in range(0, len(self.records_to_transmit), chunk_size):
-            record_chunk = self.records_to_transmit[i:i + chunk_size]
-            self.record_chunks.append(record_chunk)
+        record_chunks = []
+        for i in range(0, len(records), chunk_size):
+            record_chunk = records[i:i + chunk_size]
+            record_chunks.append(record_chunk)
+        return record_chunks
