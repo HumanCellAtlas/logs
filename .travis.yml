@@ -15,13 +15,13 @@ addons:
     - unzip
     - moreutils
 before_install:
-- openssl aes-256-cbc -k "$encryption_key" -in config/authorized_emails.enc -out config/authorized_emails
+- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/authorized_emails.enc -out config/authorized_emails
   -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/gcp-credentials.json.enc -out
+- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/gcp-credentials.json.enc -out
   config/gcp-credentials.json -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/environment.enc -out config/environment
+- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/environment.enc -out config/environment
   -d
-- openssl aes-256-cbc -k "$encryption_key" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc
+- openssl aes-256-cbc -k "$ENCRYPTION_KEY" -in config/ES_IDX_MANAGER_SETTINGS.yaml.enc
   -out config/ES_IDX_MANAGER_SETTINGS.yaml -d
 - source config/environment
 - mkdir ./external_binaries
