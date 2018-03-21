@@ -15,6 +15,8 @@ source venv/bin/activate && terraform "$ACTION" \
   -var "travis_user=${TRAVIS_USER}" \
   -var "aws_region=${AWS_REGION}" \
   -var "gcp_region=${GCP_REGION}" \
+  -var "gcp_log_topic_subscription_name=${GCP_LOG_TOPIC_SUBSCRIPTION_NAME}" \
   -var "gcp_pubsub_authorized_service_accounts=${GCP_PUBSUB_AUTHORIZED_SERVICE_ACCOUNTS}" \
+  -var "gcp_logs_project_name=${GCP_LOGS_PROJECT_NAME}" \
   $([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "") \
   "$@"
