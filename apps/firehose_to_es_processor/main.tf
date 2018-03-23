@@ -26,7 +26,7 @@ variable "target_zip_path" {}
 variable "account_id" {}
 
 resource "aws_iam_role" "firehose_processor" {
-  name               = "firehose-cwl-log-processor-staging"
+  name               = "firehose-cwl-log-processor"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -44,8 +44,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "firehose_processor" {
-  name   = "firehose-cwl-log-processor-staging"
-  role   = "firehose-cwl-log-processor-staging"
+  name   = "firehose-cwl-log-processor"
+  role   = "firehose-cwl-log-processor"
   policy = <<EOF
 {
     "Version": "2012-10-17",

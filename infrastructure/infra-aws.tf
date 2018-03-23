@@ -132,7 +132,7 @@ resource "aws_cloudformation_stack" "alerts" {
 //
 
 resource "aws_iam_role" "gcp_to_cwl" {
-  name               = "gcp-to-cwl-exporter-staging"
+  name               = "gcp-to-cwl-exporter"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -150,8 +150,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "gcp_to_cwl" {
-  name   = "gcp-to-cwl-exporter-staging"
-  role   = "gcp-to-cwl-exporter-staging"
+  name   = "gcp-to-cwl-exporter"
+  role   = "gcp-to-cwl-exporter"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -180,7 +180,7 @@ EOF
 //
 
 resource "aws_iam_role" "kinesis-firehose-es" {
-  name               = "kinesis-firehose-es-staging"
+  name               = "kinesis-firehose-es"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -198,8 +198,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "kinesis-firehose-es" {
-  name   = "kinesis-firehose-es-staging"
-  role   = "kinesis-firehose-es-staging"
+  name   = "kinesis-firehose-es"
+  role   = "kinesis-firehose-es"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -229,43 +229,59 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
             "Resource": "arn:aws:s3:::*"
         },
         {
-       "Sid": "UseLambdaFunction",
-       "Effect": "Allow",
-       "Action": [
-           "lambda:InvokeFunction",
-           "lambda:GetFunctionConfiguration"
-       ],
-       "Resource": "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
-   }
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction",
+                "lambda:GetFunctionConfiguration"
+            ],
+            "Resource": "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
+        }
     ]
 }
 EOF
 }
 
 ////
-// Firehose S3 Bucket
+// Firehose S3 Bucket and Log Group
 //
 
-resource "aws_s3_bucket" "kinesis-es-firehose-failures-staging" {
-  bucket = "kinesis-es-firehose-failures-staging"
+resource "aws_s3_bucket" "kinesis-es-firehose-failures" {
+  bucket = "kinesis-es-firehose-failures-${var.account_id}"
   acl    = "private"
 
   tags {
-    Name        = "kinesis-es-firehose-failures-staging"
-    Environment = "Staging"
+    Name        = "kinesis-es-firehose-failures"
+    Environment = "default"
   }
 }
+
+resource "aws_cloudwatch_log_group" "firehose_errors" {
+  name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+}
+
+
+resource "aws_cloudwatch_log_stream" "firehose_es_delivery_errors" {
+  name = "ElasticsearchDelivery"
+  log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+}
+
+resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
+  name = "S3Delivery"
+  log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+}
+
 
 ////
 // Firehose ES Delivery Stream
 //
 
-resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK-staging" {
-  name        = "Kinesis-Firehose-ELK-staging"
+resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
+  name        = "Kinesis-Firehose-ELK"
   destination = "elasticsearch"
   s3_configuration {
     role_arn           = "${aws_iam_role.kinesis-firehose-es.arn}"
-    bucket_arn         = "${aws_s3_bucket.kinesis-es-firehose-failures-staging.arn}"
+    bucket_arn         = "${aws_s3_bucket.kinesis-es-firehose-failures.arn}"
     buffer_size        = 1
     buffer_interval    = 60
     compression_format = "GZIP"
@@ -310,7 +326,7 @@ data "external" "processing_configuration" {
 //
 
 resource "aws_iam_role" "cwl-firehose" {
-  name               = "cwl-firehose-staging"
+  name               = "cwl-firehose"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -328,16 +344,16 @@ resource "aws_iam_role" "cwl-firehose" {
 EOF
 }
 
-resource "aws_iam_role_policy" "cwl-firehose-staging" {
-  name   = "cwl-firehose-staging"
-  role   = "cwl-firehose-staging"
+resource "aws_iam_role_policy" "cwl-firehose" {
+  name   = "cwl-firehose"
+  role   = "cwl-firehose"
   policy = <<EOF
 {
     "Statement":[
       {
         "Effect":"Allow",
         "Action":["firehose:*"],
-        "Resource":["${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.arn}"]
+        "Resource":["${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK.arn}"]
       },
       {
         "Effect":"Allow",
