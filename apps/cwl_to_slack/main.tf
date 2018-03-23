@@ -1,10 +1,12 @@
-variable "region" {
+variable "aws_profile" {}
+
+variable "aws_region" {
   default = "us-east-1"
 }
 
 provider "aws" {
-  region = "${var.region}"
-  profile = "hca"
+  region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 terraform {
@@ -62,7 +64,7 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
         {
             "Effect": "Allow",
             "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:${var.region}:${var.account_id}:*"
+            "Resource": "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
         },
         {
             "Effect": "Allow",
