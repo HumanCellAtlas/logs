@@ -8,7 +8,7 @@ init-%:
 init: init-infrastructure init-apps.cwl_to_slack init-apps.firehose_to_es_processor init-apps.cwl_firehose_subscriber init-ci
 
 clean-terraform-%:
-	cd $(subst .,/,$*)/ && rm -rf .terraform
+	cd $(subst .,/,$*)/ && rm -rf .terraform terraform*
 
 .PHONY: clean-terraform
 clean-terraform: clean-terraform-infrastructure clean-terraform-apps.cwl_to_slack clean-terraform-apps.firehose_to_es_processor clean-terraform-apps.cwl_firehose_subscriber clean-terraform-ci
