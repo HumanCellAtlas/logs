@@ -1,6 +1,6 @@
 # terraform
 .terraform/
-*.tfstate
+*.tfstate*
 *.tfstate.backup
 # IDE
 .idea/
@@ -114,8 +114,8 @@ ENV/
 .mypy_cache/
 
 # environment/credentials
-gcp-credentials.json
-environment
+gcp-credentials*.json
+environment_*
 authorized_emails
 authorized_pubsub_publishers_*
 es_managers/es_idx_manager/domovoilib/
