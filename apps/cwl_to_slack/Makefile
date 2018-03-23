@@ -11,17 +11,15 @@ build:
 	npm install
 	zip -r $(TARGET) *.js package-lock.json
 
-.PHONY: plan
-plan:
-	@terraform plan \
-		-var "account_id=$(ACCOUNT_ID)" \
+terraform-%:
+	@terraform $(*) \
+		-var "aws_region=$(AWS_REGION)" \
+		-var "aws_profile=$(AWS_PROFILE)" \
 		-var "target_zip_path=$(TARGET)" \
 		-var "kms_key_arn=$(KMS_KEY_ARN)"
 
+.PHONY: plan
+plan: terraform-plan
+
 .PHONY: deploy
-deploy:
-	@terraform apply \
-		-var "account_id=$(ACCOUNT_ID)" \
-		-var "target_zip_path=$(TARGET)" \
-		-var "kms_key_arn=$(KMS_KEY_ARN)" \
-		-auto-approve
+deploy: terraform-apply

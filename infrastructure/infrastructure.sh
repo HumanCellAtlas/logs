@@ -14,6 +14,7 @@ source venv/bin/activate && terraform "$ACTION" \
   -var "es_domain_name=${ES_DOMAIN_NAME}" \
   -var "travis_user=${TRAVIS_USER}" \
   -var "aws_region=${AWS_REGION}" \
+  -var "aws_profile=${AWS_PROFILE}" \
   -var "gcp_region=${GCP_REGION}" \
   -var "gcp_log_topic_subscription_name=${GCP_LOG_TOPIC_SUBSCRIPTION_NAME}" \
   -var "gcp_pubsub_authorized_service_accounts=${GCP_PUBSUB_AUTHORIZED_SERVICE_ACCOUNTS}" \

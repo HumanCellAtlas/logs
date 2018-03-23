@@ -23,5 +23,6 @@ deploy: build
 	@terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
+		-var "aws_profile=${AWS_PROFILE}" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")

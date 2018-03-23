@@ -2,10 +2,11 @@ variable "region" {}
 variable "account_id" {}
 variable "terraform_bucket" {}
 variable "travis_user" {}
+variable "aws_profile" {}
 
 provider "aws" {
     region = "${var.region}"
-    profile = "hca"
+    profile = "${var.aws_profile}"
 }
 
 ////
