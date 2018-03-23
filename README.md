@@ -7,9 +7,6 @@ This repository holds the configuration for HCA'a centralized logging, monitorin
 ### Environment
 First define all required variables in the `config/environment.template`.
 
-Make sure to specify `GOOGLE_APPLICATION_CREDENTIALS` with _non-privileged_
-test credentials.
-
 Once you have specified all of these credentials, source the environment.
 
 ### CI User
