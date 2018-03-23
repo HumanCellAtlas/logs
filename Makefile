@@ -48,3 +48,13 @@ encrypt: encrypt-environment_staging encrypt-environment_prod encrypt-ES_IDX_MAN
 
 .PHONY: decrypt
 decrypt: decrypt-environment_staging decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-staging.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_staging
+
+# prod deployment
+.PHONY: prod-deploy
+prod-deploy:
+ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca-prod)
+	$(MAKE) clean-terraform
+	. config/environment_prod && $(MAKE) init
+endif
+	. config/environment_prod && cd infrastructure && make apply
+	. config/environment_prod && $(MAKE) deploy
