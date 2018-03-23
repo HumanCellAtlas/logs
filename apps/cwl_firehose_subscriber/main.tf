@@ -27,7 +27,7 @@ variable "account_id" {}
 variable "blacklisted_log_groups" {}
 
 resource "aws_iam_role" "cwl_firehose_subscriber" {
-  name               = "cwl_firehose_subscriber-staging"
+  name               = "cwl_firehose_subscriber"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -45,8 +45,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
-  name   = "cwl_firehose_subscriber-staging"
-  role   = "cwl_firehose_subscriber-staging"
+  name   = "cwl_firehose_subscriber"
+  role   = "cwl_firehose_subscriber"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -70,7 +70,7 @@ resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
           "Effect":"Allow",
           "Action":["iam:PassRole"],
           "Resource":[
-            "arn:aws:iam::${var.account_id}:role/cwl-firehose-staging"
+            "arn:aws:iam::${var.account_id}:role/cwl-firehose"
           ]
         }
     ]

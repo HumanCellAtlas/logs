@@ -78,7 +78,7 @@ resource "aws_iam_policy" "LogsS3Policy" {
       "Action": "s3:*",
       "Resource": [
         "arn:aws:s3:::${var.terraform_bucket}/logs/*",
-        "arn:aws:s3:::kinesis-es-firehose-failures-staging"
+        "arn:aws:s3:::kinesis-es-firehose-failures"
       ]
     }
   ]
@@ -153,7 +153,7 @@ resource "aws_iam_policy" "LogsFirehosePolicy" {
     {
       "Effect": "Allow",
       "Action": "firehose:*",
-      "Resource": "arn:aws:firehose:${var.region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK-staging"
+      "Resource": "arn:aws:firehose:${var.region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK"
     }
   ]
 }
@@ -181,7 +181,7 @@ resource "aws_iam_policy" "TravisIAMSubscription" {
       ],
       "Resource": [
         "arn:aws:logs:*:*:*",
-        "arn:aws:iam::${var.account_id}:role/cwl-firehose-staging"
+        "arn:aws:iam::${var.account_id}:role/cwl-firehose"
       ]
     },
     {

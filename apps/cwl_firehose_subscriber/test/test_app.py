@@ -40,8 +40,8 @@ class TestApp(unittest.TestCase):
 
             # put subscription filter to kinesis on log group
             account_id = os.environ["ACCOUNT_ID"]
-            delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK-staging".format(account_id)
-            cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose-staging".format(account_id)
+            delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
+            cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose".format(account_id)
             app.put_subscription_filter(log_group_name, delivery_stream_arn, cwl_to_kinesis_role_arn)
 
             # fetch subscription filter and check / assert

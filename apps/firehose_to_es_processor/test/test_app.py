@@ -137,7 +137,7 @@ class TestApp(unittest.TestCase):
 
     def test_process_records(self):
         region = "us-east-1"
-        stream_name = "Kinesis-Firehose-ELK-staging"
+        stream_name = "Kinesis-Firehose-ELK"
         data = {"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}
         data["logEvents"] = [{"id": 123456, "timestamp": 1519970297000, "message": "with_json{'hi': 'hello'}with_json"}, {"id": 123456, "timestamp": 1519970297000, "message": "without_json{'hi'}without_json"}]
         data = json.dumps(data).encode('utf-8')
