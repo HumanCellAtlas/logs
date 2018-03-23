@@ -16,7 +16,7 @@ addons:
     - moreutils
 before_install:
 - make decrypt
-- source config/environment
+- source config/environment_staging
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
   -o /tmp/terraform.zip
@@ -29,7 +29,7 @@ install:
 - make init
 - make install
 script:
-- source config/environment
+- source config/environment_staging
 - make infrastructure-plan
 - make test
 deploy:

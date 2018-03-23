@@ -44,8 +44,7 @@ encrypt-%:
 decrypt-%:
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*).enc -out config/$(*) -d
 
-.PHONY: encrypt
-encrypt: encrypt-environment encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-environment encrypt-gcp-credentials.json encrypt-authorized_pubsub_publishers_staging
+encrypt: encrypt-environment_staging encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-staging.json decrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_staging
 
 .PHONY: decrypt
-decrypt: decrypt-environment decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-environment decrypt-gcp-credentials.json decrypt-authorized_pubsub_publishers_staging
+decrypt: decrypt-environment_staging decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-staging.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_staging
