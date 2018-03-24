@@ -97,6 +97,10 @@ resource "aws_lambda_function" "cwl_firehose_subscriber" {
         BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
       }
     }
+  }
+  depends_on = [
+    "aws_iam_role.cwl_firehose_subscriber"
+  ]
 }
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {

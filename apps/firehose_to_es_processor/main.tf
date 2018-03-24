@@ -74,6 +74,9 @@ resource "aws_iam_role_policy" "firehose_processor" {
     ]
 }
 EOF
+  depends_on = [
+    "aws_iam_role.firehose_processor"
+  ]
 }
 
 resource "aws_lambda_function" "firehose_cwl_processor" {
