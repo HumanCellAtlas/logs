@@ -14,7 +14,7 @@ test:
 .PHONY: build
 build:
 	mkdir -p domovoilib
-	cp "$(GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
+	cp "$(GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
 	bash -c 'shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done'
 
 .PHONY: deploy
