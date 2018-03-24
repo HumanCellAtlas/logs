@@ -75,7 +75,7 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
                 "logs:PutLogEvents"
             ],
             "Resource": [
-                "arn:aws:logs:${var.region}:${var.account_id}:log-group:/aws/lambda/${aws_lambda_function.slack_notifier.function_name}:*"
+                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.slack_notifier.function_name}:*"
             ]
         }
     ]
