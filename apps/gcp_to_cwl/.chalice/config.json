@@ -9,6 +9,9 @@
     },
     "staging": {
       "environment_variables": {}
+    },
+    "prod": {
+      "environment_variables": {}
     }
   },
   "version": "2.0",
