@@ -7,6 +7,32 @@ variable "cloudtrail_s3_bucket" {}
 variable "cloudtrail_log_group_name" {}
 variable "cloudtrail_name" {}
 
+resource "aws_s3_bucket" "cloudtrail" {
+  bucket = "${var.cloudtrail_s3_bucket}"
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AWSCloudTrailAclCheck20150319",
+            "Effect": "Allow",
+            "Principal": {"Service": "cloudtrail.amazonaws.com"},
+            "Action": "s3:GetBucketAcl",
+            "Resource": "arn:aws:s3:::${var.cloudtrail_s3_bucket}"
+        },
+        {
+            "Sid": "AWSCloudTrailWrite20150319",
+            "Effect": "Allow",
+            "Principal": {"Service": "cloudtrail.amazonaws.com"},
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::${var.cloudtrail_s3_bucket}/AWSLogs/${var.account_id}/*",
+            "Condition": {"StringEquals": {"s3:x-amz-acl": "bucket-owner-full-control"}}
+        }
+    ]
+}
+POLICY
+}
+
 resource "aws_cloudtrail" "audit" {
   name                       = "${var.cloudtrail_name}"
   s3_bucket_name             = "${var.cloudtrail_s3_bucket}"
