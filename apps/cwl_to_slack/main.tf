@@ -1,4 +1,8 @@
 variable "aws_profile" {}
+variable "slack_webhook_url" {}
+variable "slack_alert_channel" {}
+
+data "aws_caller_identity" "current" {}
 
 variable "aws_region" {
   default = "us-east-1"
@@ -16,8 +20,6 @@ terraform {
 }
 
 
-variable "kms_key_arn" {}
-variable "account_id" {}
 variable "target_zip_path" {}
 
 resource "aws_iam_role" "slack_notifier" {
@@ -81,6 +83,55 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
 EOF
 }
 
+resource "aws_kms_key" "cw_to_slack" {
+  description = "cw-to-slack"
+  is_enabled = true
+  policy = <<POLICY
+{
+  "Version" : "2012-10-17",
+  "Id" : "key-consolepolicy-3",
+  "Statement" : [ {
+    "Sid" : "Enable IAM User Permissions",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+    },
+    "Action" : "kms:*",
+    "Resource" : "*"
+  }, {
+    "Sid" : "Allow use of the key",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "${aws_iam_role.slack_notifier.arn}"
+    },
+    "Action" : [ "kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey" ],
+    "Resource" : "*"
+  }, {
+    "Sid" : "Allow attachment of persistent resources",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "${aws_iam_role.slack_notifier.arn}"
+    },
+    "Action" : [ "kms:CreateGrant", "kms:ListGrants", "kms:RevokeGrant" ],
+    "Resource" : "*",
+    "Condition" : {
+      "Bool" : {
+        "kms:GrantIsForAWSResource" : "true"
+      }
+    }
+  } ]
+}
+POLICY
+}
+
+data "aws_kms_ciphertext" "slack_webhook_url" {
+  key_id = "${aws_kms_key.cw_to_slack.key_id}"
+  plaintext = "${var.slack_webhook_url}"
+  depends_on = [
+    "aws_kms_key.cw_to_slack"
+  ]
+}
+
 resource "aws_lambda_function" "slack_notifier" {
   function_name = "cloudwatch-slack-notifications"
   filename = "${var.target_zip_path}"
@@ -91,12 +142,12 @@ resource "aws_lambda_function" "slack_notifier" {
   role = "${aws_iam_role.slack_notifier.arn}"
   environment {
     variables {
-      slackChannel = "dcp-ops-alerts"
-      kmsEncryptedHookUrl = "AQICAHjW6Fl+muQzFxxa9kzPYcoDbRQsv97HjGgv3NJ9273zjgH8N/FoUSlu7ZIBEDVslJSkAAAApzCBpAYJKoZIhvcNAQcGoIGWMIGTAgEAMIGNBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDMFgvV6b0LV7ANf3sgIBEIBggKlGKXqbOGmY07NGLZZ2ouSD5broJ2JsFC0ETwYnzCzXp+1/y4eNAc8yeGGxlLDvn63EILBLl2EJdq3jf8qsdIwR2mdmSfXjkMzdTPLGih29DseVgfcCuHWoNGPffb8u"
-      region = "${var.region}"
+      slackChannel = "${var.slack_alert_channel}"
+      kmsEncryptedHookUrl = "${data.aws_kms_ciphertext.slack_webhook_url.ciphertext_blob}"
+      region = "${var.aws_region}"
     }
   }
-  kms_key_arn = "${var.kms_key_arn}"
+  kms_key_arn = "${aws_kms_key.cw_to_slack.arn}"
 }
 
 resource "aws_sns_topic" "alarms" {
