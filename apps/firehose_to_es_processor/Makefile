@@ -20,7 +20,7 @@ build:
 
 .PHONY: deploy
 deploy: build
-	@terraform apply \
+	. venv/bin/activate && terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
 		-var "aws_profile=${AWS_PROFILE}" \
