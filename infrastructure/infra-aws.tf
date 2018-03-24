@@ -153,6 +153,9 @@ EOF
 resource "aws_cloudformation_stack" "alerts" {
   name = "CloudTrail-Monitoring"
   template_body = "${file("./CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
+  parameters {
+    LogGroupName = "${aws_cloudwatch_log_group.cloudtrail.name}"
+  }
 }
 
 
