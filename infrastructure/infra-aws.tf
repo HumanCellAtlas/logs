@@ -14,6 +14,9 @@ resource "aws_cloudtrail" "audit" {
   cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}"
   enable_log_file_validation = true
   is_multi_region_trail      = true
+  depends_on = [
+    "aws_s3_bucket.cloudtrail"
+  ]
 }
 
 resource "aws_iam_role" "cloudtrail" {
