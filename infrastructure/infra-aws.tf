@@ -313,17 +313,6 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
   }
 }
 
-data "external" "processing_configuration" {
-  program = ["python", "./setup_firehose_processing_config.py"]
-
-  query = {
-    # arbitrary map from strings to strings, passed
-    # to the external program as the data query.
-    delivery_stream_name = "${aws_kinesis_firehose_delivery_stream.Kinesis-Firehose-ELK-staging.name}",
-    lambda_name = "Firehose-CWL-Processor"
-  }
-}
-
 ////
 // CWL to firehose
 //

@@ -23,7 +23,7 @@ install-%:
 	$(MAKE) -C $(subst .,/,$*)/ install
 
 .PHONY: install
-install: install-infrastructure install-apps.gcp_to_cwl install-apps.es_idx_manager install-apps.cwl_firehose_subscriber install-apps.firehose_to_es_processor
+install: install-apps.gcp_to_cwl install-apps.es_idx_manager install-apps.cwl_firehose_subscriber install-apps.firehose_to_es_processor
 
 test-%:
 	$(MAKE) -C $(subst .,/,$*)/ test
