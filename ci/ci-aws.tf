@@ -342,9 +342,7 @@ resource "aws_iam_policy_attachment" "CloudFormationAlertStackReadAccess-policy-
 resource "aws_iam_policy_attachment" "CloudWatchLogsWriter-policy-attachment" {
     name       = "CloudWatchLogsWriter-policy-attachment"
     policy_arn = "arn:aws:iam::${var.account_id}:policy/CloudWatchLogsWriter"
-    groups     = ["travis-ci"]
     users      = ["${aws_iam_user.logs-travis.name}"]
-    roles      = ["ElasticsearchProxy"]
     depends_on = [
         "aws_iam_policy.CloudWatchLogsWriter",
         "aws_iam_user.logs-travis"
