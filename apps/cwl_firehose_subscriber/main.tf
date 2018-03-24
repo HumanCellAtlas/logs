@@ -84,18 +84,17 @@ depends_on = ["aws_iam_role.cwl_firehose_subscriber"]
 }
 
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
-    filename = "${var.target_zip_path}"
-    function_name = "cwl_firehose_subscriber"
-    role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
-    handler = "app.handler"
-    runtime = "python3.6"
-    timeout = 10
-    source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+  filename = "${var.target_zip_path}"
+  function_name = "cwl_firehose_subscriber"
+  role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
+  handler = "app.handler"
+  runtime = "python3.6"
+  timeout = 10
+  source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
 
-    environment {
-      variables = {
-        BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
-      }
+  environment {
+    variables = {
+      BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
     }
   }
   depends_on = [

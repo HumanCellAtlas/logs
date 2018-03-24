@@ -13,6 +13,7 @@ def is_log_group_name_blacklisted(log_group_name, blacklisted_names=blacklisted_
         blacklisted = True
     return blacklisted
 
+
 def put_subscription_filter(log_group_name, destination_arn, role_arn, filter_name='firehose', filter_pattern=''):
     logs_client = boto3.client('logs')
     logs_client.put_subscription_filter(
