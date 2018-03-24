@@ -16,7 +16,9 @@ terraform-%:
 		-var "aws_region=$(AWS_REGION)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
 		-var "target_zip_path=$(TARGET)" \
-		-var "kms_key_arn=$(KMS_KEY_ARN)"
+		-var "slack_webhook_url=$(SLACK_WEBHOOK_URL)" \
+		-var "slack_alert_channel=$(SLACK_ALERT_CHANNEL)" \
+		$(shell [[ $(*) == "apply" ]] && echo "-auto-approve" || true)
 
 .PHONY: plan
 plan: terraform-plan
