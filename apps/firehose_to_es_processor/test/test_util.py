@@ -6,9 +6,9 @@ class TestUtil(unittest.TestCase):
 
     def test_extract_json_bounds(self):
         # Should extract bounds of json if found
-        # test_input = "blue{'hi': 'hello'}blueeee"
-        # test_output = extract_json_bounds(test_input)
-        # self.assertEqual(test_output, (4, 18))
+        test_input = "blue{'hi': 'hello'}blueeee"
+        test_output = extract_json_bounds(test_input)
+        self.assertEqual(test_output, (4, 18))
 
         # Should not return bounds if no json is found
         test_input = "blueeeeee"
