@@ -1,5 +1,5 @@
 import boto3
-
+from time import sleep
 
 class FirehoseRecordTransmitter():
 
@@ -30,6 +30,7 @@ class FirehoseRecordTransmitter():
         if len(failed_records) > 0:
             if attempts_made + 1 < max_attempts:
                 print('Some records failed while calling put_record_chunk, retrying')
+                sleep(1)
                 self._transmit_record_chunk(failed_records, attempts_made + 1, max_attempts)
             else:
                 raise RuntimeError('Could not put records after %s attempts.' % (str(max_attempts)))
