@@ -1,6 +1,9 @@
 variable "aws_profile" {}
 variable "slack_webhook_url" {}
 variable "slack_alert_channel" {}
+variable "app_name" {
+  default = "cloudwatch-slack-notifier"
+}
 
 data "aws_caller_identity" "current" {}
 
@@ -75,7 +78,7 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
                 "logs:PutLogEvents"
             ],
             "Resource": [
-                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.slack_notifier.function_name}:*"
+                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.app_name}:*"
             ]
         }
     ]
@@ -133,7 +136,7 @@ data "aws_kms_ciphertext" "slack_webhook_url" {
 }
 
 resource "aws_lambda_function" "slack_notifier" {
-  function_name = "cloudwatch-slack-notifications"
+  function_name = "${var.app_name}"
   filename = "${var.target_zip_path}"
   description = "An Amazon SNS trigger that sends CloudWatch alarm notifications to Slack."
   runtime = "nodejs6.10"
@@ -148,6 +151,11 @@ resource "aws_lambda_function" "slack_notifier" {
     }
   }
   kms_key_arn = "${aws_kms_key.cw_to_slack.arn}"
+  depends_on = [
+    "data.aws_kms_ciphertext.slack_webhook_url",
+    "aws_iam_role.slack_notifier",
+    "aws_sns_topic.alarms"
+  ]
 }
 
 resource "aws_sns_topic" "alarms" {
@@ -160,10 +168,18 @@ resource "aws_lambda_permission" "alarms" {
   function_name = "${aws_lambda_function.slack_notifier.function_name}"
   principal = "sns.amazonaws.com"
   source_arn = "${aws_sns_topic.alarms.arn}"
+  depends_on = [
+    "aws_sns_topic.alarms",
+    "aws_lambda_function.slack_notifier"
+  ]
 }
 
 resource "aws_sns_topic_subscription" "alarms" {
   topic_arn = "${aws_sns_topic.alarms.arn}"
   protocol = "lambda"
   endpoint = "${aws_lambda_function.slack_notifier.arn}"
+  depends_on = [
+    "aws_sns_topic.alarms",
+    "aws_lambda_function.slack_notifier"
+  ]
 }
