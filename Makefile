@@ -43,10 +43,10 @@ encrypt-%:
 decrypt-%:
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*).enc -out config/$(*) -d
 
-encrypt: encrypt-environment_staging encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-staging.json decrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_staging
+encrypt: encrypt-environment_dev encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_dev
 
 .PHONY: decrypt
-decrypt: decrypt-environment_staging decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-staging.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_staging
+decrypt: decrypt-environment_dev decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_dev
 
 # prod deployment
 .PHONY: prod-deploy
@@ -57,3 +57,13 @@ ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend
 endif
 	. config/environment_prod && cd infrastructure && make apply
 	. config/environment_prod && $(MAKE) deploy
+
+# dev deployment
+.PHONY: dev-deploy
+dev-deploy:
+ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca-dev)
+	$(MAKE) clean-terraform
+	. config/environment_dev && $(MAKE) init
+endif
+	. config/environment_dev && cd infrastructure && make apply
+	. config/environment_dev && $(MAKE) deploy
