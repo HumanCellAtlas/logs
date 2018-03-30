@@ -16,7 +16,7 @@ addons:
     - moreutils
 before_install:
 - make decrypt
-- source config/environment_staging
+- source config/environment_dev
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
   -o /tmp/terraform.zip
@@ -26,15 +26,16 @@ before_install:
 - pip install awscli --upgrade
 - pip install boto3 --upgrade
 install:
+- source config/environment_dev
 - make init
 - make install
 script:
-- source config/environment_staging
+- source config/environment_dev
 - make infrastructure-plan
 - make test
 deploy:
 - provider: script
-  script: export DEPLOYMENT_STAGE=staging ; make deploy
+  script: source config/environment_dev ; make deploy
   skip_cleanup: true
   on:
     branch: master
