@@ -18,7 +18,7 @@ before_install:
 - make decrypt
 - source config/environment_dev
 - mkdir ./external_binaries
-- curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
+- curl https://releases.hashicorp.com/terraform/0.11.5/terraform_0.11.5_linux_amd64.zip
   -o /tmp/terraform.zip
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
