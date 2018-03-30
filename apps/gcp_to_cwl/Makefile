@@ -9,7 +9,7 @@ install:
 
 .PHONY: test
 test:
-	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
+	. venv/bin/activate && GOOGLE_APPLICATION_CREDENTIALS=$$GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
 build:
