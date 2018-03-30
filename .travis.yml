@@ -2,8 +2,10 @@ language: python
 cache:
   pip: true
   directories:
-  - exporters/gcp_to_cwl/venv
-  - es_managers/es_idx_manager/venv
+  - apps/gcp_to_cwl/venv
+  - apps/es_idx_manager/venv
+  - apps/cwl_firehose_subscriber/venv
+  - apps/firehose_to_es_processor/venv
 python:
 - 3.6
 dist: trusty
