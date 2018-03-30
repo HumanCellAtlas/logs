@@ -5,9 +5,14 @@ resource "google_service_account" "ci" {
   display_name = "${var.travis_user}"
 }
 
-resource "google_project_iam_binding" "ci" {
+resource "google_project_iam_binding" "pubsub" {
   project = "${var.gcp_logs_project_name}"
   role = "roles/pubsub.admin"
   members = ["serviceAccount:${google_service_account.ci.email}"]
 }
 
+resource "google_project_iam_binding" "iam" {
+  project = "${var.gcp_logs_project_name}"
+  role = "roles/iam.securityReviewer"
+  members = ["serviceAccount:${google_service_account.ci.email}"]
+}

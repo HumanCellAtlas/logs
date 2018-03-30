@@ -79,7 +79,8 @@ resource "aws_iam_policy" "LogsS3Policy" {
       "Action": "s3:*",
       "Resource": [
         "arn:aws:s3:::${var.terraform_bucket}/logs/*",
-        "arn:aws:s3:::kinesis-es-firehose-failures"
+        "arn:aws:s3:::kinesis-es-firehose-failures-${var.account_id}",
+        "arn:aws:s3:::${var.account_id}-cloudtrail"
       ]
     }
   ]
