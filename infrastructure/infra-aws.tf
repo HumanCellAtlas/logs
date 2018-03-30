@@ -3,12 +3,11 @@
 //
 
 variable "account_id" {}
-variable "cloudtrail_s3_bucket" {}
 variable "cloudtrail_log_group_name" {}
 variable "cloudtrail_name" {}
 
 resource "aws_s3_bucket" "cloudtrail" {
-  bucket = "${var.cloudtrail_s3_bucket}"
+  bucket = "${var.account_id}-cloudtrail"
   policy = <<POLICY
 {
     "Version": "2012-10-17",
@@ -18,14 +17,14 @@ resource "aws_s3_bucket" "cloudtrail" {
             "Effect": "Allow",
             "Principal": {"Service": "cloudtrail.amazonaws.com"},
             "Action": "s3:GetBucketAcl",
-            "Resource": "arn:aws:s3:::${var.cloudtrail_s3_bucket}"
+            "Resource": "arn:aws:s3:::${var.account_id}-cloudtrail"
         },
         {
             "Sid": "AWSCloudTrailWrite20150319",
             "Effect": "Allow",
             "Principal": {"Service": "cloudtrail.amazonaws.com"},
             "Action": "s3:PutObject",
-            "Resource": "arn:aws:s3:::${var.cloudtrail_s3_bucket}/AWSLogs/${var.account_id}/*",
+            "Resource": "arn:aws:s3:::${var.account_id}-cloudtrail/AWSLogs/${var.account_id}/*",
             "Condition": {"StringEquals": {"s3:x-amz-acl": "bucket-owner-full-control"}}
         }
     ]
@@ -35,7 +34,7 @@ POLICY
 
 resource "aws_cloudtrail" "audit" {
   name                       = "${var.cloudtrail_name}"
-  s3_bucket_name             = "${var.cloudtrail_s3_bucket}"
+  s3_bucket_name             = "${aws_s3_bucket.cloudtrail.bucket}"
   cloud_watch_logs_role_arn  = "${aws_iam_role.cloudtrail.arn}"
   cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}"
   enable_log_file_validation = true
