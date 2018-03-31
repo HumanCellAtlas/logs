@@ -33,7 +33,7 @@ install:
 - make install
 script:
 - source config/environment_dev
-- GOOGLE_APPLICATION_CREDENTIALS=$GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS make infrastructure-plan
+- GOOGLE_APPLICATION_CREDENTIALS=`pwd`/config/gcp-credentials-logs-travis.json make infrastructure-plan
 - make test
 deploy:
 - provider: script
