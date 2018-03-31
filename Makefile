@@ -43,10 +43,10 @@ encrypt-%:
 decrypt-%:
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*).enc -out config/$(*) -d
 
-encrypt: encrypt-environment_dev encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_dev
+encrypt: encrypt-environment_dev encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-dev.json encrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_dev encrypt-gcp-credentials-logs-travis.json
 
 .PHONY: decrypt
-decrypt: decrypt-environment_dev decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_dev
+decrypt: decrypt-environment_dev decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_dev decrypt-gcp-credentials-logs-travis.json
 
 # prod deployment
 .PHONY: prod-deploy
