@@ -80,25 +80,27 @@ decrypt-%:
 
 .PHONY: encrypt
 encrypt: \
-	encrypt-environment_dev \
-	encrypt-environment_prod \
 	encrypt-ES_IDX_MANAGER_SETTINGS.yaml \
 	encrypt-authorized_emails \
-	encrypt-gcp-credentials-dev.json \
-	encrypt-gcp-credentials-prod.json \
 	encrypt-authorized_pubsub_publishers_dev \
-	encrypt-gcp-credentials-logs-travis.json
+	encrypt-authorized_pubsub_publishers_prod \
+	encrypt-environment_dev \
+	encrypt-environment_prod \
+	encrypt-gcp-credentials-dev.json \
+	encrypt-gcp-credentials-logs-travis.json \
+	encrypt-gcp-credentials-prod.json
 
 .PHONY: decrypt
 decrypt: \
-	decrypt-environment_dev \
-	decrypt-environment_prod \
 	decrypt-ES_IDX_MANAGER_SETTINGS.yaml \
 	decrypt-authorized_emails \
-	decrypt-gcp-credentials-dev.json \
-	decrypt-gcp-credentials-prod.json \
 	decrypt-authorized_pubsub_publishers_dev \
-	decrypt-gcp-credentials-logs-travis.json
+	decrypt-authorized_pubsub_publishers_prod \
+	decrypt-environment_dev \
+	decrypt-environment_prod \
+	decrypt-gcp-credentials-dev.json \
+	decrypt-gcp-credentials-logs-travis.json \
+	decrypt-gcp-credentials-prod.json
 
 # prod deployment
 .PHONY: prod-deploy
