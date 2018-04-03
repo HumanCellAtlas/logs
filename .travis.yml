@@ -37,7 +37,7 @@ script:
 - make test
 deploy:
 - provider: script
-  script: source config/environment_dev ; make deploy
+  script: source config/environment_dev ; make is-deployed
   skip_cleanup: true
   on:
     branch: master
