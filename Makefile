@@ -115,7 +115,7 @@ endif
 # dev deployment
 .PHONY: dev-deploy
 dev-deploy:
-ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca-dev)
+ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca)
 	$(MAKE) clean-terraform
 	. config/environment_dev && $(MAKE) init
 endif
