@@ -12,7 +12,7 @@ terraform "$ACTION" \
   -var "es_email_principals=${ES_AUTHORIZED_EMAILS}" \
   -var "es_domain_name=${ES_DOMAIN_NAME}" \
   -var "travis_user=${TRAVIS_USER}" \
-  -var "aws_region=${AWS_REGION}" \
+  -var "aws_region=${AWS_DEFAULT_REGION}" \
   -var "aws_profile=${AWS_PROFILE}" \
   -var "gcp_region=${GCP_REGION}" \
   -var "gcp_log_topic_subscription_name=${GCP_LOG_TOPIC_SUBSCRIPTION_NAME}" \

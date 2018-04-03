@@ -6,7 +6,7 @@ ACCOUNT_ID=${ACCOUNT_ID:-$(aws sts get-caller-identity | jq -r .Account)}
 
 # user defined or sensitive variables
 ENCRYPTION_KEY=undefined
-AWS_REGION=undefined
+AWS_DEFAULT_REGION=undefined
 BLACKLISTED_LOG_GROUPS=undefined
 CLOUDTRAIL_LOG_GROUP_NAME=undefined
 CLOUDTRAIL_NAME=undefined

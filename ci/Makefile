@@ -1,7 +1,7 @@
 terraform-%:
 	terraform $* \
 		-var "aws_profile=$(AWS_PROFILE)" \
-		-var "region=$(AWS_REGION)" \
+		-var "region=$(AWS_DEFAULT_REGION)" \
 		-var "account_id=$(ACCOUNT_ID)" \
 		-var "terraform_bucket=$(TERRAFORM_BUCKET)" \
 		-var "travis_user=$(TRAVIS_USER)" \

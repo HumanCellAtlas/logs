@@ -13,7 +13,7 @@ build:
 
 terraform-%:
 	@terraform $(*) \
-		-var "aws_region=$(AWS_REGION)" \
+		-var "aws_region=$(AWS_DEFAULT_REGION)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
 		-var "target_zip_path=$(TARGET)" \
 		-var "slack_webhook_url=$(SLACK_WEBHOOK_URL)" \
