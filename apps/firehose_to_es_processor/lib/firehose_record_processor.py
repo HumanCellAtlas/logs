@@ -1,6 +1,12 @@
 import json
 import base64
+import os
+import re
+import airbrake
 from lib.firehose_record import FirehoseRecord
+
+if os.environ.get('AIRBRAKE_FLAG'):
+    logger = airbrake.getLogger(api_key=os.environ.get("AIRBRAKE_API_KEY"), project_id=os.environ.get("AIRBRAKE_PROJECT_ID"))
 
 
 class FirehoseRecordProcessor():
@@ -29,7 +35,7 @@ class FirehoseRecordProcessor():
             else:
                 # Normal record with one or multiple untransformed cloudwatch log events
                 record.transform_and_extract_from_log_events_in_record()
-                self._mark_record_for_reingestion(record)
+                self._mark_record_for_reingestion_and_airbrake(record)
 
     def _is_record_crossing_max_output_size_threshold(self, record):
         self.output_byte_size += len(record.data) + len(record.id)
@@ -55,7 +61,22 @@ class FirehoseRecordProcessor():
         }
         self.output_records.append(output)
 
-    def _mark_record_for_reingestion(self, record):
+    def _is_message_appropriate_for_airbrake(self, message, log_group):
+        send_to_airbrake = False
+
+        blacklisted_log_group_names = os.environ.get("AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES")
+        blacklisted_log_group_names_regex_string = "|".join(blacklisted_log_group_names.split())
+        blacklisted_log_group_names_regexp = re.compile(blacklisted_log_group_names_regex_string, re.IGNORECASE)
+
+        whitelisted_log_message_terms = os.environ.get("AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS")
+        whitelisted_log_message_terms_regex_string = "|".join(whitelisted_log_message_terms.split())
+        whitelisted_log_message_terms_regexp = re.compile(whitelisted_log_message_terms_regex_string, re.IGNORECASE)
+
+        if whitelisted_log_message_terms_regexp.search(message) and not blacklisted_log_group_names_regexp.search(log_group):
+            send_to_airbrake = True
+        return send_to_airbrake
+
+    def _mark_record_for_reingestion_and_airbrake(self, record):
         if record.transformed_log_events:
             for event in record.transformed_log_events:
                 json_event = json.dumps(event)
@@ -63,6 +84,11 @@ class FirehoseRecordProcessor():
                 self.records_to_reingest.append({
                     'Data': data
                 })
+                message = event['@message']
+                log_group = event['@log_group']
+                airbrake_flag = os.environ.get('AIRBRAKE_FLAG')
+                if airbrake_flag and airbrake_flag == "True" and self._is_message_appropriate_for_airbrake(message, log_group):
+                    logger.exception(message)
         else:
             self.records_to_reingest.append({
                 'Data': record.data.decode()

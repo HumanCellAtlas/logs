@@ -24,6 +24,12 @@ terraform {
 
 variable "target_zip_path" {}
 variable "account_id" {}
+variable "airbrake_blacklisted_log_group_names" {}
+variable "airbrake_whitelisted_log_message_terms" {}
+variable "airbrake_flag" {}
+variable "airbrake_api_key" {}
+variable "airbrake_project_id" {}
+variable "airbrake_environment" {}
 
 resource "aws_iam_role" "firehose_processor" {
   name               = "firehose-cwl-log-processor-staging"
@@ -83,6 +89,17 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
     memory_size = 512
     timeout = 120
     source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+
+    environment {
+      variables = {
+        AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES="${var.airbrake_blacklisted_log_group_names}"
+        AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS="${var.airbrake_whitelisted_log_message_terms}"
+        AIRBRAKE_FLAG="${var.airbrake_flag}"
+        AIRBRAKE_API_KEY="${var.airbrake_api_key}"
+        AIRBRAKE_PROJECT_ID="${var.airbrake_project_id}"
+        AIRBRAKE_ENVIRONMENT="${var.airbrake_environment}"
+      }
+    }
 
 }
 
