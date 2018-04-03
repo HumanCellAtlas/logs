@@ -215,13 +215,10 @@ resource "aws_iam_policy" "LogsCIAccess" {
         "iam:GetPolicy",
         "lambda:ListFunctions",
         "cloudtrail:GetTrailStatus",
-        "events:PutRule",
-        "lambda:UpdateFunctionConfiguration",
         "sns:GetSubscriptionAttributes",
         "cloudtrail:GetEventSelectors",
         "s3:ListObjects",
         "cloudtrail:DescribeTrails",
-        "events:PutTargets",
         "s3:ListAllMyBuckets",
         "lambda:ListTags",
         "cloudtrail:ListTags",
@@ -233,63 +230,37 @@ resource "aws_iam_policy" "LogsCIAccess" {
     {
       "Effect": "Allow",
       "Action": [
-        "lambda:UpdateFunctionCode",
-        "events:DescribeRule",
-        "lambda:AddPermission",
-        "sns:GetTopicAttributes",
-        "iam:DeleteRolePolicy",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "iam:PutRolePolicy"
+        "sns:GetTopicAttributes"
       ],
       "Resource": [
-        "arn:aws:iam::${var.account_id}:role/gcp-to-cwl-exporter-*",
-        "arn:aws:sns:${var.region}:${var.account_id}:cloudwatch-alarms",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
+        "arn:aws:sns:${var.region}:${var.account_id}:cloudwatch-alarms"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "events:DescribeRule",
+        "events:ListTargetsByRule"
+      ],
+      "Resource": [
+        "arn:aws:events:${var.region}:${var.account_id}:rule/capture_create_log_group",
         "arn:aws:events:${var.region}:${var.account_id}:rule/handler"
       ]
     },
     {
       "Effect": "Allow",
       "Action": [
-        "lambda:UpdateFunctionCode",
-        "events:DescribeRule",
-        "lambda:AddPermission",
-        "iam:DeleteRolePolicy",
+        "lambda:ListVersionsByFunction",
         "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "iam:PutRolePolicy",
-        "events:ListTargetsByRule"
+        "lambda:GetPolicy",
+        "lambda:GetFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:events:${var.region}:${var.account_id}:rule/capture_create_log_group",
-        "arn:aws:iam::${var.account_id}:role/es-idx-manager-*",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:es-idx-manager-*"
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:cloudwatch-slack-notifications",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:es-idx-manager-*",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:cwl_firehose_subscriber"
       ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:UpdateFunctionCode",
-        "lambda:AddPermission",
-        "lambda:ListVersionsByFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:GetPolicy"
-      ],
-      "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:cloudwatch-slack-notifications"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:UpdateFunctionCode",
-        "lambda:AddPermission",
-        "lambda:ListVersionsByFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:GetPolicy"
-      ],
-      "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:cwl_firehose_subscriber"
     },
     {
       "Effect": "Allow",
