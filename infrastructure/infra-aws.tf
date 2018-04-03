@@ -132,7 +132,7 @@ resource "aws_elasticsearch_domain" "es" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          ${join(", ", formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals))},
+          ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals)))},
           "arn:aws:iam::${var.account_id}:user/${var.travis_user}"
         ]
       },
