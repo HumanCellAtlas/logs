@@ -20,6 +20,7 @@ import json
 import os
 import yaml
 import domovoi
+import logger as logging
 
 
 class ESException(Exception):
@@ -99,6 +100,10 @@ class ESCleanup(object):
             return json.loads(res.content)
         else:
             raise ESException(res.status_code, res._content)
+
+
+    def put_index_payload(self, index_name, payload):
+        return self.send_to_es(index_name, "PUT", payload)
 
     def delete_index(self, index_name):
         """ES DELETE specific index

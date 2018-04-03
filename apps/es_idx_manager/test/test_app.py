@@ -84,6 +84,31 @@ class TestApp(unittest.TestCase):
                     # Error expected when index deleted in management is reattempted here
                     continue
 
+    def test_put_index_payload(self):
+        index_name = "_template/template_1"
+        payloads = '''{"template": "cwl*",
+                    "mappings": {
+                        "fromFirehose": {
+                            "dynamic_templates": [
+                                {
+                                  "strings": {
+                                    "match_mapping_type": "string",
+                                    "mapping": {
+                                      "type": "text",
+                                      "fields": {
+                                        "raw": {
+                                          "type": "text",
+                                          "analyzer": "whitespace"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                        }
+                    }}'''
+        self.es.put_index_payload(index_name, payloads)
+
 
 if __name__ == '__main__':
     unittest.main()
