@@ -1,6 +1,6 @@
 MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APPS_REVISION := $(shell git log -n 1 --format="%H" -- apps)
-DEPLOY_MARKER := s3://$(TERRAFORM_BUCKET)/logs/deployed
+DEPLOY_MARKER := s3://$(TERRAFORM_BUCKET)/logs/$(DEPLOYMENT_STAGE)-deployed
 
 rev:
 	echo $(APPS_REVISION)
