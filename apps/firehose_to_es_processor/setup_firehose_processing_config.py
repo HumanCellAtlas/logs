@@ -30,7 +30,7 @@ def handler(args):
     lambda_function_name = args["lambda_name"]
     processing_lambda_func = lambda_client.get_function(FunctionName=lambda_function_name)
     processing_lambda_func_arn = processing_lambda_func["Configuration"]["FunctionArn"]
-    processing_lambda_role_arn = "arn:aws:iam::{0}:role/kinesis-firehose-es-staging".format(os.environ["ACCOUNT_ID"])
+    processing_lambda_role_arn = "arn:aws:iam::{0}:role/kinesis-firehose-es".format(os.environ["ACCOUNT_ID"])
 
     elastic_search_destination_update = {
         'ProcessingConfiguration': {

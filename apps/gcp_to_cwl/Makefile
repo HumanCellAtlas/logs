@@ -9,12 +9,12 @@ install:
 
 .PHONY: test
 test:
-	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
+	. venv/bin/activate && GOOGLE_APPLICATION_CREDENTIALS=$$GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
 build:
 	mkdir -p domovoilib
-	cp "$(GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
+	cp "$(GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
 	bash -c 'shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done'
 
 .PHONY: deploy

@@ -1,9 +1,12 @@
+variable "aws_profile" {}
+
 variable "aws_region" {
   default = "us-east-1"
 }
 
 provider "aws" {
-    region = "${var.aws_region}"
+  region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 ////
@@ -32,7 +35,7 @@ variable "airbrake_project_id" {}
 variable "airbrake_environment" {}
 
 resource "aws_iam_role" "firehose_processor" {
-  name               = "firehose-cwl-log-processor-staging"
+  name               = "firehose-cwl-log-processor"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -50,8 +53,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "firehose_processor" {
-  name   = "firehose-cwl-log-processor-staging"
-  role   = "firehose-cwl-log-processor-staging"
+  name   = "firehose-cwl-log-processor"
+  role   = "firehose-cwl-log-processor"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -77,6 +80,9 @@ resource "aws_iam_role_policy" "firehose_processor" {
     ]
 }
 EOF
+  depends_on = [
+    "aws_iam_role.firehose_processor"
+  ]
 }
 
 resource "aws_lambda_function" "firehose_cwl_processor" {
@@ -105,4 +111,18 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
 
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
+}
+
+data "external" "processing_configuration" {
+  program = ["python", "./setup_firehose_processing_config.py"]
+
+  query = {
+    # arbitrary map from strings to strings, passed
+    # to the external program as the data query.
+    delivery_stream_name = "Kinesis-Firehose-ELK"
+    lambda_name = "Firehose-CWL-Processor"
+  }
+  depends_on = [
+    "aws_lambda_function.firehose_cwl_processor"
+  ]
 }

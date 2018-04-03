@@ -20,10 +20,15 @@ build:
 	zip -r $(TARGET) *.py
 
 .PHONY: deploy
-deploy: build
-	@terraform apply \
+deploy:
+	$(MAKE) terraform-apply
+
+terraform-%:
+	@terraform $(*) \
 		-var "target_zip_path=$(MAKEFILE_DIR)/$(TARGET)" \
 		-var "account_id=$(ACCOUNT_ID)" \
+		-var "aws_profile=$(AWS_PROFILE)" \
+		-var "aws_region=$(AWS_REGION)" \
 		-var "blacklisted_log_groups=$(BLACKLISTED_LOG_GROUPS)" \
 		-auto-approve \
-		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
+		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")

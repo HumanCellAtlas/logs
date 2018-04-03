@@ -21,9 +21,10 @@ build:
 
 .PHONY: deploy
 deploy: build
-	@terraform apply \
+	. venv/bin/activate && terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
+		-var "aws_profile=${AWS_PROFILE}" \
 		-var "airbrake_blacklisted_log_group_names=${AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES}" \
 		-var "airbrake_whitelisted_log_message_terms=${AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS}" \
 		-var "airbrake_flag=${AIRBRAKE_FLAG}" \

@@ -2,10 +2,11 @@ variable "region" {}
 variable "account_id" {}
 variable "terraform_bucket" {}
 variable "travis_user" {}
+variable "aws_profile" {}
 
 provider "aws" {
     region = "${var.region}"
-    profile = "hca"
+    profile = "${var.aws_profile}"
 }
 
 ////
@@ -78,7 +79,8 @@ resource "aws_iam_policy" "LogsS3Policy" {
       "Action": "s3:*",
       "Resource": [
         "arn:aws:s3:::${var.terraform_bucket}/logs/*",
-        "arn:aws:s3:::kinesis-es-firehose-failures-staging"
+        "arn:aws:s3:::kinesis-es-firehose-failures-${var.account_id}",
+        "arn:aws:s3:::${var.account_id}-cloudtrail"
       ]
     }
   ]
@@ -153,7 +155,7 @@ resource "aws_iam_policy" "LogsFirehosePolicy" {
     {
       "Effect": "Allow",
       "Action": "firehose:*",
-      "Resource": "arn:aws:firehose:${var.region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK-staging"
+      "Resource": "arn:aws:firehose:${var.region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK"
     }
   ]
 }
@@ -181,7 +183,7 @@ resource "aws_iam_policy" "TravisIAMSubscription" {
       ],
       "Resource": [
         "arn:aws:logs:*:*:*",
-        "arn:aws:iam::${var.account_id}:role/cwl-firehose-staging"
+        "arn:aws:iam::${var.account_id}:role/cwl-firehose"
       ]
     },
     {
@@ -213,13 +215,10 @@ resource "aws_iam_policy" "LogsCIAccess" {
         "iam:GetPolicy",
         "lambda:ListFunctions",
         "cloudtrail:GetTrailStatus",
-        "events:PutRule",
-        "lambda:UpdateFunctionConfiguration",
         "sns:GetSubscriptionAttributes",
         "cloudtrail:GetEventSelectors",
         "s3:ListObjects",
         "cloudtrail:DescribeTrails",
-        "events:PutTargets",
         "s3:ListAllMyBuckets",
         "lambda:ListTags",
         "cloudtrail:ListTags",
@@ -231,63 +230,37 @@ resource "aws_iam_policy" "LogsCIAccess" {
     {
       "Effect": "Allow",
       "Action": [
-        "lambda:UpdateFunctionCode",
-        "events:DescribeRule",
-        "lambda:AddPermission",
-        "sns:GetTopicAttributes",
-        "iam:DeleteRolePolicy",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "iam:PutRolePolicy"
+        "sns:GetTopicAttributes"
       ],
       "Resource": [
-        "arn:aws:iam::${var.account_id}:role/gcp-to-cwl-exporter-*",
-        "arn:aws:sns:${var.region}:${var.account_id}:cloudwatch-alarms",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
+        "arn:aws:sns:${var.region}:${var.account_id}:cloudwatch-alarms"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "events:DescribeRule",
+        "events:ListTargetsByRule"
+      ],
+      "Resource": [
+        "arn:aws:events:${var.region}:${var.account_id}:rule/capture_create_log_group",
         "arn:aws:events:${var.region}:${var.account_id}:rule/handler"
       ]
     },
     {
       "Effect": "Allow",
       "Action": [
-        "lambda:UpdateFunctionCode",
-        "events:DescribeRule",
-        "lambda:AddPermission",
-        "iam:DeleteRolePolicy",
+        "lambda:ListVersionsByFunction",
         "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "iam:PutRolePolicy",
-        "events:ListTargetsByRule"
+        "lambda:GetPolicy",
+        "lambda:GetFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:events:${var.region}:${var.account_id}:rule/capture_create_log_group",
-        "arn:aws:iam::${var.account_id}:role/es-idx-manager-*",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:es-idx-manager-*"
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:cloudwatch-slack-notifications",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:es-idx-manager-*",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
+        "arn:aws:lambda:${var.region}:${var.account_id}:function:cwl_firehose_subscriber"
       ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:UpdateFunctionCode",
-        "lambda:AddPermission",
-        "lambda:ListVersionsByFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:GetPolicy"
-      ],
-      "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:cloudwatch-slack-notifications"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "lambda:UpdateFunctionCode",
-        "lambda:AddPermission",
-        "lambda:ListVersionsByFunction",
-        "lambda:GetFunction",
-        "lambda:GetFunctionConfiguration",
-        "lambda:GetPolicy"
-      ],
-      "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:cwl_firehose_subscriber"
     },
     {
       "Effect": "Allow",
@@ -341,9 +314,7 @@ resource "aws_iam_policy_attachment" "CloudFormationAlertStackReadAccess-policy-
 resource "aws_iam_policy_attachment" "CloudWatchLogsWriter-policy-attachment" {
     name       = "CloudWatchLogsWriter-policy-attachment"
     policy_arn = "arn:aws:iam::${var.account_id}:policy/CloudWatchLogsWriter"
-    groups     = ["travis-ci"]
     users      = ["${aws_iam_user.logs-travis.name}"]
-    roles      = ["ElasticsearchProxy"]
     depends_on = [
         "aws_iam_policy.CloudWatchLogsWriter",
         "aws_iam_user.logs-travis"

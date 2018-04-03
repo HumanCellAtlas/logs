@@ -26,7 +26,7 @@ class FirehoseRecordProcessor():
             if type(record.data) == bytes and record.message_type is None:
                 # Likely on its second round from firehose, ready for elastic search
                 if self._is_record_crossing_max_output_size_threshold(record):
-                    self._mark_record_for_reingestion(record)
+                    self._mark_record_for_reingestion_and_airbrake(record)
                 else:
                     self._mark_record_ready_for_elastic_search(record)
             elif record.message_type != 'DATA_MESSAGE':

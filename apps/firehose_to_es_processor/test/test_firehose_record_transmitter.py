@@ -9,7 +9,7 @@ from lib.firehose_record_processor import FirehoseRecordProcessor
 
 class TestFirehoseRecordTransmitter(unittest.TestCase):
     region = "us-east-1"
-    stream_name = "Kinesis-Firehose-ELK-staging"
+    stream_name = "Kinesis-Firehose-ELK"
 
     def test_chunk_records(self):
         records_to_transmit = list(range(0, 700))
