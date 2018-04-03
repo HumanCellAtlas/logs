@@ -13,6 +13,7 @@ def is_log_group_name_blacklisted(log_group_name, blacklisted_names=blacklisted_
         blacklisted = True
     return blacklisted
 
+
 def put_subscription_filter(log_group_name, destination_arn, role_arn, filter_name='firehose', filter_pattern=''):
     logs_client = boto3.client('logs')
     logs_client.put_subscription_filter(
@@ -23,14 +24,15 @@ def put_subscription_filter(log_group_name, destination_arn, role_arn, filter_na
         roleArn=role_arn
     )
 
+
 def handler(event, context):
     """Main Lambda function
     """
     logs_client = boto3.client('logs')
     log_group_name = event['detail']['requestParameters']['logGroupName']
     account_id = context.invoked_function_arn.split(":")[4]
-    delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK-staging".format(account_id)
-    cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose-staging".format(account_id)
+    delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
+    cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose".format(account_id)
     if not is_log_group_name_blacklisted(log_group_name):
         print("Subscribing log group {0} to firehose".format(log_group_name))
         put_subscription_filter(log_group_name, delivery_stream_arn, cwl_to_kinesis_role_arn)

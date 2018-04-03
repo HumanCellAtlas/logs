@@ -2,8 +2,10 @@ language: python
 cache:
   pip: true
   directories:
-  - exporters/gcp_to_cwl/venv
-  - es_managers/es_idx_manager/venv
+  - apps/gcp_to_cwl/venv
+  - apps/es_idx_manager/venv
+  - apps/cwl_firehose_subscriber/venv
+  - apps/firehose_to_es_processor/venv
 python:
 - 3.6
 dist: trusty
@@ -16,9 +18,9 @@ addons:
     - moreutils
 before_install:
 - make decrypt
-- source config/environment
+- source config/environment_dev
 - mkdir ./external_binaries
-- curl https://releases.hashicorp.com/terraform/0.11.3/terraform_0.11.3_linux_amd64.zip
+- curl https://releases.hashicorp.com/terraform/0.11.5/terraform_0.11.5_linux_amd64.zip
   -o /tmp/terraform.zip
 - unzip /tmp/terraform.zip -d ./external_binaries/
 - rm /tmp/terraform.zip
@@ -26,15 +28,16 @@ before_install:
 - pip install awscli --upgrade
 - pip install boto3 --upgrade
 install:
+- source config/environment_dev
 - make init
 - make install
 script:
-- source config/environment
-- make infrastructure-plan
+- source config/environment_dev
+- GOOGLE_APPLICATION_CREDENTIALS=`pwd`/config/gcp-credentials-logs-travis.json make infrastructure-plan
 - make test
 deploy:
 - provider: script
-  script: export DEPLOYMENT_STAGE=staging ; make deploy
+  script: source config/environment_dev ; make is-deployed
   skip_cleanup: true
   on:
     branch: master

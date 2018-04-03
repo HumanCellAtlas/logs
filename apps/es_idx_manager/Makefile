@@ -1,4 +1,5 @@
 export EXPORT_ENV_VARS_TO_LAMBDA=
+ES_ENDPOINT := $(shell aws es describe-elasticsearch-domain --domain $$ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
 
 default: build
 

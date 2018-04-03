@@ -2,8 +2,11 @@ variable "aws_region" {
   default = "us-east-1"
 }
 
+variable "aws_profile" {}
+
 provider "aws" {
-    region = "${var.aws_region}"
+  region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 ////
@@ -27,7 +30,7 @@ variable "account_id" {}
 variable "blacklisted_log_groups" {}
 
 resource "aws_iam_role" "cwl_firehose_subscriber" {
-  name               = "cwl_firehose_subscriber-staging"
+  name               = "cwl_firehose_subscriber"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -45,8 +48,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
-  name   = "cwl_firehose_subscriber-staging"
-  role   = "cwl_firehose_subscriber-staging"
+  name   = "cwl_firehose_subscriber"
+  role   = "cwl_firehose_subscriber"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -70,7 +73,7 @@ resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
           "Effect":"Allow",
           "Action":["iam:PassRole"],
           "Resource":[
-            "arn:aws:iam::${var.account_id}:role/cwl-firehose-staging"
+            "arn:aws:iam::${var.account_id}:role/cwl-firehose"
           ]
         }
     ]
@@ -81,19 +84,22 @@ depends_on = ["aws_iam_role.cwl_firehose_subscriber"]
 }
 
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
-    filename = "${var.target_zip_path}"
-    function_name = "cwl_firehose_subscriber"
-    role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
-    handler = "app.handler"
-    runtime = "python3.6"
-    timeout = 10
-    source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+  filename = "${var.target_zip_path}"
+  function_name = "cwl_firehose_subscriber"
+  role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
+  handler = "app.handler"
+  runtime = "python3.6"
+  timeout = 10
+  source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
 
-    environment {
-      variables = {
-        BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
-      }
+  environment {
+    variables = {
+      BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
     }
+  }
+  depends_on = [
+    "aws_iam_role.cwl_firehose_subscriber"
+  ]
 }
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {

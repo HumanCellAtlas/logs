@@ -1,10 +1,19 @@
-variable "region" {
+variable "aws_profile" {}
+variable "slack_webhook_url" {}
+variable "slack_alert_channel" {}
+variable "app_name" {
+  default = "cloudwatch-slack-notifier"
+}
+
+data "aws_caller_identity" "current" {}
+
+variable "aws_region" {
   default = "us-east-1"
 }
 
 provider "aws" {
-  region = "${var.region}"
-  profile = "hca"
+  region = "${var.aws_region}"
+  profile = "${var.aws_profile}"
 }
 
 terraform {
@@ -14,8 +23,6 @@ terraform {
 }
 
 
-variable "kms_key_arn" {}
-variable "account_id" {}
 variable "target_zip_path" {}
 
 resource "aws_iam_role" "slack_notifier" {
@@ -62,7 +69,7 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
         {
             "Effect": "Allow",
             "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:${var.region}:${var.account_id}:*"
+            "Resource": "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"
         },
         {
             "Effect": "Allow",
@@ -71,7 +78,7 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
                 "logs:PutLogEvents"
             ],
             "Resource": [
-                "arn:aws:logs:${var.region}:${var.account_id}:log-group:/aws/lambda/${aws_lambda_function.slack_notifier.function_name}:*"
+                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.app_name}:*"
             ]
         }
     ]
@@ -79,8 +86,57 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
 EOF
 }
 
+resource "aws_kms_key" "cw_to_slack" {
+  description = "cw-to-slack"
+  is_enabled = true
+  policy = <<POLICY
+{
+  "Version" : "2012-10-17",
+  "Id" : "key-consolepolicy-3",
+  "Statement" : [ {
+    "Sid" : "Enable IAM User Permissions",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+    },
+    "Action" : "kms:*",
+    "Resource" : "*"
+  }, {
+    "Sid" : "Allow use of the key",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "${aws_iam_role.slack_notifier.arn}"
+    },
+    "Action" : [ "kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey" ],
+    "Resource" : "*"
+  }, {
+    "Sid" : "Allow attachment of persistent resources",
+    "Effect" : "Allow",
+    "Principal" : {
+      "AWS" : "${aws_iam_role.slack_notifier.arn}"
+    },
+    "Action" : [ "kms:CreateGrant", "kms:ListGrants", "kms:RevokeGrant" ],
+    "Resource" : "*",
+    "Condition" : {
+      "Bool" : {
+        "kms:GrantIsForAWSResource" : "true"
+      }
+    }
+  } ]
+}
+POLICY
+}
+
+data "aws_kms_ciphertext" "slack_webhook_url" {
+  key_id = "${aws_kms_key.cw_to_slack.key_id}"
+  plaintext = "${var.slack_webhook_url}"
+  depends_on = [
+    "aws_kms_key.cw_to_slack"
+  ]
+}
+
 resource "aws_lambda_function" "slack_notifier" {
-  function_name = "cloudwatch-slack-notifications"
+  function_name = "${var.app_name}"
   filename = "${var.target_zip_path}"
   description = "An Amazon SNS trigger that sends CloudWatch alarm notifications to Slack."
   runtime = "nodejs6.10"
@@ -89,12 +145,17 @@ resource "aws_lambda_function" "slack_notifier" {
   role = "${aws_iam_role.slack_notifier.arn}"
   environment {
     variables {
-      slackChannel = "dcp-ops-alerts"
-      kmsEncryptedHookUrl = "AQICAHjW6Fl+muQzFxxa9kzPYcoDbRQsv97HjGgv3NJ9273zjgH8N/FoUSlu7ZIBEDVslJSkAAAApzCBpAYJKoZIhvcNAQcGoIGWMIGTAgEAMIGNBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDMFgvV6b0LV7ANf3sgIBEIBggKlGKXqbOGmY07NGLZZ2ouSD5broJ2JsFC0ETwYnzCzXp+1/y4eNAc8yeGGxlLDvn63EILBLl2EJdq3jf8qsdIwR2mdmSfXjkMzdTPLGih29DseVgfcCuHWoNGPffb8u"
-      region = "${var.region}"
+      slackChannel = "${var.slack_alert_channel}"
+      kmsEncryptedHookUrl = "${data.aws_kms_ciphertext.slack_webhook_url.ciphertext_blob}"
+      region = "${var.aws_region}"
     }
   }
-  kms_key_arn = "${var.kms_key_arn}"
+  kms_key_arn = "${aws_kms_key.cw_to_slack.arn}"
+  depends_on = [
+    "data.aws_kms_ciphertext.slack_webhook_url",
+    "aws_iam_role.slack_notifier",
+    "aws_sns_topic.alarms"
+  ]
 }
 
 resource "aws_sns_topic" "alarms" {
@@ -107,10 +168,18 @@ resource "aws_lambda_permission" "alarms" {
   function_name = "${aws_lambda_function.slack_notifier.function_name}"
   principal = "sns.amazonaws.com"
   source_arn = "${aws_sns_topic.alarms.arn}"
+  depends_on = [
+    "aws_sns_topic.alarms",
+    "aws_lambda_function.slack_notifier"
+  ]
 }
 
 resource "aws_sns_topic_subscription" "alarms" {
   topic_arn = "${aws_sns_topic.alarms.arn}"
   protocol = "lambda"
   endpoint = "${aws_lambda_function.slack_notifier.arn}"
+  depends_on = [
+    "aws_sns_topic.alarms",
+    "aws_lambda_function.slack_notifier"
+  ]
 }
