@@ -10,13 +10,23 @@ init-%:
 	cd $(subst .,/,$*)/ && $(MAKEFILE_DIR)/scripts/init.sh
 
 .PHONY: init
-init: init-infrastructure init-apps.cwl_to_slack init-apps.firehose_to_es_processor init-apps.cwl_firehose_subscriber init-ci
+init: \
+	init-infrastructure \
+	init-apps.cwl_to_slack \
+	init-apps.firehose_to_es_processor \
+	init-apps.cwl_firehose_subscriber \
+	init-ci
 
 clean-terraform-%:
 	cd $(subst .,/,$*)/ && rm -rf .terraform terraform*
 
 .PHONY: clean-terraform
-clean-terraform: clean-terraform-infrastructure clean-terraform-apps.cwl_to_slack clean-terraform-apps.firehose_to_es_processor clean-terraform-apps.cwl_firehose_subscriber clean-terraform-ci
+clean-terraform: \
+	clean-terraform-infrastructure \
+	clean-terraform-apps.cwl_to_slack \
+	clean-terraform-apps.firehose_to_es_processor \
+	clean-terraform-apps.cwl_firehose_subscriber \
+	clean-terraform-ci
 
 # infrastructure
 infrastructure-%:
@@ -27,19 +37,32 @@ install-%:
 	$(MAKE) -C $(subst .,/,$*)/ install
 
 .PHONY: install
-install: install-apps.gcp_to_cwl install-apps.es_idx_manager install-apps.cwl_firehose_subscriber install-apps.firehose_to_es_processor
+install: \
+	install-apps.gcp_to_cwl \
+	install-apps.es_idx_manager \
+	install-apps.cwl_firehose_subscriber \
+	install-apps.firehose_to_es_processor
 
 test-%:
 	$(MAKE) -C $(subst .,/,$*)/ test
 
 .PHONY: test
-test: test-apps.gcp_to_cwl test-apps.es_idx_manager test-apps.cwl_firehose_subscriber test-apps.firehose_to_es_processor
+test: \
+	test-apps.gcp_to_cwl \
+	test-apps.es_idx_manager \
+	test-apps.cwl_firehose_subscriber \
+	test-apps.firehose_to_es_processor
 
 deploy-%:
 	$(MAKE) -C apps/$(*)/ build deploy
 
 .PHONY: deploy
-deploy: deploy-gcp_to_cwl deploy-es_idx_manager deploy-cwl_to_slack deploy-cwl_firehose_subscriber deploy-firehose_to_es_processor
+deploy: \
+	deploy-gcp_to_cwl \
+	deploy-es_idx_manager \
+	deploy-cwl_to_slack \
+	deploy-cwl_firehose_subscriber \
+	deploy-firehose_to_es_processor
 	echo $(APPS_REVISION) > /tmp/rev
 	aws s3 cp /tmp/rev $(DEPLOY_MARKER)
 
@@ -55,10 +78,27 @@ encrypt-%:
 decrypt-%:
 	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*).enc -out config/$(*) -d
 
-encrypt: encrypt-environment_dev encrypt-environment_prod encrypt-ES_IDX_MANAGER_SETTINGS.yaml encrypt-authorized_emails encrypt-gcp-credentials-dev.json encrypt-gcp-credentials-prod.json encrypt-authorized_pubsub_publishers_dev encrypt-gcp-credentials-logs-travis.json
+.PHONY: encrypt
+encrypt: \
+	encrypt-environment_dev \
+	encrypt-environment_prod \
+	encrypt-ES_IDX_MANAGER_SETTINGS.yaml \
+	encrypt-authorized_emails \
+	encrypt-gcp-credentials-dev.json \
+	encrypt-gcp-credentials-prod.json \
+	encrypt-authorized_pubsub_publishers_dev \
+	encrypt-gcp-credentials-logs-travis.json
 
 .PHONY: decrypt
-decrypt: decrypt-environment_dev decrypt-environment_prod decrypt-ES_IDX_MANAGER_SETTINGS.yaml decrypt-authorized_emails decrypt-gcp-credentials-dev.json decrypt-gcp-credentials-prod.json decrypt-authorized_pubsub_publishers_dev decrypt-gcp-credentials-logs-travis.json
+decrypt: \
+	decrypt-environment_dev \
+	decrypt-environment_prod \
+	decrypt-ES_IDX_MANAGER_SETTINGS.yaml \
+	decrypt-authorized_emails \
+	decrypt-gcp-credentials-dev.json \
+	decrypt-gcp-credentials-prod.json \
+	decrypt-authorized_pubsub_publishers_dev \
+	decrypt-gcp-credentials-logs-travis.json
 
 # prod deployment
 .PHONY: prod-deploy
