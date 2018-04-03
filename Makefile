@@ -1,4 +1,9 @@
 MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+APPS_REVISION := $(shell git log -n 1 --format="%H" -- apps)
+DEPLOY_MARKER := s3://$(TERRAFORM_BUCKET)/logs/deployed
+
+rev:
+	echo $(APPS_REVISION)
 
 # terraform init
 init-%:
@@ -35,6 +40,13 @@ deploy-%:
 
 .PHONY: deploy
 deploy: deploy-gcp_to_cwl deploy-es_idx_manager deploy-cwl_to_slack deploy-cwl_firehose_subscriber deploy-firehose_to_es_processor
+	echo $(APPS_REVISION) > /tmp/rev
+	aws s3 cp /tmp/rev $(DEPLOY_MARKER)
+
+.PHONY: is-deployed
+is-deployed:
+	aws s3 cp $(DEPLOY_MARKER) /tmp/rev
+	bash -c '[[ `cat /tmp/rev` == "$(APPS_REVISION)" ]]'
 
 # secrets
 encrypt-%:
