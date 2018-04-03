@@ -86,7 +86,8 @@ class FirehoseRecordProcessor():
                 })
                 message = event['@message']
                 log_group = event['@log_group']
-                if os.environ.get('AIRBRAKE_FLAG') and self._is_message_appropriate_for_airbrake(message, log_group):
+                airbrake_flag = os.environ.get('AIRBRAKE_FLAG')
+                if airbrake_flag and airbrake_flag == "True" and self._is_message_appropriate_for_airbrake(message, log_group):
                     logger.exception(message)
         else:
             self.records_to_reingest.append({
