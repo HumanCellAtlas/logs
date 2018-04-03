@@ -159,54 +159,6 @@ resource "aws_cloudformation_stack" "alerts" {
 
 
 ////
-// GCP to CloudWatch Logs exporter
-//
-
-resource "aws_iam_role" "gcp_to_cwl" {
-  name               = "gcp-to-cwl-exporter"
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "gcp_to_cwl" {
-  name   = "gcp-to-cwl-exporter"
-  role   = "gcp-to-cwl-exporter"
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogStream",
-                "logs:DescribeLogStreams",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "arn:aws:logs:*:*:*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": "logs:CreateLogGroup",
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-}
-
-////
 // Firehose to ES
 //
 
