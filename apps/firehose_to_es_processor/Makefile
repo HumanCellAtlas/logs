@@ -10,6 +10,7 @@ install:
 
 .PHONY: test
 test:
+	. venv/bin/activate && pip install -r requirements.txt
 	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
