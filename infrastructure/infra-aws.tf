@@ -162,8 +162,10 @@ resource "aws_cloudformation_stack" "alerts" {
 // GCP to CloudWatch Logs exporter
 //
 
+variable "deployment_stage" {}
+
 resource "aws_iam_role" "gcp_to_cwl" {
-  name               = "gcp-to-cwl-exporter"
+  name               = "gcp-to-cwl-exporter-${var.deployment_stage}"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -181,8 +183,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "gcp_to_cwl" {
-  name   = "gcp-to-cwl-exporter"
-  role   = "gcp-to-cwl-exporter"
+  name   = "gcp-to-cwl-exporter-${var.deployment_stage}"
+  role   = "gcp-to-cwl-exporter-${var.deployment_stage}"
   policy = <<EOF
 {
     "Version": "2012-10-17",

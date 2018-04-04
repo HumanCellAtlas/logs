@@ -6,6 +6,7 @@ ACTION=$1
 shift 1
 
 terraform "$ACTION" \
+  -var "deployment_stage=${DEPLOYMENT_STAGE}" \
   -var "account_id=${ACCOUNT_ID}" \
   -var "cloudtrail_log_group_name=${CLOUDTRAIL_LOG_GROUP_NAME}" \
   -var "cloudtrail_name=${CLOUDTRAIL_NAME}" \
