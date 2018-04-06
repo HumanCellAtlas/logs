@@ -28,7 +28,7 @@ terraform-%:
 		-var "target_zip_path=$(MAKEFILE_DIR)/$(TARGET)" \
 		-var "account_id=$(ACCOUNT_ID)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
-		-var "aws_region=$(AWS_REGION)" \
+		-var "aws_region=$(AWS_DEFAULT_REGION)" \
 		-var "blacklisted_log_groups=$(BLACKLISTED_LOG_GROUPS)" \
 		-auto-approve \
 		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
