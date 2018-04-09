@@ -2,11 +2,11 @@ import json
 from datetime import datetime
 from lib.util import extract_json
 import os
-import airbrake
+from airbrake.notifier import Airbrake
 import re
 
 if os.environ.get('AIRBRAKE_FLAG'):
-    logger = airbrake.getLogger(api_key=os.environ.get("AIRBRAKE_API_KEY"), project_id=os.environ.get("AIRBRAKE_PROJECT_ID"))
+    airbrake_notifier = Airbrake(project_id=os.environ.get("AIRBRAKE_PROJECT_ID"), api_key=os.environ.get("AIRBRAKE_API_KEY"))
 
 
 class FirehoseRecord():
@@ -46,8 +46,11 @@ class FirehoseRecord():
         message = transformed_payload['@message']
         log_group = transformed_payload['@log_group']
         airbrake_flag = os.environ.get('AIRBRAKE_FLAG')
+        log_stream = self.record["logStream"]
         if airbrake_flag and airbrake_flag == "True" and self._is_message_appropriate_for_airbrake(message, log_group):
-            logger.exception(message)
+            airbrake_error = {"@message": message, "@log_group": log_group, "@log_stream": log_stream}
+            print(str(airbrake_error))
+            airbrake_notifier.notify(str(airbrake_error))
 
         return transformed_payload
 

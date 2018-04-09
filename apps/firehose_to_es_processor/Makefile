@@ -17,8 +17,8 @@ test:
 build:
 	rm -rf target
 	mkdir target
-	pip install elasticsearch requests_aws4auth retrying -t . --upgrade
-	zip -r $(TARGET) *.py lib/*.py elasticsearch/ urllib3/ certifi/ chardet/ idna/ requests/ requests_aws4auth/
+	pip install elasticsearch requests_aws4auth retrying airbrake -t . --upgrade
+	zip -r $(TARGET) *.py lib/*.py elasticsearch/ urllib3/ certifi/ chardet/ idna/ requests/ requests_aws4auth/ airbrake/
 
 .PHONY: deploy
 deploy: build
