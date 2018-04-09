@@ -27,6 +27,7 @@ terraform {
 
 variable "target_zip_path" {}
 variable "account_id" {}
+variable "es_endpoint" {}
 
 resource "aws_iam_role" "firehose_processor" {
   name               = "firehose-cwl-log-processor"
@@ -86,9 +87,15 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
     role = "${aws_iam_role.firehose_processor.arn}"
     handler = "app.handler"
     runtime = "python3.6"
-    memory_size = 512
+    memory_size = 1024
     timeout = 120
     source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+
+    environment {
+    variables = {
+      ES_ENDPOINT = "${var.es_endpoint}"
+    }
+  }
 
 }
 
