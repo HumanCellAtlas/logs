@@ -113,17 +113,3 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
 }
-
-data "external" "processing_configuration" {
-  program = ["python", "./setup_firehose_processing_config.py"]
-
-  query = {
-    # arbitrary map from strings to strings, passed
-    # to the external program as the data query.
-    delivery_stream_name = "Kinesis-Firehose-ELK"
-    lambda_name = "Firehose-CWL-Processor"
-  }
-  depends_on = [
-    "aws_lambda_function.firehose_cwl_processor"
-  ]
-}
