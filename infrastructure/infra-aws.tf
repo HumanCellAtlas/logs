@@ -253,22 +253,8 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
         },
         {
             "Effect": "Allow",
-            "Action": "es:*",
-            "Resource": "arn:aws:es:*:*:*"
-        },
-        {
-            "Effect": "Allow",
             "Action": "s3:*",
             "Resource": "arn:aws:s3:::*"
-        },
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "lambda:InvokeFunction",
-                "lambda:GetFunctionConfiguration"
-            ],
-            "Resource": "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
         }
     ]
 }
@@ -279,12 +265,12 @@ EOF
 // Firehose S3 Bucket and Log Group
 //
 
-resource "aws_s3_bucket" "kinesis-es-firehose-failures" {
-  bucket = "kinesis-es-firehose-failures-${var.account_id}"
+resource "aws_s3_bucket" "kinesis-firehose-logs" {
+  bucket = "kinesis-firehose-logs-${var.account_id}"
   acl    = "private"
 
   tags {
-    Name        = "kinesis-es-firehose-failures"
+    Name        = "kinesis-firehose-logs"
     Environment = "default"
   }
 }
@@ -293,52 +279,45 @@ resource "aws_cloudwatch_log_group" "firehose_errors" {
   name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
 }
 
-
-resource "aws_cloudwatch_log_stream" "firehose_es_delivery_errors" {
-  name = "ElasticsearchDelivery"
-  log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
-}
-
 resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
   name = "S3Delivery"
   log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
 }
 
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket = "${aws_s3_bucket.kinesis-firehose-logs.id}"
+
+  lambda_function {
+    lambda_function_arn = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
+    events              = ["s3:ObjectCreated:*"]
+  }
+}
+
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
+  principal     = "s3.amazonaws.com"
+  source_arn    = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+}
 
 ////
-// Firehose ES Delivery Stream
+// Firehose S3 Delivery Stream
 //
 
 resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
   name        = "Kinesis-Firehose-ELK"
-  destination = "elasticsearch"
+  destination = "s3"
   s3_configuration {
     role_arn           = "${aws_iam_role.kinesis-firehose-es.arn}"
-    bucket_arn         = "${aws_s3_bucket.kinesis-es-firehose-failures.arn}"
-    buffer_size        = 1
+    bucket_arn         = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+    buffer_size        = 128
     buffer_interval    = 60
-    compression_format = "GZIP"
     prefix = "firehose"
     cloudwatch_logging_options {
       enabled = true
       log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
       log_stream_name = "S3Delivery"
-    }
-  }
-  elasticsearch_configuration {
-    domain_arn = "${aws_elasticsearch_domain.es.arn}"
-    role_arn   = "${aws_iam_role.kinesis-firehose-es.arn}"
-    index_name = "cwl"
-    type_name  = "fromFirehose"
-    buffering_interval = 60
-    buffering_size = 1
-    retry_duration = 300
-    index_rotation_period = "OneDay"
-    s3_backup_mode = "FailedDocumentsOnly"
-    cloudwatch_logging_options {
-      enabled = true
-      log_group_name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
-      log_stream_name = "ElasticsearchDelivery"
     }
   }
 }

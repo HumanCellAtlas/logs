@@ -125,3 +125,27 @@ es-idx-manager-settings.yaml
 
 # test code
 hand_test.js
+
+# firehose process app
+apps/firehose_to_es_processor/HISTORY.rst
+apps/firehose_to_es_processor/LICENSE
+apps/firehose_to_es_processor/NOTICE
+apps/firehose_to_es_processor/README.rst
+apps/firehose_to_es_processor/certifi-2018.1.18.dist-info/
+apps/firehose_to_es_processor/certifi/
+apps/firehose_to_es_processor/chardet-3.0.4.dist-info/
+apps/firehose_to_es_processor/chardet/
+apps/firehose_to_es_processor/elasticsearch-6.2.0.dist-info/
+apps/firehose_to_es_processor/elasticsearch/
+apps/firehose_to_es_processor/idna-2.6.dist-info/
+apps/firehose_to_es_processor/idna/
+apps/firehose_to_es_processor/requests-2.18.4.dist-info/
+apps/firehose_to_es_processor/requests/
+apps/firehose_to_es_processor/requests_aws4auth-0.9.dist-info/
+apps/firehose_to_es_processor/requests_aws4auth/
+apps/firehose_to_es_processor/retrying-1.3.3.dist-info/
+apps/firehose_to_es_processor/retrying.py
+apps/firehose_to_es_processor/six-1.11.0.dist-info/
+apps/firehose_to_es_processor/six.py
+apps/firehose_to_es_processor/urllib3-1.22.dist-info/
+apps/firehose_to_es_processor/urllib3/

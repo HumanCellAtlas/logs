@@ -10,17 +10,7 @@ class TestFirehoseRecord(unittest.TestCase):
 
     data = {"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}
     data["logEvents"] = [{"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}, {"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}]
-    data = json.dumps(data).encode('utf-8')
-    out = BytesIO()
-    with gzip.GzipFile(fileobj=out, mode="wb") as f:
-        f.write(data)
-    firehose_record = FirehoseRecord({"data": base64.b64encode(out.getvalue()), "recordId": "12345"})
-    firehose_record.decode_and_unzip()
-
-    def test_decode_and_unzip(self):
-        self.assertEqual(self.firehose_record.message_type, 'DATA_MESSAGE')
-        self.assertEqual(self.firehose_record.json_data['owner'], 'test_owner')
-        self.assertEqual(self.firehose_record.json_data['logGroup'], '/test/test_log_group')
+    firehose_record = FirehoseRecord(data)
 
     def test_transform_and_extract_from_log_event(self):
         self.firehose_record.transform_and_extract_from_log_events_in_record()

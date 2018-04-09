@@ -1,2 +1,6 @@
 boto3
 airbrake
+elasticsearch
+requests_aws4auth
+retrying
+urllib3

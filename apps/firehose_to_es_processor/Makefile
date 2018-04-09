@@ -6,7 +6,7 @@ default: build
 .PHONY: install
 install:
 	virtualenv -p python3 venv
-	. venv/bin/activate && pip install -r requirements.txt
+	. venv/bin/activate && pip install -r requirements.txt --upgrade
 
 .PHONY: test
 test:
@@ -17,7 +17,8 @@ test:
 build:
 	rm -rf target
 	mkdir target
-	zip -r $(TARGET) *.py lib/*.py
+	pip install elasticsearch requests_aws4auth retrying -t . --upgrade
+	zip -r $(TARGET) *.py lib/*.py elasticsearch/ urllib3/ certifi/ chardet/ idna/ requests/ requests_aws4auth/
 
 .PHONY: deploy
 deploy: build
@@ -31,5 +32,6 @@ deploy: build
 		-var "airbrake_api_key=${AIRBRAKE_API_KEY}" \
 		-var "airbrake_project_id=${AIRBRAKE_PROJECT_ID}" \
 		-var "airbrake_environment=${AIRBRAKE_ENVIRONMENT}" \
+		-var "es_endpoint=${ES_ENDPOINT}" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
