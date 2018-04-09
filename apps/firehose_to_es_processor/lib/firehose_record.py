@@ -49,7 +49,6 @@ class FirehoseRecord():
         log_stream = self.record["logStream"]
         if airbrake_flag and airbrake_flag == "True" and self._is_message_appropriate_for_airbrake(message, log_group):
             airbrake_error = {"@message": message, "@log_group": log_group, "@log_stream": log_stream}
-            print(str(airbrake_error))
             airbrake_notifier.notify(str(airbrake_error))
 
         return transformed_payload
