@@ -75,8 +75,13 @@ resource "aws_iam_role_policy" "firehose_processor" {
         },
         {
             "Effect": "Allow",
-            "Action": "firehose:*",
-            "Resource": "arn:aws:firehose:*:*:*"
+            "Action": "es:*",
+            "Resource": "arn:aws:es:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}"
         }
     ]
 }
