@@ -149,3 +149,5 @@ apps/firehose_to_es_processor/six-1.11.0.dist-info/
 apps/firehose_to_es_processor/six.py
 apps/firehose_to_es_processor/urllib3-1.22.dist-info/
 apps/firehose_to_es_processor/urllib3/
+airbrake-2.1.0.dist-info/
+airbrake/
