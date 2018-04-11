@@ -30,6 +30,16 @@ class TestApp(unittest.TestCase):
         blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
         self.assertEqual(blacklisted, True)
 
+         # should return true for log group containing blacklisted value
+        test_log_group_3 = "/aws/lambda/Firehose-CWL-Processor"
+        blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
+        self.assertEqual(blacklisted, True)
+
+        # should return true for log group containing blacklisted value
+        test_log_group_3 = "/aws/lambda/test_log_group-12345"
+        blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
+        self.assertEqual(blacklisted, True)
+
     def test_subscription_filter(self):
         logs_client = boto3.client('logs')
         log_group_name = f"/aws/lambda/test_log_group-{uuid.uuid4()}"
