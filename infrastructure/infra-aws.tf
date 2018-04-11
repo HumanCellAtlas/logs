@@ -311,7 +311,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
   s3_configuration {
     role_arn           = "${aws_iam_role.kinesis-firehose-es.arn}"
     bucket_arn         = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
-    buffer_size        = 128
+    buffer_size        = 30
     buffer_interval    = 60
     prefix = "firehose"
     cloudwatch_logging_options {
