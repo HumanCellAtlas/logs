@@ -5,14 +5,13 @@ import os
 
 
 class TestS3Client(unittest.TestCase):
-    test_suffix_ele = '-'.join(
-        [e for e in [os.environ.get('TRAVIS_BUILD_ID'), os.environ.get('TRAVIS_EVENT_TYPE')] if e]
-    )
+    travis_build_id = os.environ.get('TRAVIS_BUILD_ID')
     region = "us-east-1"
     account_id = os.environ.get("ACCOUNT_ID")
     bucket = "s3-bucket-test-{0}".format(account_id)
-    if test_suffix_ele:
-        bucket = bucket + "-" + test_suffix_ele
+    print(travis_build_id)
+    if travis_build_id:
+        bucket = bucket + "-" + travis_build_id
     s3_client = S3Client(region, bucket)
     s3 = s3_client.s3
     s3.create_bucket(Bucket=bucket)
