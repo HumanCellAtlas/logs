@@ -254,7 +254,7 @@ resource "aws_iam_role_policy" "kinesis-firehose-es" {
         {
             "Effect": "Allow",
             "Action": "s3:*",
-            "Resource": "arn:aws:s3:::*"
+            "Resource": "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}/*"
         }
     ]
 }

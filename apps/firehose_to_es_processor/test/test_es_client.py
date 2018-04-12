@@ -38,8 +38,13 @@ class TestESClient(unittest.TestCase):
             firehose_record_processor.run()
             output_records = firehose_record_processor.output_records
             self.es_client.bulk_post(output_records, self.index_prefix)
-            time.sleep(5)
-            count = self.es.indices.stats(index_name)['_all']['primaries']['docs']['count']
+            count = 0
+            countdown = 10
+            while count == 0 and countdown > 0:
+                self.es.indices.refresh
+                count = self.es.indices.stats(index_name)['_all']['primaries']['docs']['count']
+                time.sleep(1)
+                countdown -= 1
             self.assertEqual(count, 2)
         finally:
             if self.es.indices.exists(index_name):
