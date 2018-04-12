@@ -17,7 +17,7 @@ build:
 	rm -rf target
 	mkdir target
 	pip install -r requirements.txt -t target/ --upgrade
-	zip -r $(TARGET) *.py lib/*.py target/*/
+	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 
 .PHONY: deploy
 deploy: build
