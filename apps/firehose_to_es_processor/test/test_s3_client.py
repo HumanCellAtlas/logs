@@ -9,7 +9,6 @@ class TestS3Client(unittest.TestCase):
     region = "us-east-1"
     account_id = os.environ.get("ACCOUNT_ID")
     bucket = "s3-bucket-test-{0}".format(account_id)
-    print(travis_build_id)
     if travis_build_id:
         bucket = bucket + "-" + travis_build_id
     s3_client = S3Client(region, bucket)
