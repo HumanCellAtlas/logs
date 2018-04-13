@@ -2,3 +2,5 @@ boto3
 elasticsearch
 requests_aws4auth
 retrying
+airbrake
+urllib3
