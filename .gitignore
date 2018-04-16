@@ -125,3 +125,6 @@ es-idx-manager-settings.yaml
 
 # test code
 hand_test.js
+
+# firehose process app
+apps/firehose_to_es_processor/target

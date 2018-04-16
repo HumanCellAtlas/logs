@@ -6,7 +6,7 @@ default: build
 .PHONY: install
 install:
 	virtualenv -p python3 venv
-	. venv/bin/activate && pip install -r requirements.txt
+	. venv/bin/activate && pip install -r requirements.txt --upgrade
 
 .PHONY: test
 test:
@@ -16,7 +16,8 @@ test:
 build:
 	rm -rf target
 	mkdir target
-	zip -r $(TARGET) *.py lib/*.py
+	pip install -r requirements.txt -t target/ --upgrade
+	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 
 .PHONY: deploy
 deploy: build
@@ -24,5 +25,6 @@ deploy: build
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
 		-var "aws_profile=${AWS_PROFILE}" \
+		-var "es_endpoint=${ES_ENDPOINT}" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")

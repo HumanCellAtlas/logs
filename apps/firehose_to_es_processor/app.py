@@ -1,5 +1,5 @@
 """
-For processing data sent to Firehose by Cloudwatch Logs subscription filters.
+For processing data sent to S3 via firehose by Cloudwatch Logs subscription filters.
 
 Cloudwatch Logs sends to Firehose records that look like this:
 
@@ -30,35 +30,32 @@ The data is additionally compressed with GZIP.
 
 The code will:
 
-1) Gunzip the data
-2) Parse the json
-3) Set the result to Dropped for any record whose messageType is not DATA_MESSAGE. Such records do not contain any log events.
-4) For records whose messageType is DATA_MESSAGE, extract the individual log events from the logEvents field, and pass
-   each one to the transform_log_event method. Individual parents with more than one children log records are transformed, encoded, and requeued for ingestion.
-5) Transformed records are sent back to kinesis firehose ready for the final destination.
-6) Any additional records which exceed 6MB will be re-ingested back into Firehose.
-
+1) Retrieve the file from S3
+2) Gunzip and parse the s3 file into individual records
+3) Process/Transform each record and its corresponding log events
+4) Bulk send the transformed events to the corresponding elastic search endpoing with today's index
+5) Delete the file from s3 after successful processing and post to ES
 """
-
-import boto3
 from lib.firehose_record_processor import FirehoseRecordProcessor
-from lib.firehose_record_transmitter import FirehoseRecordTransmitter
+from lib.s3_client import S3Client
+from lib.es_client import ESClient
 
 
 def handler(event, context):
     """Main function"""
+    for record in event['Records']:
+        region = record['awsRegion']
+        bucket = record['s3']['bucket']['name']
+        s3_client = S3Client(region, bucket)
+        s3_object_key = record['s3']['object']['key']
+        file = s3_client.retrieve_file(s3_object_key)
+        input_records = s3_client.unzip_and_parse_firehose_s3_file(file)
 
-    input_records = event['records']
-    firehose_record_processor = FirehoseRecordProcessor(input_records)
-    firehose_record_processor.run()
+        firehose_record_processor = FirehoseRecordProcessor(input_records)
+        firehose_record_processor.run()
 
-    records_to_reingest = firehose_record_processor.records_to_reingest
-    if len(records_to_reingest) > 0:
-        stream_arn = event['deliveryStreamArn']
-        region = stream_arn.split(':')[3]
-        stream_name = stream_arn.split('/')[1]
-        FirehoseRecordTransmitter(region, stream_name).transmit(records_to_reingest)
+        es_client = ESClient()
+        es_client.create_cwl_day_index()
+        es_client.bulk_post(firehose_record_processor.output_records)
 
-    output_records = firehose_record_processor.output_records
-    print('Output of %s completed records to firehose.' % (str(len(output_records))))
-    return {"records": output_records}
+        s3_client.delete_file(s3_object_key)

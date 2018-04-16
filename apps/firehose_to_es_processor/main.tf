@@ -27,6 +27,7 @@ terraform {
 
 variable "target_zip_path" {}
 variable "account_id" {}
+variable "es_endpoint" {}
 
 resource "aws_iam_role" "firehose_processor" {
   name               = "firehose-cwl-log-processor"
@@ -68,8 +69,13 @@ resource "aws_iam_role_policy" "firehose_processor" {
         },
         {
             "Effect": "Allow",
-            "Action": "firehose:*",
-            "Resource": "arn:aws:firehose:*:*:*"
+            "Action": "es:*",
+            "Resource": "arn:aws:es:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "s3:*",
+            "Resource": "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}/*"
         }
     ]
 }
@@ -86,26 +92,18 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
     role = "${aws_iam_role.firehose_processor.arn}"
     handler = "app.handler"
     runtime = "python3.6"
-    memory_size = 512
+    memory_size = 1024
     timeout = 120
     source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+
+    environment {
+    variables = {
+      ES_ENDPOINT = "${var.es_endpoint}"
+    }
+  }
 
 }
 
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
-}
-
-data "external" "processing_configuration" {
-  program = ["python", "./setup_firehose_processing_config.py"]
-
-  query = {
-    # arbitrary map from strings to strings, passed
-    # to the external program as the data query.
-    delivery_stream_name = "Kinesis-Firehose-ELK"
-    lambda_name = "Firehose-CWL-Processor"
-  }
-  depends_on = [
-    "aws_lambda_function.firehose_cwl_processor"
-  ]
 }
