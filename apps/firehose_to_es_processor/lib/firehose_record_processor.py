@@ -1,5 +1,3 @@
-import json
-import base64
 from lib.firehose_record import FirehoseRecord
 
 
