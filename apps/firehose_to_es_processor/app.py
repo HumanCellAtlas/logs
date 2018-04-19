@@ -36,9 +36,23 @@ The code will:
 4) Bulk send the transformed events to the corresponding elastic search endpoing with today's index
 5) Delete the file from s3 after successful processing and post to ES
 """
-from lib.firehose_record_processor import FirehoseRecordProcessor
+import logging
+import os
+
+from lib import firehose_records
+from lib.airbrake_notifier import AirbrakeNotifier
 from lib.s3_client import S3Client
 from lib.es_client import ESClient
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+record_callbacks = []
+
+# record callback configuration
+if os.environ.get('AIRBRAKE_FLAG', None) == 'True':
+    record_callbacks += [AirbrakeNotifier.notify]
+    logger.info("Airbrake notifier enabled!")
 
 
 def handler(event, context):
@@ -49,13 +63,12 @@ def handler(event, context):
         s3_client = S3Client(region, bucket)
         s3_object_key = record['s3']['object']['key']
         file = s3_client.retrieve_file(s3_object_key)
-        input_records = s3_client.unzip_and_parse_firehose_s3_file(file)
 
-        firehose_record_processor = FirehoseRecordProcessor(input_records)
-        firehose_record_processor.run()
+        doc_stream = s3_client.unzip_and_parse_firehose_s3_file(file)
+        record_stream = firehose_records.from_docs(doc_stream)
 
         es_client = ESClient()
         es_client.create_cwl_day_index()
-        es_client.bulk_post(firehose_record_processor.output_records)
+        es_client.bulk_post(list(record_stream))
 
         s3_client.delete_file(s3_object_key)

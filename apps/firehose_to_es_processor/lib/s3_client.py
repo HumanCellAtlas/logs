@@ -16,15 +16,14 @@ class S3Client():
         obj = self.s3.Object(self.bucket, s3_object_key)
         return obj.get()
 
-    def unzip_and_parse_firehose_s3_file(self, file):
-        json_events = []
+    @classmethod
+    def unzip_and_parse_firehose_s3_file(cls, file):
         with gzip.GzipFile(fileobj=file['Body'], mode='r') as f:
             log_events = f.read().decode()
             to_split_on = '{"messageType":'
             split_events = [to_split_on + x for x in re.split(to_split_on, log_events)[1:]]
             for event in split_events:
-                json_events.append(json.loads(event))
-        return json_events
+                yield json.loads(event)
 
     @retry(wait_fixed=1000, stop_max_attempt_number=3)
     def delete_file(self, s3_object_key):

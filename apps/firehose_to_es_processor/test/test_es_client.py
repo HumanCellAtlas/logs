@@ -1,7 +1,6 @@
 from lib.es_client import ESClient
-from lib.firehose_record_processor import FirehoseRecordProcessor
+from lib import firehose_records
 import unittest
-import datetime
 import os
 import time
 
@@ -34,9 +33,8 @@ class TestESClient(unittest.TestCase):
             self.assertEqual(self.es.indices.exists(index_name), True)
             data = [{"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}]
             data[0]["logEvents"] = [{"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}, {"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}]
-            firehose_record_processor = FirehoseRecordProcessor(data)
-            firehose_record_processor.run()
-            output_records = firehose_record_processor.output_records
+            record_stream = firehose_records.from_docs(data)
+            output_records = list(record_stream)
             self.es_client.bulk_post(output_records, self.index_prefix)
             count = 0
             countdown = 10
