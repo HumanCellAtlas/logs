@@ -1,5 +1,5 @@
 from lib.s3_client import S3Client
-from lib.firehose_record_processor import FirehoseRecordProcessor
+from lib import firehose_records
 import unittest
 import os
 
@@ -20,11 +20,10 @@ class TestS3Client(unittest.TestCase):
 
     def test_s3_client(self):
         file = self.s3_client.retrieve_file(self.s3_object_key)
-        input_records = self.s3_client.unzip_and_parse_firehose_s3_file(file)
+        input_records = list(self.s3_client.unzip_and_parse_firehose_s3_file(file))
         self.assertEqual(len(input_records), 2)
-        firehose_record_processor = FirehoseRecordProcessor(input_records)
-        firehose_record_processor.run()
-        output_records = firehose_record_processor.output_records
+        record_stream = firehose_records.from_docs(input_records)
+        output_records = list(record_stream)
         self.assertEqual(len(output_records), 3)
         self.s3_client.delete_file(self.s3_object_key)
         self.s3.Bucket(self.bucket).delete()
