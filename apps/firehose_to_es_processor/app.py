@@ -41,18 +41,14 @@ import os
 
 from lib import firehose_records
 from lib.airbrake_notifier import AirbrakeNotifier
+from lib.cloudwatch_notifier import observe_counts
 from lib.s3_client import S3Client
 from lib.es_client import ESClient
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-record_callbacks = []
-
-# record callback configuration
-if os.environ.get('AIRBRAKE_FLAG', None) == 'True':
-    record_callbacks += [AirbrakeNotifier.notify]
-    logger.info("Airbrake notifier enabled!")
+AIRBRAKE_ENABLED = os.environ.get('AIRBRAKE_FLAG', None) == 'True'
 
 
 def handler(event, context):
@@ -65,10 +61,20 @@ def handler(event, context):
         file = s3_client.retrieve_file(s3_object_key)
 
         doc_stream = s3_client.unzip_and_parse_firehose_s3_file(file)
-        record_stream = firehose_records.from_docs(doc_stream)
+        log_event_stream = firehose_records.from_docs(doc_stream)
+
+        notifier = None
+        if AIRBRAKE_ENABLED:
+            notifier = AirbrakeNotifier()
+            log_event_stream = notifier.notify_on_stream(log_event_stream)
 
         es_client = ESClient()
         es_client.create_cwl_day_index()
-        es_client.bulk_post(list(record_stream))
+        es_client.bulk_post(list(log_event_stream))
 
         s3_client.delete_file(s3_object_key)
+
+        if notifier:
+            observe_counts(notifier.report())
+
+

@@ -17,33 +17,44 @@ class AirbrakeNotifier:
     whitelisted_log_message_terms_regexp = re.compile(whitelisted_log_message_terms_regex_string, re.IGNORECASE)
 
     def __init__(self):
-        self.report = {
-            'other': 0,
-            'errors': 0
-        }
+        self._report = dict()
 
-    def notify_stream(self, record_stream):
-        for record in record_stream:
-            if AirbrakeNotifier.notifiy(record):
-                self.report['errors'] += 1
-            else:
-                self.report['other'] += 1
-            yield record
+    def report(self):
+        results = []
+        for log_group, subcounts in self._report.items():
+            for message_type, count in subcounts.items():
+                results += [(log_group, message_type, count)]
+        return results
 
-    @staticmethod
-    def notifiy(record):
-        message = record['@message']
-        log_group = record['@log_group']
-        log_stream = record['logStream']
+    def notify_on_stream(self, log_event_stream):
+        for log_event in log_event_stream:
+            self.notify(log_event)
+            yield log_event
+
+    def notify(self, log_event):
+        message = log_event['@message']
+        log_group = log_event['@log_group']
+        log_stream = log_event['@log_stream']
+        is_error = False
         if AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group):
             airbrake_error = "'{0} {1} '@log_stream': {2}".format(log_group, message, log_stream)
+            is_error = True
             try:
                 AirbrakeNotifier.airbrake_notifier.notify(str(airbrake_error))
-                return True
             except Exception as e:
                 logger.error("Airbrake notification failed!", e)
                 pass
-        return False
+        self._observe(log_group, is_error)
+
+    def _observe(self, log_group, is_error):
+        if log_group not in self._report:
+            self._report[log_group] = {
+                'errors': 0,
+                'total': 0
+            }
+        if is_error:
+            self._report[log_group]['errors'] += 1
+        self._report[log_group]['total'] += 1
 
     @staticmethod
     def _is_message_appropriate_for_airbrake(message, log_group):
