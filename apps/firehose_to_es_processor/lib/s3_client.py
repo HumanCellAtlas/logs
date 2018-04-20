@@ -5,7 +5,7 @@ import re
 from retrying import retry
 
 
-class S3Client():
+class S3Client:
     def __init__(self, region, bucket):
         self.region = region
         self.bucket = bucket
