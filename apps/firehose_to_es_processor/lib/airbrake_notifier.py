@@ -42,7 +42,9 @@ class AirbrakeNotifier:
             try:
                 AirbrakeNotifier.airbrake_notifier.notify(str(airbrake_error))
             except Exception as e:
-                logger.error("Airbrake notification failed!", e)
+                message = str(e)
+                if not message.startswith('420 Client Error'):
+                    logger.error("Airbrake notification failed! {}".format(message))
                 pass
         self._observe(log_group, is_error)
 

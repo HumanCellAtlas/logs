@@ -68,13 +68,14 @@ def handler(event, context):
             notifier = AirbrakeNotifier()
             log_event_stream = notifier.notify_on_stream(log_event_stream)
 
+        log_events = list(log_event_stream)
         es_client = ESClient()
         es_client.create_cwl_day_index()
-        es_client.bulk_post(list(log_event_stream))
+        es_client.bulk_post(log_events)
 
         s3_client.delete_file(s3_object_key)
 
         if notifier:
             observe_counts(notifier.report())
 
-
+        logger.info("Indexed {} log events".format(len(log_events)))
