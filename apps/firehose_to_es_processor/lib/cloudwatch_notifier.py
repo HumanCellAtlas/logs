@@ -20,8 +20,9 @@ def observe_counts(report):
                     'Value': count_type
                 },
             ],
-            'Unit': 'None',
-            'Value': count
+            'Value': count,
+            'Unit': 'Count',
+            'StorageResolution': 60
         } for (log_group, count_type, count) in report
     ]
     for metric_data_chunk in _chunks(per_log_group_per_type_counts_metric_data, 20):
@@ -43,8 +44,9 @@ def observe_counts(report):
                     'Value': count_type
                 }
             ],
-            'Unit': 'None',
-            'Value': count
+            'Value': count,
+            'Unit': 'Count',
+            'StorageResolution': 60
         } for (count_type, count) in per_type_counts.items()
     ]
     for metric_data_chunk in _chunks(per_type_metric_data, 20):
