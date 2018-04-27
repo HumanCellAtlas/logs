@@ -33,4 +33,4 @@ deploy:
 		-var "airbrake_project_id=$(AIRBRAKE_PROJECT_ID)" \
 		-var "airbrake_environment=$(AIRBRAKE_ENVIRONMENT)" \
 		-auto-approve \
-		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
+		$(shell [[ "$ACTION" == "plan" ]] && echo "-detailed-exitcode" || echo "")
