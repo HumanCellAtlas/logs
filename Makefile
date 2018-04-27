@@ -13,6 +13,7 @@ init-%:
 init: \
 	init-infrastructure \
 	init-apps.cwl_to_slack \
+	init-apps.es_idx_manager \
 	init-apps.firehose_to_es_processor \
 	init-apps.cwl_firehose_subscriber \
 	init-ci
@@ -80,7 +81,6 @@ decrypt-%:
 
 .PHONY: encrypt
 encrypt: \
-	encrypt-ES_IDX_MANAGER_SETTINGS.yaml \
 	encrypt-authorized_emails \
 	encrypt-authorized_pubsub_publishers_dev \
 	encrypt-authorized_pubsub_publishers_prod \
@@ -92,7 +92,6 @@ encrypt: \
 
 .PHONY: decrypt
 decrypt: \
-	decrypt-ES_IDX_MANAGER_SETTINGS.yaml \
 	decrypt-authorized_emails \
 	decrypt-authorized_pubsub_publishers_dev \
 	decrypt-authorized_pubsub_publishers_prod \

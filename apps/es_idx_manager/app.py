@@ -19,7 +19,6 @@ import datetime
 import json
 import os
 import yaml
-import domovoi
 
 
 class ESException(Exception):
@@ -166,10 +165,6 @@ class ESCleanup(object):
         return self.get_indices()
 
 
-app = domovoi.Domovoi()
-
-
-@app.scheduled_function("rate(12 hours)")
 def handler(event, context):
     """Main Lambda function
     """

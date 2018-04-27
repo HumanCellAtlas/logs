@@ -1,5 +1,5 @@
-export EXPORT_ENV_VARS_TO_LAMBDA=
-ES_ENDPOINT := $(shell aws es describe-elasticsearch-domain --domain $$ES_DOMAIN_NAME | jq -r '.DomainStatus.Endpoint')
+ZIP_FILE := EsIndexManager_App.zip
+TARGET := target/$(ZIP_FILE)
 
 default: build
 
@@ -13,11 +13,21 @@ test:
 	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
-build:
-	mkdir -p domovoilib
-	cp "$(ES_IDX_MANAGER_SETTINGS)" domovoilib/es-idx-manager-settings.yaml
+build: terraform-plan
+	rm -rf target
+	mkdir target
+	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
+	terraform output es_conf_file > target/es-idx-manager-settings.yaml
+	cp app.py target/
+	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
+
+terraform-%:
+	. venv/bin/activate && terraform apply \
+		-var "target_zip_path=$(TARGET)" \
+		-var "aws_profile=$(AWS_PROFILE)" \
+		-var "es_endpoint=$(ES_ENDPOINT)" \
+		-auto-approve \
+		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
 
 .PHONY: deploy
-deploy: build
-	. venv/bin/activate && $(PROJECT_ROOT)/scripts/build_deploy_config.sh es-idx-manager $(DEPLOYMENT_STAGE)
-	. venv/bin/activate && domovoi deploy --stage $(DEPLOYMENT_STAGE)
+deploy: terraform-apply
