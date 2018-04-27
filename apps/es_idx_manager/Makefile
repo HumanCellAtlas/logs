@@ -22,7 +22,7 @@ build: terraform-plan
 	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 
 terraform-%:
-	. venv/bin/activate && terraform apply \
+	. venv/bin/activate && terraform $(*) \
 		-var "target_zip_path=$(TARGET)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
 		-var "es_endpoint=$(ES_ENDPOINT)" \
