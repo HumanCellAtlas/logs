@@ -25,8 +25,7 @@ terraform-%:
 	. venv/bin/activate && terraform $(*) \
 		-var "target_zip_path=$(TARGET)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
-		$([[ "$(*)" == "apply" ]] && echo -n "-auto-approve" || echo -n "") \
-		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
+		$(shell [[ "$(*)" == "apply" ]] && echo "-auto-approve" || echo "")
 
 .PHONY: deploy
 deploy: terraform-apply
