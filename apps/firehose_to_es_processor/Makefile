@@ -20,7 +20,7 @@ build:
 	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 
 .PHONY: deploy
-deploy: build
+deploy:
 	. venv/bin/activate && terraform apply \
 		-var "target_zip_path=${TARGET}" \
 		-var "account_id=${ACCOUNT_ID}" \
