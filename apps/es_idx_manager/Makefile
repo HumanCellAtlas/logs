@@ -13,11 +13,11 @@ test:
 	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
-build: terraform-plan
+build:
 	rm -rf target
 	mkdir target
 	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
-	terraform output es_conf_file > target/es-idx-manager-settings.yaml
+	cat es-idx-manager-settings.yaml.template | envsubst '$$ES_ENDPOINT' > target/es-idx-manager-settings.yaml
 	cp app.py target/
 	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 
@@ -25,8 +25,7 @@ terraform-%:
 	. venv/bin/activate && terraform $(*) \
 		-var "target_zip_path=$(TARGET)" \
 		-var "aws_profile=$(AWS_PROFILE)" \
-		-var "es_endpoint=$(ES_ENDPOINT)" \
-		-auto-approve \
+		$([[ "$(*)" == "apply" ]] && echo -n "-auto-approve" || echo -n "") \
 		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
 
 .PHONY: deploy

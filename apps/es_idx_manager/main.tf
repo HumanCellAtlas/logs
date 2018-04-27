@@ -1,5 +1,4 @@
 variable "aws_profile" {}
-variable "es_endpoint" {}
 data "aws_caller_identity" "current" {}
 
 variable "aws_region" {
@@ -131,22 +130,4 @@ resource "aws_cloudwatch_event_target" "dss" {
   rule      = "${aws_cloudwatch_event_rule.es_idx_manager.name}"
   target_id = "invoke-es-idx-manager"
   arn       = "${aws_lambda_function.es_idx_manager.arn}"
-}
-
-output "es_conf_file" {
-  value = <<EOF
-- name: elastic search human cell atlas
-  endpoint: ${var.es_endpoint}
-  days: 7
-  index_format: '%Y-%m-%d'
-  indices:
-    - prefix: cwl
-
-- name: test configuration
-  endpoint: ${var.es_endpoint}
-  days: 7
-  index_format: '%Y-%m-%d'
-  indices:
-    - prefix: test
-EOF
 }
