@@ -19,7 +19,7 @@ provider "aws" {
 
 terraform {
   backend "s3" {
-    key = "es_idx_manager/app.tfstate"
+    key = "logs/es_idx_manager.tfstate"
   }
 }
 
