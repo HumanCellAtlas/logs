@@ -22,15 +22,15 @@ build:
 .PHONY: deploy
 deploy:
 	. venv/bin/activate && terraform apply \
-		-var "target_zip_path=${TARGET}" \
-		-var "account_id=${ACCOUNT_ID}" \
-		-var "aws_profile=${AWS_PROFILE}" \
-		-var "es_endpoint=${ES_ENDPOINT}" \
-		-var "airbrake_blacklisted_log_group_names=${AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES}" \
-		-var "airbrake_whitelisted_log_message_terms=${AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS}" \
-		-var "airbrake_flag=${AIRBRAKE_FLAG}" \
-		-var "airbrake_api_key=${AIRBRAKE_API_KEY}" \
-		-var "airbrake_project_id=${AIRBRAKE_PROJECT_ID}" \
-		-var "airbrake_environment=${AIRBRAKE_ENVIRONMENT}" \
+		-var "target_zip_path=$(TARGET)" \
+		-var "account_id=$(ACCOUNT_ID)" \
+		-var "aws_profile=$(AWS_PROFILE)" \
+		-var "es_endpoint=$(ES_ENDPOINT)" \
+		-var "airbrake_blacklisted_log_group_names=$(AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES)" \
+		-var "airbrake_whitelisted_log_message_terms=$(AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS)" \
+		-var "airbrake_flag=$(AIRBRAKE_FLAG)" \
+		-var "airbrake_api_key=$(AIRBRAKE_API_KEY)" \
+		-var "airbrake_project_id=$(AIRBRAKE_PROJECT_ID)" \
+		-var "airbrake_environment=$(AIRBRAKE_ENVIRONMENT)" \
 		-auto-approve \
 		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
