@@ -13,7 +13,9 @@
       "environment_variables": {}
     },
     "prod": {
-      "environment_variables": {}
+      "environment_variables": {
+        "GCP_LOG_TOPIC_SUBSCRIPTION_NAME": "logs.gcp-exporter"
+      }
     }
   },
   "version": "2.0",

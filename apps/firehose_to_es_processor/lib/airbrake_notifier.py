@@ -12,8 +12,9 @@ class AirbrakeNotifier:
     airbrake_notifier = Airbrake(project_id=os.environ["AIRBRAKE_PROJECT_ID"], api_key=os.environ["AIRBRAKE_API_KEY"])
     blacklisted_log_group_names = os.environ["AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES"]
     blacklisted_log_group_names_set = set(blacklisted_log_group_names.split())
+    blacklisted_log_message_strings = os.environ["AIRBRAKE_BLACKLISTED_LOG_MESSAGE_STRINGS"].split(',')
     whitelisted_log_message_terms = os.environ["AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS"]
-    whitelisted_log_message_terms_regex_string = "|".join(whitelisted_log_message_terms.split())
+    whitelisted_log_message_terms_regex_string = "|".join(whitelisted_log_message_terms.split(','))
     whitelisted_log_message_terms_regexp = re.compile(whitelisted_log_message_terms_regex_string, re.IGNORECASE)
 
     def __init__(self):
@@ -36,7 +37,8 @@ class AirbrakeNotifier:
         log_group = log_event['@log_group']
         log_stream = log_event['@log_stream']
         is_error = False
-        if AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group):
+        if AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group) and \
+                not AirbrakeNotifier._contains_blacklisted_string(message):
             airbrake_error = "'{0} {1} '@log_stream': {2}".format(log_group, message, log_stream)
             is_error = True
             try:
@@ -63,4 +65,11 @@ class AirbrakeNotifier:
         if log_group not in AirbrakeNotifier.blacklisted_log_group_names_set and \
                 AirbrakeNotifier.whitelisted_log_message_terms_regexp.search(message):
             return True
+        return False
+
+    @staticmethod
+    def _contains_blacklisted_string(message):
+        for blacklisted_string in AirbrakeNotifier.blacklisted_log_message_strings:
+            if blacklisted_string in message:
+                return True
         return False

@@ -29,6 +29,15 @@ class TestFirehoseRecord(unittest.TestCase):
         flag = AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group)
         self.assertEqual(flag, False)
 
+    def test_string_blacklist(self):
+        message = "traceback: blah blah blah"
+        flag = AirbrakeNotifier._contains_blacklisted_string(message)
+        self.assertEqual(flag, False)
+
+        message = "blah blah Machine-readable error code blah blah"
+        flag = AirbrakeNotifier._contains_blacklisted_string(message)
+        self.assertEqual(flag, True)
+
     def test_report(self):
         record1 = {
             '@message': "traceback: blah blah blah",
