@@ -122,6 +122,7 @@ serverless-curator.yaml
 deployed.json
 ES_IDX_MANAGER_SETTINGS.yaml
 es-idx-manager-settings.yaml
+log_retention_ttl
 
 # test code
 hand_test.js
