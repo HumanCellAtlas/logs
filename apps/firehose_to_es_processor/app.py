@@ -77,5 +77,7 @@ def handler(event, context):
 
         if notifier:
             observe_counts(notifier.report())
+            for message, count in notifier.error_report.items():
+                logger.info("Observed following error {} times: {}".format(count, message))
 
         logger.info("Indexed {} log events".format(len(log_events)))

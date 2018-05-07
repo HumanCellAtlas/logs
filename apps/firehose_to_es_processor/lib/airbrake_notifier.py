@@ -19,6 +19,7 @@ class AirbrakeNotifier:
 
     def __init__(self):
         self._report = dict()
+        self.error_report = dict()
 
     def report(self):
         results = []
@@ -40,6 +41,10 @@ class AirbrakeNotifier:
         if AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group) and \
                 not AirbrakeNotifier._contains_blacklisted_string(message):
             airbrake_error = "'{0} {1} '@log_stream': {2}".format(log_group, message, log_stream)
+            if airbrake_error not in self.error_report:
+                self.error_report[airbrake_error] = 1
+            else:
+                self.error_report[airbrake_error] += 1
             is_error = True
             try:
                 AirbrakeNotifier.airbrake_notifier.notify(str(airbrake_error))
@@ -47,7 +52,6 @@ class AirbrakeNotifier:
                 message = str(e)
                 if not message.startswith('420 Client Error'):
                     logger.error("Airbrake notification failed! {}".format(message))
-                pass
         self._observe(log_group, is_error)
 
     def _observe(self, log_group, is_error):
