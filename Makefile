@@ -89,7 +89,8 @@ encrypt: \
 	encrypt-environment_prod \
 	encrypt-gcp-credentials-dev.json \
 	encrypt-gcp-credentials-logs-travis.json \
-	encrypt-gcp-credentials-prod.json
+	encrypt-gcp-credentials-prod.json \
+	encrypt-log_retention_ttl
 
 .PHONY: decrypt
 decrypt: \
@@ -100,7 +101,8 @@ decrypt: \
 	decrypt-environment_prod \
 	decrypt-gcp-credentials-dev.json \
 	decrypt-gcp-credentials-logs-travis.json \
-	decrypt-gcp-credentials-prod.json
+	decrypt-gcp-credentials-prod.json \
+	decrypt-log_retention_ttl
 
 # prod deployment
 .PHONY: prod-deploy
