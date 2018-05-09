@@ -1,4 +1,16 @@
 ////
+// test fixtures
+//
+
+resource "aws_s3_bucket" "test_fixtures" {
+  bucket = "logs-test-${var.account_id}"
+  tags {
+    Name        = "logs"
+    Environment = "default"
+  }
+}
+
+////
 // CloudTrail
 //
 
