@@ -108,6 +108,7 @@ EOF
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
   name = "${var.cloudtrail_log_group_name}"
+  retention_in_days = "731"
 }
 
 
@@ -289,6 +290,7 @@ resource "aws_s3_bucket" "kinesis-firehose-logs" {
 
 resource "aws_cloudwatch_log_group" "firehose_errors" {
   name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
+  retention_in_days = "90"
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
