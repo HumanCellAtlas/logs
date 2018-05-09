@@ -76,11 +76,24 @@ resource "aws_iam_policy" "LogsS3Policy" {
   "Statement": [
     {
       "Effect": "Allow",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:HeadBucket"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
       "Action": "s3:*",
       "Resource": [
-        "arn:aws:s3:::${var.terraform_bucket}/logs/*",
         "arn:aws:s3:::kinesis-es-firehose-failures-${var.account_id}",
-        "arn:aws:s3:::${var.account_id}-cloudtrail"
+        "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}",
+        "arn:aws:s3:::${var.account_id}-cloudtrail",
+        "arn:aws:s3:::logs-test-${var.account_id}",
+        "arn:aws:s3:::kinesis-es-firehose-failures-${var.account_id}/*",
+        "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}/*",
+        "arn:aws:s3:::${var.account_id}-cloudtrail/*",
+        "arn:aws:s3:::logs-test-${var.account_id}/*"
       ]
     }
   ]
@@ -264,10 +277,24 @@ resource "aws_iam_policy" "LogsCIAccess" {
     },
     {
       "Effect": "Allow",
-      "Action": "s3:*",
+      "Action": [
+        "s3:ListAllMyBuckets",
+        "s3:HeadBucket"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket"
+      ],
+      "Resource": "arn:aws:s3:::${var.terraform_bucket}"
+    },
+    {
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
       "Resource": [
-        "arn:aws:s3:::org-humancellatlas-${var.account_id}-terraform",
-        "arn:aws:s3:::org-humancellatlas-${var.account_id}-terraform/logs/terraform.tfstate"
+        "arn:aws:s3:::${var.terraform_bucket}/logs/*"
       ]
     }
   ]
