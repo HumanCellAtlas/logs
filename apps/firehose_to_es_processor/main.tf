@@ -105,7 +105,7 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 1024
-  timeout = 120
+  timeout = 300
   source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
 
   environment {
