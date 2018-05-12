@@ -9,6 +9,7 @@ logger.setLevel(logging.INFO)
 
 class AirbrakeNotifier:
 
+    MAX_NOTIFICATIONS = 50
     airbrake_notifier = Airbrake(project_id=os.environ["AIRBRAKE_PROJECT_ID"], api_key=os.environ["AIRBRAKE_API_KEY"])
     blacklisted_log_group_names = os.environ["AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES"]
     blacklisted_log_group_names_set = set(blacklisted_log_group_names.split())
@@ -19,6 +20,8 @@ class AirbrakeNotifier:
 
     def __init__(self):
         self._report = dict()
+        self._total_errors = 0
+        self._airbrake_rate_limited = False
         self.error_report = dict()
 
     def report(self):
@@ -37,31 +40,34 @@ class AirbrakeNotifier:
         message = log_event['@message']
         log_group = log_event['@log_group']
         log_stream = log_event['@log_stream']
-        is_error = False
+        error_str = None
         if AirbrakeNotifier._is_message_appropriate_for_airbrake(message, log_group) and \
                 not AirbrakeNotifier._contains_blacklisted_string(message):
-            airbrake_error = "'{0} {1} '@log_stream': {2}".format(log_group, message, log_stream)
-            if airbrake_error not in self.error_report:
-                self.error_report[airbrake_error] = 1
-            else:
-                self.error_report[airbrake_error] += 1
-            is_error = True
+            error_str = "'{0} {1} '@log_stream': {2}".format(log_group, message, log_stream)
             try:
-                AirbrakeNotifier.airbrake_notifier.notify(str(airbrake_error))
+                if not self._airbrake_rate_limited and self._total_errors < AirbrakeNotifier.MAX_NOTIFICATIONS:
+                    AirbrakeNotifier.airbrake_notifier.notify(error_str)
             except Exception as e:
                 message = str(e)
-                if not message.startswith('420 Client Error'):
+                if message.startswith('420 Client Error'):
+                    self._airbrake_rate_limited = True
+                else:
                     logger.error("Airbrake notification failed! {}".format(message))
-        self._observe(log_group, is_error)
+        self._observe(log_group, error_str)
 
-    def _observe(self, log_group, is_error):
+    def _observe(self, log_group, error_str):
         if log_group not in self._report:
             self._report[log_group] = {
                 'errors': 0,
                 'total': 0
             }
-        if is_error:
+        if error_str:
+            if error_str not in self.error_report:
+                self.error_report[error_str] = 1
+            else:
+                self.error_report[error_str] += 1
             self._report[log_group]['errors'] += 1
+            self._total_errors += 1
         self._report[log_group]['total'] += 1
 
     @staticmethod
