@@ -2,3 +2,4 @@ subscribertest
 /aws/lambda/test_log_group
 /aws/lambda/Firehose-CWL-Processor
 /aws/kinesisfirehose/Kinesis-Firehose-ES
+API-Gateway-Execution-Logs
