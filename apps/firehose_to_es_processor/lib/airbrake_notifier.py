@@ -13,7 +13,7 @@ class AirbrakeNotifier:
     airbrake_notifier = Airbrake(project_id=os.environ["AIRBRAKE_PROJECT_ID"], api_key=os.environ["AIRBRAKE_API_KEY"])
     blacklisted_log_group_names = os.environ["AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES"]
     blacklisted_log_group_names_set = set(blacklisted_log_group_names.split())
-    blacklisted_log_message_strings = os.environ["AIRBRAKE_BLACKLISTED_LOG_MESSAGE_STRINGS"].split(',')
+    blacklisted_log_message_strings_regex = re.compile('|'.join(os.environ["AIRBRAKE_BLACKLISTED_LOG_MESSAGE_STRINGS"].split(',')))
     whitelisted_log_message_terms = os.environ["AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS"]
     whitelisted_log_message_terms_regex_string = "|".join(whitelisted_log_message_terms.split(','))
     whitelisted_log_message_terms_regexp = re.compile(whitelisted_log_message_terms_regex_string, re.IGNORECASE)
@@ -79,7 +79,6 @@ class AirbrakeNotifier:
 
     @staticmethod
     def _contains_blacklisted_string(message):
-        for blacklisted_string in AirbrakeNotifier.blacklisted_log_message_strings:
-            if blacklisted_string in message:
-                return True
+        if AirbrakeNotifier.blacklisted_log_message_strings_regex.search(message):
+            return True
         return False
