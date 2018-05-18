@@ -146,7 +146,8 @@ resource "aws_elasticsearch_domain" "es" {
       "Principal": {
         "AWS": [
           ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals)))},
-          "arn:aws:iam::${var.account_id}:user/${var.travis_user}"
+          "arn:aws:iam::${var.account_id}:user/${var.travis_user}",
+          "arn:aws:iam::${var.account_id}:user/grafana-datasource"
         ]
       },
       "Action": "es:*",
