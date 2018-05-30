@@ -1,9 +1,12 @@
 import json
+import re
 from datetime import datetime
 from lib.util import extract_json
 
 
 class FirehoseRecord:
+
+    invalid_chars = re.compile("[\s\"*<|,>/?\\\]")
 
     def __init__(self, record):
         self.record = record
@@ -36,6 +39,7 @@ class FirehoseRecord:
         transformed_message = extract_json(log_event["message"])
         if transformed_message and type(transformed_message) == dict:
             for k, v in transformed_message.items():
-                transformed_payload[k] = json.dumps(v)
+                if FirehoseRecord.invalid_chars.search(k) is None:
+                    transformed_payload[k] = json.dumps(v)
 
         return transformed_payload
