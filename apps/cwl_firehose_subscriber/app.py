@@ -1,9 +1,13 @@
-import boto3
+import logging
 import re
 import os
+
+import boto3
 from botocore.exceptions import ClientError
 
 logs_client = boto3.client('logs')
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 class PrefixSet:
@@ -29,7 +33,7 @@ def put_subscription_filter(log_group_name, destination_arn, role_arn):
     except ClientError as e:
         if e.response.get("Error", {}).get("Code") != 'ResourceNotFoundException':
             raise e
-        print("Log group could not be found: {}".format(log_group_name))
+        logger.info("Log group could not be found: {}".format(log_group_name))
 
 
 def handler(event, context):
@@ -40,7 +44,7 @@ def handler(event, context):
     delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
     cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose".format(account_id)
     if not blacklisted_log_groups.matches(log_group_name):
-        print("Subscribing log group {0} to firehose".format(log_group_name))
+        logger.info("Subscribing log group {0} to firehose".format(log_group_name))
         put_subscription_filter(log_group_name, delivery_stream_arn, cwl_to_kinesis_role_arn)
     else:
-        print("Log group {0} is blacklisted. Not subscribed to firehose".format(log_group_name))
+        logger.info("Log group {0} is blacklisted. Not subscribed to firehose".format(log_group_name))
