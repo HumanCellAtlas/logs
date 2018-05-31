@@ -1,6 +1,7 @@
 import boto3
 import re
 import os
+from botocore.exceptions import ClientError
 
 logs_client = boto3.client('logs')
 
@@ -17,14 +18,18 @@ blacklisted_log_groups = PrefixSet(os.environ["BLACKLISTED_LOG_GROUPS"].split())
 
 
 def put_subscription_filter(log_group_name, destination_arn, role_arn):
-    logs_client = boto3.client('logs')
-    logs_client.put_subscription_filter(
-        logGroupName=log_group_name,
-        filterName="firehose",
-        filterPattern='',
-        destinationArn=destination_arn,
-        roleArn=role_arn
-    )
+    try:
+        logs_client.put_subscription_filter(
+            logGroupName=log_group_name,
+            filterName="firehose",
+            filterPattern='',
+            destinationArn=destination_arn,
+            roleArn=role_arn
+        )
+    except ClientError as e:
+        if e.response.get("Error", {}).get("Code") != 'ResourceNotFoundException':
+            raise e
+        print("Log group could not be found: {}".format(log_group_name))
 
 
 def handler(event, context):

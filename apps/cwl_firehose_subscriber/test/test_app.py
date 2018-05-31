@@ -56,5 +56,8 @@ class TestApp(unittest.TestCase):
             filter_name = filters['subscriptionFilters'][0]['filterName']
             self.assertEqual(filter_name, 'firehose')
 
+            # it should not fail if the log group does not exist
+            app.put_subscription_filter('fake-' + str(uuid.uuid4()), delivery_stream_arn, cwl_to_kinesis_role_arn)
+
         finally:
             logs_client.delete_log_group(logGroupName=log_group_name)
