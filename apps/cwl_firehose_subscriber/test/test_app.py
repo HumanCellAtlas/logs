@@ -1,43 +1,40 @@
-import unittest
-import app
 import boto3
 import os
+import unittest
 import uuid
+
+import app
+from app import PrefixSet
 
 
 class TestApp(unittest.TestCase):
 
-    def test_is_log_group_name_blacklisted(self):
-        test_blacklisted_log_groups = "test blue"
+    def test_prefix_set(self):
+        blacklisted_log_groups = PrefixSet(["test", "blue"])
 
         # should return true for log group containing same case blacklisted value
-        test_log_group_1 = "green-test"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_1, test_blacklisted_log_groups)
-        self.assertEqual(blacklisted, True)
+        matches = blacklisted_log_groups.matches("green-test")
+        self.assertEqual(matches, False)
 
         # should return true for log group containing different case blacklisted value
-        test_log_group_2 = "green-TEST"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_2, test_blacklisted_log_groups)
-        self.assertEqual(blacklisted, True)
+        matches = blacklisted_log_groups.matches("GREEN-TEST")
+        self.assertEqual(matches, False)
 
-        # should return false for log group not containing blacklisted value
-        test_log_group_2 = "blu-TES"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_2)
-        self.assertEqual(blacklisted, False)
+        # should not match a matching string, but not in prefix position
+        matches = blacklisted_log_groups.matches("something-blue")
+        self.assertEqual(matches, False)
 
+    def test_app_prefix_set(self):
         # should return true for log group containing blacklisted value
-        test_log_group_3 = "subscribertest"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
-        self.assertEqual(blacklisted, True)
-
-         # should return true for log group containing blacklisted value
-        test_log_group_3 = "/aws/lambda/Firehose-CWL-Processor"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
+        blacklisted = app.blacklisted_log_groups.matches("subscribertest")
         self.assertEqual(blacklisted, True)
 
         # should return true for log group containing blacklisted value
-        test_log_group_3 = "/aws/lambda/test_log_group-12345"
-        blacklisted = app.is_log_group_name_blacklisted(test_log_group_3)
+        blacklisted = app.blacklisted_log_groups.matches("/aws/lambda/Firehose-CWL-Processor")
+        self.assertEqual(blacklisted, True)
+
+        # should return true for log group containing blacklisted value
+        blacklisted = app.blacklisted_log_groups.matches("/aws/lambda/test_log_group-12345")
         self.assertEqual(blacklisted, True)
 
     def test_subscription_filter(self):
