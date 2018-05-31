@@ -1,4 +1,5 @@
 subscribertest
+test-log-group
 /aws/lambda/test_log_group
 /aws/lambda/Firehose-CWL-Processor
 /aws/kinesisfirehose/Kinesis-Firehose-ES
