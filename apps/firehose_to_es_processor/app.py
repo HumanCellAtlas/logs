@@ -37,18 +37,18 @@ The code will:
 5) Delete the file from s3 after successful processing and post to ES
 """
 import logging
-import os
 
 from lib import firehose_records
 from lib.airbrake_notifier import AirbrakeNotifier
 from lib.cloudwatch_notifier import observe_counts
 from lib.s3_client import S3Client
 from lib.es_client import ESClient
+from lib.secrets import config
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-AIRBRAKE_ENABLED = os.environ.get('AIRBRAKE_FLAG', None) == 'True'
+AIRBRAKE_ENABLED = config['airbrake_enabled']
 
 
 def handler(event, context):

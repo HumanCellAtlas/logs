@@ -69,6 +69,14 @@ resource "aws_iam_role_policy" "es_idx_manager" {
             "Effect": "Allow",
             "Action": "es:*",
             "Resource": "arn:aws:es:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:logs/*"
         }
     ]
 }

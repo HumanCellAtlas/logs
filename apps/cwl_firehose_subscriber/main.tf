@@ -1,3 +1,5 @@
+data "aws_caller_identity" "current" {}
+
 variable "aws_region" {
   default = "us-east-1"
 }
@@ -25,9 +27,7 @@ terraform {
 //  CWL Firehose subscriber
 //
 
-variable "target_zip_path" {}
 variable "account_id" {}
-variable "blacklisted_log_groups" {}
 
 resource "aws_iam_role" "cwl_firehose_subscriber" {
   name               = "cwl_firehose_subscriber"
@@ -75,6 +75,14 @@ resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
           "Resource":[
             "arn:aws:iam::${var.account_id}:role/cwl-firehose"
           ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:logs/*"
         }
     ]
 }
@@ -83,20 +91,21 @@ EOF
 depends_on = ["aws_iam_role.cwl_firehose_subscriber"]
 }
 
+data "archive_file" "lambda_zip" {
+  type = "zip"
+  source_dir = "./target"
+  output_path = "./lambda.zip"
+}
+
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
-  filename = "${var.target_zip_path}"
+  filename = "${data.archive_file.lambda_zip.output_path}"
   function_name = "cwl_firehose_subscriber"
   role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   timeout = 10
-  source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
+  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
 
-  environment {
-    variables = {
-      BLACKLISTED_LOG_GROUPS = "${var.blacklisted_log_groups}"
-    }
-  }
   depends_on = [
     "aws_iam_role.cwl_firehose_subscriber"
   ]

@@ -28,7 +28,6 @@ before_install:
 - pip install awscli --upgrade
 - pip install boto3 --upgrade
 install:
-- source config/environment_dev
 - make init
 - make install
 script:

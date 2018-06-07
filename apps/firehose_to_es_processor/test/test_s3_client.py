@@ -1,13 +1,19 @@
+import json
+import os
+import unittest
+
 from lib.s3_client import S3Client
 from lib import firehose_records
-import unittest
-import os
+
+from dcplib.aws_secret import AwsSecret
+
+infra_config = json.loads(AwsSecret('logs/_/config.json').value)
 
 
 class TestS3Client(unittest.TestCase):
 
     region = "us-east-1"
-    account_id = os.environ.get("ACCOUNT_ID")
+    account_id = infra_config['account_id']
     bucket = "logs-test-{0}".format(account_id)
     s3_client = S3Client(region, bucket)
     s3 = s3_client.s3

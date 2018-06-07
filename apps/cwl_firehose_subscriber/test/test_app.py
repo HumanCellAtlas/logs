@@ -1,10 +1,14 @@
 import boto3
+import json
 import os
 import unittest
 import uuid
 
 import app
 from app import PrefixSet
+from dcplib.aws_secret import AwsSecret
+
+infra_config = json.loads(AwsSecret(name='logs/_/config.json').value)
 
 
 class TestApp(unittest.TestCase):
@@ -46,7 +50,7 @@ class TestApp(unittest.TestCase):
             logs_client.create_log_group(logGroupName=log_group_name)
 
             # put subscription filter to kinesis on log group
-            account_id = os.environ["ACCOUNT_ID"]
+            account_id = infra_config['account_id']
             delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
             cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose".format(account_id)
             app.put_subscription_filter(log_group_name, delivery_stream_arn, cwl_to_kinesis_role_arn)

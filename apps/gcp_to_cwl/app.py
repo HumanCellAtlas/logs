@@ -1,6 +1,11 @@
 import os
 import sys
 
+from datetime import timedelta
+from datetime import datetime
+from contextlib import contextmanager
+from dateutil.parser import parse as dt_parse
+
 pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'domovoilib'))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
 
@@ -9,10 +14,7 @@ import typing
 import domovoi
 from cloudwatchlogs import CloudWatchLogs
 from pubsub import SynchronousPullClient
-from datetime import timedelta
-from datetime import datetime
-from contextlib import contextmanager
-from dateutil.parser import parse as dt_parse
+from secrets import config
 
 
 app = domovoi.Domovoi()
@@ -21,13 +23,9 @@ app = domovoi.Domovoi()
 @app.scheduled_function("rate(2 minutes)")
 def handler(input, context):
     batch_size = 1000
-    log_subscription = os.environ['GCP_LOG_TOPIC_SUBSCRIPTION_NAME']
+    log_subscription = config['gcp_log_topic_subscription_name']
 
-    with file(os.environ['GOOGLE_APPLICATION_CREDENTIALS'], 'r') as f:
-        credentials = json.load(f)
-    project_id = credentials['project_id']
-
-    batch_client = SynchronousPullClient(project_id, log_subscription)
+    batch_client = SynchronousPullClient(config['project_id'], log_subscription)
     cloudwatchlogs = CloudWatchLogs()
     sequence_token_cache = {}
 

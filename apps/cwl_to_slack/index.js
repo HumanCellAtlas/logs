@@ -10,51 +10,28 @@
  *   3. Choose the default channel where messages will be sent and click "Add Incoming WebHooks Integration".
  *
  *   4. Copy the webhook URL from the setup instructions and use it in the next section.
- *
- *
- * To encrypt your secrets use the following steps:
- *
- *  1. Create or use an existing KMS Key - http://docs.aws.amazon.com/kms/latest/developerguide/create-keys.html
- *
- *  2. Click the "Enable Encryption Helpers" checkbox
- *
- *  3. Paste <SLACK_HOOK_URL> into the kmsEncryptedHookUrl environment variable and click encrypt
- *
- *  Note: You must exclude the protocol from the URL (e.g. "hooks.slack.com/services/abc123").
- *
- *  4. Give your function's role permission for the kms:Decrypt action.
- *      Example:
-
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "Stmt1443036478000",
-            "Effect": "Allow",
-            "Action": [
-                "kms:Decrypt"
-            ],
-            "Resource": [
-                "<your KMS key ARN>"
-            ]
-        }
-    ]
-}
 */
 
-const AWS = require('aws-sdk');
 const url = require('url');
 const https = require('https');
+var AWS = require('aws-sdk'),
+    endpoint = "https://secretsmanager.us-east-1.amazonaws.com",
+    secretName = "logs/_/cwl_to_slack.json",
+    secret;
 
-// The base-64 encoded, encrypted key (CiphertextBlob) stored in the kmsEncryptedHookUrl environment variable
-const kmsEncryptedHookUrl = process.env.kmsEncryptedHookUrl;
-// The Slack channel to send a message to stored in the slackChannel environment variable
-const slackChannel = process.env.slackChannel;
 const region = process.env.region;
+
+// Create a Secrets Manager client
+var secrets_client = new AWS.SecretsManager({
+    endpoint: endpoint,
+    region: region
+});
+
+// The Slack webhook url and channel to send a message to stored in the slackChannel environment variable
+var hookUrl = undefined;
+var slackChannel = undefined;
+
 const baseUrl = 'https://console.aws.amazon.com/cloudwatch/home?region=' + region + '#alarm:alarmFilter=ANY;name=';
-
-let hookUrl;
-
 
 function postMessage(message, callback) {
     const body = JSON.stringify(message);
@@ -114,23 +91,27 @@ function processEvent(event, callback) {
 
 
 exports.handler = (event, context, callback) => {
-    if (hookUrl) {
+    if (hookUrl !== undefined && slackChannel !== undefined) {
         // Container reuse, simply process the event with the key in memory
         processEvent(event, callback);
-    } else if (kmsEncryptedHookUrl && kmsEncryptedHookUrl !== '<kmsEncryptedHookUrl>') {
-        const encryptedBuf = new Buffer(kmsEncryptedHookUrl, 'base64');
-        const cipherText = { CiphertextBlob: encryptedBuf };
-
-        const kms = new AWS.KMS();
-        kms.decrypt(cipherText, (err, data) => {
-            if (err) {
-                console.log('Decrypt error:', err);
-                return callback(err);
+    } else {
+        secrets_client.getSecretValue({SecretId: secretName}, function(err, data) {
+            if(err) {
+                if(err.code === 'ResourceNotFoundException')
+                    console.log("The requested secret " + secretName + " was not found");
+                else if(err.code === 'InvalidRequestException')
+                    console.log("The request was invalid due to: " + err.message);
+                else if(err.code === 'InvalidParameterException')
+                    console.log("The request had invalid params: " + err.message);
+                else
+                    throw err;
+            } else {
+                secret = JSON.parse(data.SecretString);
+                hookUrl = secret.slack_webhook_url.startsWith('https://') ? secret.slack_webhook_url : `https://${secret.slack_webhook_url}`;
+                slackChannel = secret.slack_alert_channel;
             }
-            hookUrl = `https://${data.Plaintext.toString('ascii')}`;
+
             processEvent(event, callback);
         });
-    } else {
-        callback('Hook URL has not been set.');
     }
 };

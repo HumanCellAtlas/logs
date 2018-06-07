@@ -3,6 +3,8 @@ import re
 import logging
 from airbrake.notifier import Airbrake
 
+from .secrets import config
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
@@ -10,12 +12,10 @@ logger.setLevel(logging.INFO)
 class AirbrakeNotifier:
 
     MAX_NOTIFICATIONS = 50
-    airbrake_notifier = Airbrake(project_id=os.environ["AIRBRAKE_PROJECT_ID"], api_key=os.environ["AIRBRAKE_API_KEY"])
-    blacklisted_log_group_names = os.environ["AIRBRAKE_BLACKLISTED_LOG_GROUP_NAMES"]
-    blacklisted_log_group_names_set = set(blacklisted_log_group_names.split())
-    blacklisted_log_message_strings_regex = re.compile('|'.join(os.environ["AIRBRAKE_BLACKLISTED_LOG_MESSAGE_STRINGS"].split(',')))
-    whitelisted_log_message_terms = os.environ["AIRBRAKE_WHITELISTED_LOG_MESSAGE_TERMS"]
-    whitelisted_log_message_terms_regex_string = "|".join(whitelisted_log_message_terms.split(','))
+    airbrake_notifier = Airbrake(project_id=config['airbrake_project_id'], api_key=config['airbrake_api_key'])
+    blacklisted_log_group_names = set(config['airbrake_blacklisted_log_group_names'])
+    blacklisted_log_message_strings_regex = re.compile('|'.join(config["airbrake_blacklisted_log_message_strings"]))
+    whitelisted_log_message_terms_regex_string = "|".join(config['airbrake_whitelisted_log_message_terms'])
     whitelisted_log_message_terms_regexp = re.compile(whitelisted_log_message_terms_regex_string, re.IGNORECASE)
 
     def __init__(self):
@@ -72,7 +72,7 @@ class AirbrakeNotifier:
 
     @staticmethod
     def _is_message_appropriate_for_airbrake(message, log_group):
-        if log_group not in AirbrakeNotifier.blacklisted_log_group_names_set and \
+        if log_group not in AirbrakeNotifier.blacklisted_log_group_names and \
                 AirbrakeNotifier.whitelisted_log_message_terms_regexp.search(message):
             return True
         return False

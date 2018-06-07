@@ -1,4 +1,5 @@
-export EXPORT_ENV_VARS_TO_LAMBDA=GCP_LOG_TOPIC_SUBSCRIPTION_NAME
+export EXPORT_ENV_VARS_TO_LAMBDA=
+CREDENTIALS_FILE = domovoilib/gcp-credentials.json
 
 default: build
 
@@ -7,14 +8,20 @@ install:
 	virtualenv -p python3 venv
 	. venv/bin/activate && pip install -r requirements.txt
 
+.PHONY: credentials
+credentials:
+	aws secretsmanager get-secret-value \
+		--secret-id logs/_/gcp_to_cwl.json | \
+		jq -r .SecretString | \
+		jq .gcp_exporter_google_application_credentials > domovoilib/gcp-credentials.json
+
 .PHONY: test
-test:
-	. venv/bin/activate && GOOGLE_APPLICATION_CREDENTIALS=$$GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS python -m unittest discover -s test -p 'test_*.py'
+test: credentials
+	. venv/bin/activate && GOOGLE_APPLICATION_CREDENTIALS=$(CREDENTIALS_FILE) python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
-build:
+build: credentials
 	mkdir -p domovoilib
-	cp "$(GCP_EXPORTER_GOOGLE_APPLICATION_CREDENTIALS)" domovoilib/gcp-credentials.json
 	bash -c 'shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d vendor $$wheel; done'
 
 .PHONY: deploy

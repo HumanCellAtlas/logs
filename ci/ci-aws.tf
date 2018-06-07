@@ -1,11 +1,11 @@
-variable "region" {}
+variable "aws_region" {}
 variable "account_id" {}
 variable "terraform_bucket" {}
 variable "travis_user" {}
 variable "aws_profile" {}
 
 provider "aws" {
-    region = "${var.region}"
+    region = "${var.aws_region}"
     profile = "${var.aws_profile}"
 }
 
@@ -115,7 +115,7 @@ resource "aws_iam_policy" "CloudFormationAlertStackReadAccess" {
         "cloudformation:GetTemplate",
         "cloudformation:DescribeStacks"
       ],
-      "Resource": "arn:aws:cloudformation:${var.region}:${var.account_id}:stack/CloudTrail-Monitoring/*"
+      "Resource": "arn:aws:cloudformation:${var.aws_region}:${var.account_id}:stack/CloudTrail-Monitoring/*"
     }
   ]
 }
@@ -149,7 +149,7 @@ resource "aws_iam_policy" "LogsFirehoseLambda" {
     {
       "Effect": "Allow",
       "Action": "lambda:*",
-      "Resource": "arn:aws:lambda:${var.region}:${var.account_id}:function:Firehose-CWL-Processor"
+      "Resource": "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
     }
   ]
 }
@@ -168,7 +168,7 @@ resource "aws_iam_policy" "LogsFirehosePolicy" {
     {
       "Effect": "Allow",
       "Action": "firehose:*",
-      "Resource": "arn:aws:firehose:${var.region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK"
+      "Resource": "arn:aws:firehose:${var.aws_region}:${var.account_id}:deliverystream/Kinesis-Firehose-ELK"
     }
   ]
 }
@@ -246,7 +246,7 @@ resource "aws_iam_policy" "LogsCIAccess" {
         "sns:GetTopicAttributes"
       ],
       "Resource": [
-        "arn:aws:sns:${var.region}:${var.account_id}:cloudwatch-alarms"
+        "arn:aws:sns:${var.aws_region}:${var.account_id}:cloudwatch-alarms"
       ]
     },
     {
@@ -256,8 +256,8 @@ resource "aws_iam_policy" "LogsCIAccess" {
         "events:ListTargetsByRule"
       ],
       "Resource": [
-        "arn:aws:events:${var.region}:${var.account_id}:rule/capture_create_log_group",
-        "arn:aws:events:${var.region}:${var.account_id}:rule/handler"
+        "arn:aws:events:${var.aws_region}:${var.account_id}:rule/capture_create_log_group",
+        "arn:aws:events:${var.aws_region}:${var.account_id}:rule/handler"
       ]
     },
     {
@@ -269,10 +269,10 @@ resource "aws_iam_policy" "LogsCIAccess" {
         "lambda:GetFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:cloudwatch-slack-notifications",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:es-idx-manager-*",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
-        "arn:aws:lambda:${var.region}:${var.account_id}:function:cwl_firehose_subscriber"
+        "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:cloudwatch-slack-notifications",
+        "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:es-idx-manager-*",
+        "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:gcp-to-cwl-exporter-*",
+        "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:cwl_firehose_subscriber"
       ]
     },
     {
@@ -314,12 +314,12 @@ resource "aws_iam_policy" "LogsElasticsearchFullAccess" {
     {
       "Effect": "Allow",
       "Action": "es:ListTags",
-      "Resource": "arn:aws:es:${var.region}:${var.account_id}:domain/*"
+      "Resource": "arn:aws:es:${var.aws_region}:${var.account_id}:domain/*"
     },
     {
       "Effect": "Allow",
       "Action": "es:*",
-      "Resource": "arn:aws:es:${var.region}:${var.account_id}:domain/hca-logs"
+      "Resource": "arn:aws:es:${var.aws_region}:${var.account_id}:domain/hca-logs"
     }
   ]
 }
