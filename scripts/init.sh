@@ -4,5 +4,5 @@ REGION=$(jq -r .aws_region ${PROJECT_ROOT}/terraform.tfvars)
 
 [[ -d .terraform ]] || terraform init \
   -backend-config="bucket=${TERRAFORM_BUCKET}" \
-  -backend-config="profile=$AWS_PROFILE" \
-  -backend-config="region=$REGION"
+  -backend-config="profile=${AWS_PROFILE}" \
+  -backend-config="region=${REGION}"

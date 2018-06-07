@@ -27,6 +27,29 @@ resource "aws_iam_user" "logs-travis" {
 }
 
 
+resource "aws_iam_policy" "logs_secrets_reader" {
+    name        = "LogsSecretsReader"
+    path        = "/"
+    description = ""
+    policy      = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${var.account_id}:secret:logs/*"
+        }
+    ]
+}
+POLICY
+}
+
+
 resource "aws_iam_policy" "CloudWatchLogsWriter" {
     name        = "CloudWatchLogsWriter"
     path        = "/"
@@ -416,6 +439,18 @@ resource "aws_iam_policy_attachment" "LogsS3Policy-policy-attachment" {
     roles      = []
     depends_on = [
         "aws_iam_policy.LogsS3Policy",
+        "aws_iam_user.logs-travis"
+    ]
+}
+
+resource "aws_iam_policy_attachment" "LogsSecretsReader-policy-attachment" {
+    name       = "LogsSecretsReader-policy-attachment"
+    policy_arn = "arn:aws:iam::${var.account_id}:policy/LogsSecretsReader"
+    groups     = []
+    users      = ["${aws_iam_user.logs-travis.name}"]
+    roles      = []
+    depends_on = [
+        "aws_iam_policy.logs_secrets_reader",
         "aws_iam_user.logs-travis"
     ]
 }

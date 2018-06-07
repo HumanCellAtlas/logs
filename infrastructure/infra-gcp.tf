@@ -22,6 +22,7 @@ data "google_iam_policy" "pubsub_publisher" {
 }
 
 resource "google_pubsub_topic_iam_policy" "publisher" {
+  project = "${var.gcp_logs_project_name}"
   topic = "${google_pubsub_topic.logs.name}"
   policy_data = "${data.google_iam_policy.pubsub_publisher.policy_data}"
   depends_on = [

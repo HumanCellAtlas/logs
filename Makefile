@@ -1,13 +1,21 @@
 MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APPS_REVISION := $(shell git log -n 1 --format="%H" -- apps)
-DEPLOY_MARKER := s3://$(TERRAFORM_BUCKET)/logs/$(DEPLOYMENT_STAGE)-deployed
+TERRAFORM_BUCKET = org-humancellatlas-$(shell jq -r .account_id terraform.tfvars)-terraform
+DEPLOYMENT_STAGE = $(shell jq -r .deployment_stage terraform.tfvars)
+DEPLOY_MARKER = s3://$(TERRAFORM_BUCKET)/logs/$(DEPLOYMENT_STAGE)-deployed
 
+.PHONY: secrets
 secrets:
 	aws secretsmanager get-secret-value \
 		--secret-id logs/_/config.json | \
 		jq -r .SecretString | \
 		python -m json.tool > terraform.tfvars
+	aws secretsmanager get-secret-value \
+		--secret-id logs/_/gcp-credentials-logs-travis.json | \
+		jq -r .SecretString | \
+		python -m json.tool > gcp-credentials-logs-travis.json
 
+.PHONY: rev
 rev:
 	echo $(APPS_REVISION)
 
