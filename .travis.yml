@@ -17,8 +17,7 @@ addons:
     - unzip
     - moreutils
 before_install:
-- make decrypt
-- source config/environment_dev
+- source environment
 - mkdir ./external_binaries
 - curl https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip
   -o /tmp/terraform.zip
@@ -28,16 +27,17 @@ before_install:
 - pip install awscli --upgrade
 - pip install boto3 --upgrade
 install:
+- source environment
+- make secrets
 - make init
 - make install
 script:
-- source config/environment_dev
-- GOOGLE_APPLICATION_CREDENTIALS=`pwd`/config/gcp-credentials-logs-travis.json make
+- GOOGLE_APPLICATION_CREDENTIALS=`pwd`/gcp-credentials-logs-travis.json make
   infrastructure-plan
 - make test
 deploy:
 - provider: script
-  script: ". config/environment_dev ; make is-deployed"
+  script: make is-deployed
   skip_cleanup: true
   on:
     branch: master
