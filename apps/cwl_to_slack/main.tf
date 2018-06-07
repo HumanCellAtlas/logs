@@ -1,6 +1,4 @@
 variable "aws_profile" {}
-variable "slack_webhook_url" {}
-variable "slack_alert_channel" {}
 variable "app_name" {
   default = "cloudwatch-slack-notifier"
 }
@@ -40,25 +38,6 @@ resource "aws_iam_role" "slack_notifier" {
 EOF
 }
 
-resource "aws_iam_role_policy" "slack_notifier_kms" {
-  name = "${aws_iam_role.slack_notifier.name}-kms"
-  role = "${aws_iam_role.slack_notifier.name}"
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "kms:Decrypt"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-}
-
 resource "aws_iam_role_policy" "slack_notifier_logs" {
   name = "${aws_iam_role.slack_notifier.name}-logs"
   role = "${aws_iam_role.slack_notifier.name}"
@@ -80,59 +59,18 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
             "Resource": [
                 "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.app_name}:*"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:logs/*"
         }
     ]
 }
 EOF
-}
-
-resource "aws_kms_key" "cw_to_slack" {
-  description = "cw-to-slack"
-  is_enabled = true
-  policy = <<POLICY
-{
-  "Version" : "2012-10-17",
-  "Id" : "key-consolepolicy-3",
-  "Statement" : [ {
-    "Sid" : "Enable IAM User Permissions",
-    "Effect" : "Allow",
-    "Principal" : {
-      "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-    },
-    "Action" : "kms:*",
-    "Resource" : "*"
-  }, {
-    "Sid" : "Allow use of the key",
-    "Effect" : "Allow",
-    "Principal" : {
-      "AWS" : "${aws_iam_role.slack_notifier.arn}"
-    },
-    "Action" : [ "kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey" ],
-    "Resource" : "*"
-  }, {
-    "Sid" : "Allow attachment of persistent resources",
-    "Effect" : "Allow",
-    "Principal" : {
-      "AWS" : "${aws_iam_role.slack_notifier.arn}"
-    },
-    "Action" : [ "kms:CreateGrant", "kms:ListGrants", "kms:RevokeGrant" ],
-    "Resource" : "*",
-    "Condition" : {
-      "Bool" : {
-        "kms:GrantIsForAWSResource" : "true"
-      }
-    }
-  } ]
-}
-POLICY
-}
-
-data "aws_kms_ciphertext" "slack_webhook_url" {
-  key_id = "${aws_kms_key.cw_to_slack.key_id}"
-  plaintext = "${var.slack_webhook_url}"
-  depends_on = [
-    "aws_kms_key.cw_to_slack"
-  ]
 }
 
 resource "aws_lambda_function" "slack_notifier" {
@@ -143,16 +81,7 @@ resource "aws_lambda_function" "slack_notifier" {
   handler = "index.handler"
   memory_size = 128
   role = "${aws_iam_role.slack_notifier.arn}"
-  environment {
-    variables {
-      slackChannel = "${var.slack_alert_channel}"
-      kmsEncryptedHookUrl = "${data.aws_kms_ciphertext.slack_webhook_url.ciphertext_blob}"
-      region = "${var.aws_region}"
-    }
-  }
-  kms_key_arn = "${aws_kms_key.cw_to_slack.arn}"
   depends_on = [
-    "data.aws_kms_ciphertext.slack_webhook_url",
     "aws_iam_role.slack_notifier",
     "aws_sns_topic.alarms"
   ]

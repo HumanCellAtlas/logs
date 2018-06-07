@@ -6,12 +6,12 @@ pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../domovoili
 sys.path.insert(0, pkg_root)  # noqa
 
 import unittest
-import unittest
 import json
 import uuid
 from pubsub import SynchronousPullClient
 from google.cloud import pubsub_v1
 from contextlib import contextmanager
+from secrets import config
 
 
 class TestSynchronousPullClient(unittest.TestCase):
@@ -24,7 +24,7 @@ class TestSynchronousPullClient(unittest.TestCase):
     @contextmanager
     def test_context_and_client(cls):
         # params
-        project_id = os.environ['GCLOUD_PROJECT']
+        project_id = config['gcp_exporter_google_application_credentials']['project_id']
         topic_path = f"projects/{project_id}/topics/topic.{str(uuid.uuid4())}"
         subscription_name = f"subscription.{str(uuid.uuid4())}"
         subscription_path = f"projects/{project_id}/subscriptions/{subscription_name}"

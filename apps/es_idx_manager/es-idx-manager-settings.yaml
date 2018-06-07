@@ -1,12 +1,10 @@
 - name: elastic search human cell atlas
-  endpoint: ${ES_ENDPOINT}
   days: 7
   index_format: '%Y-%m-%d'
   indices:
     - prefix: cwl
 
 - name: test configuration
-  endpoint: ${ES_ENDPOINT}
   days: 7
   index_format: '%Y-%m-%d'
   indices:

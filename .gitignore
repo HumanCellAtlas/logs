@@ -129,3 +129,6 @@ hand_test.js
 
 # firehose process app
 apps/firehose_to_es_processor/target
+
+# secrets
+terraform.tfvars

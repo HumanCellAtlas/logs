@@ -23,7 +23,6 @@ test:
 .PHONY: build
 build: target
 	cp app.py target/
-	cp $(LOG_RETENTION_TTL_FILE) target/
 	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
 	cd target && zip -r $(ZIP_FILE) ../*.py ../lib/*.py *
 

@@ -3,23 +3,27 @@
 """
 This AWS Lambda function allowed to delete the old Elasticsearch index
 """
+import sys
 
+import boto3
+import datetime
+import json
+import os
+import yaml
 from botocore.auth import SigV4Auth
 from botocore.awsrequest import AWSRequest
 from botocore.credentials import create_credential_resolver
 from botocore.session import get_session
 from botocore.vendored.requests import Session
 from retrying import retry
-import sys
 if sys.version_info[0] == 3:
     from urllib.request import quote
 else:
     from urllib import quote
-import datetime
-import json
-import os
-import yaml
 
+from dcplib.aws_secret import AwsSecret
+
+infra_config = json.loads(AwsSecret('logs/_/config.json').value)
 
 class ESException(Exception):
     """Exception capturing status_code from Client Request"""
@@ -50,7 +54,8 @@ class ESCleanup(object):
         self.context = context
 
         self.cfg = {}
-        self.cfg["es_endpoint"] = cluster_config.get('endpoint')
+        self.cfg["es_endpoint"] = boto3.client('es') \
+            .describe_elasticsearch_domain(DomainName=infra_config['es_domain_name'])['DomainStatus']['Endpoint']
         self.cfg["index"] = [index.get("prefix") for index in cluster_config.get('indices')]
 
         self.cfg["index_format"] = cluster_config.get('index_format')

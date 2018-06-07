@@ -5,12 +5,16 @@ This AWS Lambda function allowed to delete the old Elasticsearch index
 """
 
 import boto3
+import json
 import logging
 import os
 
+from dcplib.aws_secret import AwsSecret
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+config = json.loads(AwsSecret('logs/_/log_retention_policy_enforcer.json').value)
 
 logs_client = boto3.client('logs')
 
@@ -66,5 +70,5 @@ class LogRetentionPolicyEnforcer:
 def handler(event, context):
     """Main Lambda function
     """
-    enforcer = LogRetentionPolicyEnforcer.from_ttl_file(logs_client, os.environ['LOG_RETENTION_TTL_FILE'])
+    enforcer = LogRetentionPolicyEnforcer.from_ttl_file(logs_client, config['log_retention_ttls'])
     enforcer.run()

@@ -2,6 +2,12 @@ MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APPS_REVISION := $(shell git log -n 1 --format="%H" -- apps)
 DEPLOY_MARKER := s3://$(TERRAFORM_BUCKET)/logs/$(DEPLOYMENT_STAGE)-deployed
 
+secrets:
+	aws secretsmanager get-secret-value \
+		--secret-id logs/_/config.json | \
+		jq -r .SecretString | \
+		python -m json.tool > terraform.tfvars
+
 rev:
 	echo $(APPS_REVISION)
 
@@ -72,37 +78,6 @@ deploy: \
 is-deployed:
 	aws s3 cp $(DEPLOY_MARKER) /tmp/rev
 	bash -c '[[ `cat /tmp/rev` == "$(APPS_REVISION)" ]]'
-
-# secrets
-encrypt-%:
-	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*) -out config/$(*).enc
-
-decrypt-%:
-	openssl aes-256-cbc -k "$(ENCRYPTION_KEY)" -in config/$(*).enc -out config/$(*) -d
-
-.PHONY: encrypt
-encrypt: \
-	encrypt-authorized_emails \
-	encrypt-authorized_pubsub_publishers_dev \
-	encrypt-authorized_pubsub_publishers_prod \
-	encrypt-environment_dev \
-	encrypt-environment_prod \
-	encrypt-gcp-credentials-dev.json \
-	encrypt-gcp-credentials-logs-travis.json \
-	encrypt-gcp-credentials-prod.json \
-	encrypt-log_retention_ttl
-
-.PHONY: decrypt
-decrypt: \
-	decrypt-authorized_emails \
-	decrypt-authorized_pubsub_publishers_dev \
-	decrypt-authorized_pubsub_publishers_prod \
-	decrypt-environment_dev \
-	decrypt-environment_prod \
-	decrypt-gcp-credentials-dev.json \
-	decrypt-gcp-credentials-logs-travis.json \
-	decrypt-gcp-credentials-prod.json \
-	decrypt-log_retention_ttl
 
 # prod deployment
 .PHONY: prod-deploy

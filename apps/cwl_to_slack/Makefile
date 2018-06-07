@@ -13,11 +13,7 @@ build:
 
 terraform-%:
 	@terraform $(*) \
-		-var "aws_region=$(AWS_DEFAULT_REGION)" \
-		-var "aws_profile=$(AWS_PROFILE)" \
-		-var "target_zip_path=$(TARGET)" \
-		-var "slack_webhook_url=$(SLACK_WEBHOOK_URL)" \
-		-var "slack_alert_channel=$(SLACK_ALERT_CHANNEL)" \
+		-var-file "$(PROJECT_ROOT)/terraform.tfvars" \
 		$(shell [[ $(*) == "apply" ]] && echo "-auto-approve" || true)
 
 .PHONY: plan

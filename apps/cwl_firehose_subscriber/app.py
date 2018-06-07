@@ -1,13 +1,16 @@
 import logging
 import re
-import os
+import json
 
 import boto3
 from botocore.exceptions import ClientError
+from dcplib.aws_secret import AwsSecret
 
 logs_client = boto3.client('logs')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+secrets = json.loads(AwsSecret(name='logs/_/cwl_firehose_subscriber.json').value)
 
 
 class PrefixSet:
@@ -18,7 +21,7 @@ class PrefixSet:
         return self.regexp.search(search_str) is not None
 
 
-blacklisted_log_groups = PrefixSet(os.environ["BLACKLISTED_LOG_GROUPS"].split())
+blacklisted_log_groups = PrefixSet(secrets['blacklisted_log_groups'])
 
 
 def put_subscription_filter(log_group_name, destination_arn, role_arn):
