@@ -26,6 +26,7 @@ init-%:
 .PHONY: init
 init: \
 	init-infrastructure \
+	init-apps.gcp_to_cwl \
 	init-apps.cwl_to_slack \
 	init-apps.es_idx_manager \
 	init-apps.firehose_to_es_processor \

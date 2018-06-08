@@ -1,5 +1,4 @@
-boto3==1.7.13
+boto3==1.7.19
 google-cloud-pubsub==0.30.1
 proto-google-cloud-pubsub-v1==0.15.4
-domovoi==1.4.5
 dcplib
