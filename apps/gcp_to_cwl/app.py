@@ -1,44 +1,49 @@
+import logging
 import os
 import sys
+import json
+import typing
 
 from datetime import timedelta
 from datetime import datetime
 from contextlib import contextmanager
 from dateutil.parser import parse as dt_parse
 
-pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'domovoilib'))  # noqa
+pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), './lib'))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
 
-import json
-import typing
-import domovoi
 from cloudwatchlogs import CloudWatchLogs
 from pubsub import SynchronousPullClient
 from secrets import config
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
-app = domovoi.Domovoi()
 
-
-@app.scheduled_function("rate(2 minutes)")
 def handler(input, context):
     batch_size = 1000
     log_subscription = config['gcp_log_topic_subscription_name']
 
-    batch_client = SynchronousPullClient(config['project_id'], log_subscription)
+    batch_client = SynchronousPullClient(
+        config['gcp_exporter_google_application_credentials']['project_id'],
+        log_subscription)
     cloudwatchlogs = CloudWatchLogs()
     sequence_token_cache = {}
 
+    total = 0
     for unformatted_log_entries in batch_client.to_generator(batch_size):
-        print(json.dumps({'operation': 'batch_pull', 'num_unformatted_log_entries': len(unformatted_log_entries)}))
+        num_log_entries = len(unformatted_log_entries)
+        total += num_log_entries
+        logger.info(json.dumps({'operation': 'batch_pull', 'num_unformatted_log_entries': num_log_entries}))
         requests, log_group_counts = group_entries_into_requests(unformatted_log_entries)
-        print(json.dumps({**{'operation': 'format_log_entries'}, **{'counts': log_group_counts}}))
+        logger.info(json.dumps({**{'operation': 'format_log_entries'}, **{'counts': log_group_counts}}))
         for request in requests:
             try:
                 cloudwatchlogs.put_log_events(request, sequence_token_cache)
             except Exception as e:
-                print("ERROR on input: " + str(unformatted_log_entries))
+                logger.info("ERROR on input: " + str(unformatted_log_entries))
                 raise e
+    logger.info('Processed {} entries in total.'.format(total))
 
 
 @contextmanager
