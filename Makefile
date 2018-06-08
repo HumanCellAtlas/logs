@@ -40,6 +40,7 @@ clean-terraform-%:
 clean-terraform: \
 	clean-terraform-infrastructure \
 	clean-terraform-apps.cwl_to_slack \
+	clean-terraform-apps.gcp_to_cwl \
 	clean-terraform-apps.es_idx_manager \
 	clean-terraform-apps.firehose_to_es_processor \
 	clean-terraform-apps.cwl_firehose_subscriber \
