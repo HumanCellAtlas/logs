@@ -69,16 +69,16 @@ test: \
 	test-apps.cwl_firehose_subscriber \
 	test-apps.firehose_to_es_processor
 
-deploy-%:
+deploy-app-%:
 	$(MAKE) -C apps/$(*)/ build deploy
 
-.PHONY: deploy
-deploy: \
-	deploy-gcp_to_cwl \
-	deploy-es_idx_manager \
-	deploy-cwl_to_slack \
-	deploy-cwl_firehose_subscriber \
-	deploy-firehose_to_es_processor
+.PHONY: deploy-apps
+deploy-apps: \
+	deploy-app-gcp_to_cwl \
+	deploy-app-es_idx_manager \
+	deploy-app-cwl_to_slack \
+	deploy-app-cwl_firehose_subscriber \
+	deploy-app-firehose_to_es_processor
 	echo $(APPS_REVISION) > /tmp/rev
 	aws s3 cp /tmp/rev $(DEPLOY_MARKER)
 
@@ -87,22 +87,10 @@ is-deployed:
 	aws s3 cp $(DEPLOY_MARKER) /tmp/rev
 	bash -c '[[ `cat /tmp/rev` == "$(APPS_REVISION)" ]]'
 
-# prod deployment
-.PHONY: prod-deploy
-prod-deploy:
-ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca-prod)
-	$(MAKE) clean-terraform
-	. config/environment_prod && $(MAKE) init
-endif
-	. config/environment_prod && cd infrastructure && make apply
-	. config/environment_prod && $(MAKE) deploy
+.PHONY: check-terraform
+check-terraform:
+	bash -c 'if [ "$$(cat infrastructure/.terraform/terraform.tfstate | jq -r .backend.config.profile)" != "$(AWS_PROFILE)" ] ; then echo "AWS profile in local terraform state does not match $(AWS_PROFILE)!" && false ; fi'
 
-# dev deployment
-.PHONY: dev-deploy
-dev-deploy:
-ifneq ($(shell cat infrastructure/.terraform/terraform.tfstate | jq -r '.backend.config.profile'),hca)
-	$(MAKE) clean-terraform
-	. config/environment_dev && $(MAKE) init
-endif
-	. config/environment_dev && cd infrastructure && make apply
-	. config/environment_dev && $(MAKE) deploy
+deploy: check-terraform secrets
+	cd infrastructure && make apply
+	make deploy-apps
