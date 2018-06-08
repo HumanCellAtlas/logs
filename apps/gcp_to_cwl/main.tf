@@ -1,4 +1,5 @@
 variable "aws_profile" {}
+variable "terraform_bucket" {}
 data "aws_caller_identity" "current" {}
 
 variable "aws_region" {
@@ -133,4 +134,20 @@ resource "aws_cloudwatch_event_target" "dss" {
   rule      = "${aws_cloudwatch_event_rule.gcp_to_cwl.name}"
   target_id = "invoke-gcp-to-cwl-exporter-enforcer"
   arn       = "${aws_lambda_function.gcp_to_cwl.arn}"
+}
+
+data "terraform_remote_state" "infra" {
+  backend = "s3"
+  config {
+    bucket = "${var.terraform_bucket}"
+    key = "logs/terraform.tfstate"
+    region = "${var.aws_region}"
+    profile = "${var.aws_profile}"
+  }
+}
+
+resource "google_pubsub_subscription" "logs" {
+  name = "logs.gcp-exporter"
+  topic = "${data.terraform_remote_state.infra.google_pubsub_topic.logs.name}"
+  project = "${data.terraform_remote_state.infra.google_project.logs.name}"
 }
