@@ -2,38 +2,32 @@
 
 This repository holds the configuration for the [HCA](https://humancellatlas.org)'s centralized logging, monitoring, and alerting. The design of this system is described in the [DCP Centalized Logging design document](https://docs.google.com/document/d/15RUEodhwS8wtgkIpoJ_6uI9eCErzAw2YXzY6MwwUcG4/edit?usp=sharing).
 
-## Installation
+## Deployment
 
 ### Environment
-First define all required variables in the `config/environment_template`.
-
-Once you have specified all of these credentials, source the environment.
+First, set the `PROJECT_ROOT` and download the project's secrets with the following commands
 
 ```bash
-source config/<your_environment>
+export AWS_PROFILE=<profile>
+export GOOGLE_APPLICATION_CREDENTIALS=<credentials.json>
+export GCLOUD_PROJECT=<project_id>
+source environment
+make secrets
+make clean-terraform init
 ```
 
-You will also need to set credentials for a google cloud account.
+### Deployment
 
+The following command will deploy the CI confuration, infrastructure, and apps. In short, everything.
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS=<your_gcp_credentials_file>
+make deploy
 ```
 
 ## CI User
-To run this repository a CI user must be set up in your AWS account. To do this run the following commands.
+To run this repository a CI user must be set up in your AWS account. These are created from the configuration in the `ci` directory.
 
-First set up terraform for the repo.
+You don't need to run the commands in this subdirectory yourself, the `make deploy` command should do this for you.
 
-```bash
-make init
-```
-
-Then, apply the ci user to your account.
-
-```bash
-cd ci
-make apply
-```
 ## Development
 
 To install the development environemnt run `make install`.
