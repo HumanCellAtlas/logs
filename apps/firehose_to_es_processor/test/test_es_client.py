@@ -1,8 +1,12 @@
-from lib.es_client import ESClient
-from lib import firehose_records
-import unittest
 import os
 import time
+import unittest
+
+from contextlib import contextmanager
+
+from lib.es_client import ESClient
+from elasticsearch.client import IndicesClient
+from lib import firehose_records
 
 
 class TestESClient(unittest.TestCase):
@@ -13,24 +17,26 @@ class TestESClient(unittest.TestCase):
     es_client = ESClient()
     es = es_client.es
 
-    def test_create_cwl_day_index(self):
+    @contextmanager
+    def new_index(self, index_name):
         try:
-            index_name = self.es_client._format_today_index_name(self.index_prefix)
             if self.es.indices.exists(index_name):
                 self.es_client.delete_index(index_name)
-            self.assertEqual(self.es.indices.exists(index_name), False)
             self.es_client.create_cwl_day_index(self.index_prefix)
-            self.assertEqual(self.es.indices.exists(index_name), True)
+            yield index_name
         finally:
             if self.es.indices.exists(index_name):
                 self.es_client.delete_index(index_name)
 
-    def test_bulk_post(self):
-        try:
-            index_name = self.es_client._format_today_index_name(self.index_prefix)
-            if not self.es.indices.exists(index_name):
-                self.es_client.create_cwl_day_index(self.index_prefix)
+    def test_create_cwl_day_index(self):
+        index_name = self.es_client._format_today_index_name(self.index_prefix)
+        self.assertEqual(self.es.indices.exists(index_name), False)
+        with self.new_index(index_name) as index_name:
             self.assertEqual(self.es.indices.exists(index_name), True)
+
+    def test_bulk_post(self):
+        index_name = self.es_client._format_today_index_name(self.index_prefix)
+        with self.new_index(index_name):
             data = [{"owner": "test_owner", "logGroup": "/test/test_log_group", "logStream": "test_log_stream", "messageType": 'DATA_MESSAGE'}]
             data[0]["logEvents"] = [{"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}, {"id": 123456, "timestamp": 1519970297000, "message": 'with_json{"hi": "hello"}with_json'}]
             record_stream = firehose_records.from_docs(data)
@@ -44,6 +50,30 @@ class TestESClient(unittest.TestCase):
                 time.sleep(1)
                 countdown -= 1
             self.assertEqual(count, 2)
-        finally:
-            if self.es.indices.exists(index_name):
-                self.es_client.delete_index(index_name)
+
+    def test_tokenize(self):
+        test_case = {
+            "text": "2018-06-08T00:00:00Z INFO GET /v1/bundles/7ef8966b-45ef-4e0a-a51b-44a865372050.2018-06-08T230333.785338Z?param1=1&param2=2 {\"key\": \"value\"}"
+        }
+        index_name = self.es_client._format_today_index_name(self.index_prefix)
+        index_client = IndicesClient(TestESClient.es)
+        with self.new_index(index_name):
+            response = index_client.analyze(index=index_name, body=test_case)
+            tokens = [t['token'] for t in response['tokens']]
+        self.assertEqual(set(tokens), {
+            '7ef8966b-45ef-4e0a-a51b-44a865372050',
+            '2018-06-08T230333.785338Z',
+            ':',
+            'INFO',
+            '1',
+            '2',
+            'v1',
+            'bundles',
+            'key',
+            'GET',
+            'param2',
+            'param1',
+            '2018-06-08T00:00:00Z',
+            'value'
+        })
+        self.assertEqual(len(tokens), 14)

@@ -42,7 +42,20 @@ class ESClient:
         request_body = {
             "settings": {
                 "number_of_shards": 2,
-                "number_of_replicas": 0
+                "number_of_replicas": 0,
+                "analysis": {
+                    "analyzer": {
+                        "default": {
+                            "tokenizer": "bundle_id_tokenizer",
+                        }
+                    },
+                    "tokenizer": {
+                        "bundle_id_tokenizer": {
+                            "type": "pattern",
+                            "pattern": "[\s,{}\[\]\";'+=%^$!~`|\\/?&]+|[.](?![0-9]{6,6}Z)"
+                        }
+                    }
+                }
             }
         }
         index_name = self._format_today_index_name(prefix)
