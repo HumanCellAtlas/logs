@@ -9,7 +9,8 @@ build:
 	rm -rf target
 	mkdir target
 	npm install
-	zip -r $(TARGET) *.js package-lock.json
+	cp *.js target/
+	cp package-lock.json target/
 
 terraform-%:
 	@terraform $(*) \
