@@ -39,7 +39,7 @@ class FirehoseRecord:
         transformed_message = extract_json(log_event["message"])
         if transformed_message and type(transformed_message) == dict:
             for k, v in transformed_message.items():
-                if FirehoseRecord.invalid_chars.search(k) is None:
+                if FirehoseRecord.invalid_chars.search(k) is None and k != 'index':
                     transformed_payload[k] = json.dumps(v)
 
         return transformed_payload
