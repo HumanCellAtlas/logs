@@ -31,7 +31,7 @@ make clean-terraform init
 
 ## Deployment
 
-The following command will deploy the CI confuration, infrastructure, and apps. In short, everything.
+The following command will deploy the CI configuration, infrastructure, and apps. In short, everything.
 ```bash
 make deploy
 ```
