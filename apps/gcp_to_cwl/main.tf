@@ -114,7 +114,7 @@ resource "aws_lambda_function" "gcp_to_cwl" {
 //
 
 resource "aws_cloudwatch_event_rule" "gcp_to_cwl" {
-  name = "log-retention-policy-enforcer"
+  name = "gcp-to-cwl-exporter"
   description = "Triggers the export of logs from GCP to AWS CloudWatch"
   schedule_expression = "rate(2 minutes)"
 }
