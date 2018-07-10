@@ -1,5 +1,5 @@
 - name: elastic search human cell atlas
-  days: 7
+  days: 30
   index_format: '%Y-%m-%d'
   indices:
     - prefix: cwl
