@@ -23,7 +23,6 @@ First, set the `PROJECT_ROOT` and download the project's secrets with the follow
 ```bash
 export AWS_PROFILE=<profile>
 export GOOGLE_APPLICATION_CREDENTIALS=<credentials.json>
-export GCLOUD_PROJECT=<project_id>
 source environment
 make secrets
 make clean-terraform init
