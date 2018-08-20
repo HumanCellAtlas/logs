@@ -1,21 +1,10 @@
 ZIP_FILE := GcpToCwlExporter_App.zip
-TARGET := target/$(ZIP_FILE)
+ZIP_PATH := gcp-to-cwl
 CREDENTIALS_FILE := target/gcp-credentials.json
+LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(PROJECT_ROOT)/terraform.tfvars`
+
 
 default: build
-
-.PHONY: clean
-clean:
-	rm -rf target
-
-.PHONY: target
-target:
-	mkdir -p target
-
-.PHONY: install
-install:
-	virtualenv -p python3 venv
-	. venv/bin/activate && pip install -r requirements.txt --upgrade
 
 .PHONY: credentials
 credentials:
@@ -24,20 +13,44 @@ credentials:
 		jq -r .SecretString | \
 		jq .gcp_exporter_google_application_credentials > $(CREDENTIALS_FILE)
 
+
+.PHONY: install
+install:
+	virtualenv -p python3 venv
+	venv/bin/pip install -r requirements.txt --upgrade
+
+
+.PHONY: plan
+plan:
+	TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
+	  terraform plan -detailed-exitcode \
+	  -var-file $(PROJECT_ROOT)/terraform.tfvars
+
+
 .PHONY: test
-test: target credentials
+test: credentials
+	rm -rf target
+	mkdir target
 	. venv/bin/activate && GOOGLE_APPLICATION_CREDENTIALS=$(CREDENTIALS_FILE) python -m unittest discover -s test -p 'test_*.py'
 
+
 .PHONY: build
-build: clean target credentials
+build: install credentials
+	rm -rf target
+	mkdir target
 	cp app.py target/
 	cp -r lib target/
-	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
+	venv/bin/pip install -r requirements.txt -t target/ --upgrade
 	bash -c 'shopt -s nullglob; for wheel in vendor.in/*/*.whl; do unzip -q -o -d target $$wheel; done'
+	cd target && zip -r ../$(ZIP_FILE) *
+
 
 .PHONY: deploy
-deploy:
-	. venv/bin/activate && terraform apply \
-		-var-file $(PROJECT_ROOT)/terraform.tfvars \
-		-var "target_zip_path=$(TARGET)" \
-		-auto-approve
+deploy: build
+	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
+	aws lambda update-function-code --function-name gcp-to-cwl-exporter --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
+
+	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
+	    terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars
+
+

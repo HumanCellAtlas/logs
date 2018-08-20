@@ -1,10 +1,8 @@
-terraform-%:
-	terraform $(*) \
-		-var-file $(PROJECT_ROOT)/terraform.tfvars \
-		$([[ "$ACTION" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
-
 .PHONY: plan
-plan: terraform-plan
+plan:
+	terraform plan -detailed-exitcode \
+	  -var-file $(PROJECT_ROOT)/terraform.tfvars
 
 .PHONY: apply
-apply: terraform-apply
+apply:
+	terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars

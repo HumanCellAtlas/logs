@@ -1,10 +1,8 @@
 data "aws_caller_identity" "current" {}
-
-variable "aws_region" {
-  default = "us-east-1"
-}
-
 variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -91,21 +89,14 @@ EOF
 depends_on = ["aws_iam_role.cwl_firehose_subscriber"]
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  source_dir = "./target"
-  output_path = "./lambda.zip"
-}
-
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
-  filename = "${data.archive_file.lambda_zip.output_path}"
   function_name = "cwl_firehose_subscriber"
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
   role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   timeout = 10
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
-
   depends_on = [
     "aws_iam_role.cwl_firehose_subscriber"
   ]
@@ -113,6 +104,7 @@ resource "aws_lambda_function" "cwl_firehose_subscriber" {
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {
   name = "/aws/lambda/cwl_firehose_subscriber"
+  retention_in_days = 90
 }
 
 resource "aws_cloudwatch_event_rule" "create_log_group" {

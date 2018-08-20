@@ -1,8 +1,10 @@
+data "aws_caller_identity" "current" {}
 variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
+variable "account_id" {}
 
-variable "aws_region" {
-  default = "us-east-1"
-}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -25,8 +27,6 @@ terraform {
 //  Firehose To Es Processor
 //
 
-variable "target_zip_path" {}
-variable "account_id" {}
 
 resource "aws_iam_role" "firehose_processor" {
   name               = "firehose-cwl-log-processor"
@@ -99,16 +99,28 @@ EOF
 
 resource "aws_lambda_function" "firehose_cwl_processor" {
   description = "Processes CloudWatch Logs from Firehose"
-  filename = "${var.target_zip_path}"
   function_name = "Firehose-CWL-Processor"
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
   role = "${aws_iam_role.firehose_processor.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 1024
   timeout = 300
-  source_code_hash = "${base64sha256(file("${var.target_zip_path}"))}"
 }
+
+resource "aws_lambda_permission" "allow_bucket" {
+  statement_id  = "AllowExecutionFromS3Bucket"
+  action        = "lambda:InvokeFunction"
+  function_name = "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::kinesis-firehose-logs-${var.account_id}"
+  depends_on = ["aws_lambda_function.firehose_cwl_processor"]
+}
+
 
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
+  retention_in_days = 90
+
 }

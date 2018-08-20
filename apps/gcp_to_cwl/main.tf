@@ -1,10 +1,8 @@
-variable "aws_profile" {}
-variable "terraform_bucket" {}
 data "aws_caller_identity" "current" {}
-
-variable "aws_region" {
-  default = "us-east-1"
-}
+variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -82,30 +80,22 @@ EOF
   ]
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  source_dir = "./target"
-  output_path = "./lambda.zip"
-}
 
 resource "aws_lambda_function" "gcp_to_cwl" {
   function_name = "gcp-to-cwl-exporter"
   description = "Exports logs from GCP to AWS CloudWatch"
-  filename = "${data.archive_file.lambda_zip.output_path}"
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
   role = "${aws_iam_role.gcp_to_cwl.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 512
   timeout = 120
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
   environment {
     variables {
       GOOGLE_APPLICATION_CREDENTIALS = "./gcp-credentials.json"
     }
   }
-  depends_on = [
-    "data.archive_file.lambda_zip"
-  ]
 }
 
 

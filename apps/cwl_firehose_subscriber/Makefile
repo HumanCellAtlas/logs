@@ -1,27 +1,40 @@
+ZIP_FILE := CWLFirehoseSubscriber_App.zip
+ZIP_PATH := cwl-firehose-subscriber
+LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(PROJECT_ROOT)/terraform.tfvars`
+
 default: build
+
 
 .PHONY: install
 install:
 	virtualenv -p python3 venv
-	. venv/bin/activate && pip install -r requirements.txt
+	venv/bin/pip install -r requirements.txt
+
+.PHONY: plan
+plan:
+	TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
+	terraform plan -detailed-exitcode \
+	  -var-file $(PROJECT_ROOT)/terraform.tfvars
 
 .PHONY: test
 test:
 	. venv/bin/activate && python -m unittest discover -s test -p 'test_*.py'
 
 .PHONY: build
-build:
+build: install
 	rm -rf target
 	mkdir target
-	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
+	venv/bin/pip install -r requirements.txt -t target/ --upgrade
 	cp *.py target/
+	cd target && zip -r ../$(ZIP_FILE) *
 
 .PHONY: deploy
-deploy:
-	$(MAKE) terraform-apply
+deploy: build
+	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
+	aws lambda update-function-code --function-name cwl_firehose_subscriber --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
 
-terraform-%:
-	@terraform $(*) \
-		-var-file $(PROJECT_ROOT)/terraform.tfvars \
-		-auto-approve \
-		$([[ "$(*)" == "plan" ]] && echo -n "-detailed-exitcode" || echo -n "")
+	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
+	    terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars
+
+
+
