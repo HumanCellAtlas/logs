@@ -56,6 +56,20 @@ class ESClient:
                         }
                     }
                 }
+            },
+            "mappings": {
+                "fromFirehose": {
+                    "properties": {
+                        "@log_group": {
+                            "type": "text",
+                            "fields": {
+                                "keyword": {
+                                    "type": "keyword"
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         index_name = self._format_today_index_name(prefix)
