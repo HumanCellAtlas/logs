@@ -78,14 +78,16 @@ data "archive_file" "lambda_zip" {
 }
 
 resource "aws_lambda_function" "slack_notifier" {
-  function_name = "${var.app_name}"
-  filename = "${data.archive_file.lambda_zip.output_path}"
+  function_name = "cloudwatch-slack-notifier"
+//  filename = "${data.archive_file.lambda_zip.output_path}"
   description = "An Amazon SNS trigger that sends CloudWatch alarm notifications to Slack."
-  runtime = "nodejs6.10"
-  handler = "index.handler"
-  memory_size = 128
+  s3_bucket = "org-hca-logs-lambda-deployment"
+  s3_key = "cwl_to_slack/cloudwatch-slack-notifications_App.zip"
+  runtime = "python3.6"
+  handler = "app.handler"
+  memory_size = 256
   role = "${aws_iam_role.slack_notifier.arn}"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
+//  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
   depends_on = [
     "aws_iam_role.slack_notifier",
     "aws_sns_topic.alarms"

@@ -1,16 +1,19 @@
-TARGET := cloudwatch-slack-notifications_App.zip
+ZIP_FILE := cloudwatch-slack-notifications_App.zip
 
-.PHONY: clean
-clean:
-	rm -rf $(TARGET)
+.PHONY: install
+install:
+	virtualenv -p python3 venv
+	. venv/bin/activate && pip install -r requirements.txt
+
 
 .PHONY: build
 build:
 	rm -rf target
 	mkdir target
-	npm install
-	cp *.js target/
-	cp package-lock.json target/
+	cp *.py target/
+	. venv/bin/activate && pip install -r requirements.txt -t target/ --upgrade
+	cd target && zip -r ../$(ZIP_FILE) *
+
 
 terraform-%:
 	@terraform $(*) \
@@ -22,3 +25,6 @@ plan: terraform-plan
 
 .PHONY: deploy
 deploy: terraform-apply
+	aws s3 cp $(ZIP_FILE) s3://org-hca-logs-lambda-deployment/cwl_to_slack/$(ZIP_FILE)
+	aws lambda update-function-code --function-name cloudwatch-slack-notifier --s3-bucket org-hca-logs-lambda-deployment --s3-key cwl_to_slack/$(ZIP_FILE)
+
