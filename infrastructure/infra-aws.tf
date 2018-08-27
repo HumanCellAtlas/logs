@@ -118,7 +118,10 @@ resource "aws_cloudwatch_log_group" "cloudtrail" {
 
 variable "es_domain_name" {}
 variable "travis_user" {}
-variable "es_email_principals" {
+variable "es_principal_emails" {
+  type = "list"
+}
+variable "es_principal_arns" {
   type = "list"
 }
 
@@ -145,9 +148,9 @@ resource "aws_elasticsearch_domain" "es" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_email_principals)))},
-          "arn:aws:iam::${var.account_id}:user/${var.travis_user}",
-          "arn:aws:iam::${var.account_id}:user/grafana-datasource"
+          ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_principal_emails)))},
+          ${join(", ", sort(formatlist("\"%s\"", var.es_principal_arns)))},
+          "arn:aws:iam::${var.account_id}:user/${var.travis_user}"
         ]
       },
       "Action": "es:*",
@@ -306,14 +309,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     lambda_function_arn = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
     events              = ["s3:ObjectCreated:*"]
   }
-}
-
-resource "aws_lambda_permission" "allow_bucket" {
-  statement_id  = "AllowExecutionFromS3Bucket"
-  action        = "lambda:InvokeFunction"
-  function_name = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
-  principal     = "s3.amazonaws.com"
-  source_arn    = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
 }
 
 ////
