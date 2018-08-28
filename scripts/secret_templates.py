@@ -8,7 +8,8 @@ secret_templates = {
     'logs/_/gcp-credentials-logs-travis.json': dict(),
     'logs/_/config.json': {
         'account_id': 'DEFINE',
-        'es_email_principals': [],
+        'es_principal_emails': [],
+        'es_principal_arns': [],
         'aws_profile': 'DEFINE',
         'aws_region': 'DEFINE',
         'cloudtrail_log_group_name': 'DEFINE',
