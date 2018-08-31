@@ -292,9 +292,13 @@ resource "aws_s3_bucket" "kinesis-firehose-logs" {
   }
 }
 
+output "kinesis_bucket" {
+  value = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+}
+
 resource "aws_cloudwatch_log_group" "firehose_errors" {
   name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
-  retention_in_days = "90"
+  retention_in_days = 90
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {

@@ -1,7 +1,6 @@
 terraform-%:
 	terraform $* \
-		-var-file $(PROJECT_ROOT)/terraform.tfvars \
-		$(shell [[ "$(*)" == "apply" ]] && echo "-auto-approve" || true)
+		-var-file $(PROJECT_ROOT)/terraform.tfvars
 
 .PHONY: plan
 plan: terraform-plan

@@ -1,9 +1,8 @@
-variable "aws_profile" {}
 data "aws_caller_identity" "current" {}
-
-variable "aws_region" {
-  default = "us-east-1"
-}
+variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -86,30 +85,21 @@ EOF
   ]
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  source_dir = "./target"
-  output_path = "./lambda.zip"
-}
-
 resource "aws_lambda_function" "es_idx_manager" {
   function_name = "es-idx-manager"
   description = "Manages hca log elasticsearch indexes"
-  filename = "${data.archive_file.lambda_zip.output_path}"
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
   role = "${aws_iam_role.es_idx_manager.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 256
   timeout = 120
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
   environment {
     variables = {
       ES_IDX_MANAGER_SETTINGS = "./es-idx-manager-settings.yaml"
     }
   }
-  depends_on = [
-    "data.archive_file.lambda_zip"
-  ]
 }
 
 

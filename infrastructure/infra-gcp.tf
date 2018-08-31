@@ -28,6 +28,11 @@ resource "google_pubsub_topic_iam_policy" "publisher" {
   depends_on = [
     "google_pubsub_topic.logs",
   ]
+   lifecycle {
+        ignore_changes = [
+            "policy_data"
+        ]
+    }
 }
 
 output "google_pubsub_topic.logs.name" {

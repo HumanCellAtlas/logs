@@ -1,12 +1,10 @@
+data "aws_caller_identity" "current" {}
 variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
 variable "app_name" {
   default = "cloudwatch-slack-notifier"
-}
-
-data "aws_caller_identity" "current" {}
-
-variable "aws_region" {
-  default = "us-east-1"
 }
 
 provider "aws" {
@@ -71,21 +69,15 @@ resource "aws_iam_role_policy" "slack_notifier_logs" {
 EOF
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  source_dir = "./target"
-  output_path = "./lambda.zip"
-}
-
 resource "aws_lambda_function" "slack_notifier" {
-  function_name = "${var.app_name}"
-  filename = "${data.archive_file.lambda_zip.output_path}"
+  function_name = "cloudwatch-slack-notifier"
   description = "An Amazon SNS trigger that sends CloudWatch alarm notifications to Slack."
-  runtime = "nodejs6.10"
-  handler = "index.handler"
-  memory_size = 128
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
+  runtime = "python3.6"
+  handler = "app.handler"
+  memory_size = 256
   role = "${aws_iam_role.slack_notifier.arn}"
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
   depends_on = [
     "aws_iam_role.slack_notifier",
     "aws_sns_topic.alarms"

@@ -1,9 +1,8 @@
-variable "aws_profile" {}
 data "aws_caller_identity" "current" {}
-
-variable "aws_region" {
-  default = "us-east-1"
-}
+variable "aws_profile" {}
+variable "aws_region" {}
+variable "logs_lambda_bucket" {}
+variable "path_to_zip_file" {}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -84,30 +83,22 @@ EOF
   ]
 }
 
-data "archive_file" "lambda_zip" {
-  type = "zip"
-  source_dir = "./target"
-  output_path = "./lambda.zip"
-}
 
 resource "aws_lambda_function" "log_retention_policy_enforcer" {
   function_name = "log-retention-policy-enforcer"
   description = "Enforces log retention policies"
-  filename = "${data.archive_file.lambda_zip.output_path}"
+  s3_bucket = "${var.logs_lambda_bucket}"
+  s3_key = "${var.path_to_zip_file}"
   role = "${aws_iam_role.log_retenion_policy_enforcer.arn}"
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 256
   timeout = 120
-  source_code_hash = "${base64sha256(file("${data.archive_file.lambda_zip.output_path}"))}"
   environment {
     variables = {
       LOG_RETENTION_TTL_FILE = "./log_retention_ttl"
     }
   }
-  depends_on = [
-    "data.archive_file.lambda_zip"
-  ]
 }
 
 

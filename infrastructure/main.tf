@@ -24,3 +24,9 @@ terraform {
   }
 }
 
+resource "aws_s3_bucket" "lambda_area_bucket" {
+  bucket = "org-hca-logs-lambda-deployment-${var.account_id}"
+  acl = "private"
+  force_destroy = "false"
+  acceleration_status = "Enabled"
+}
