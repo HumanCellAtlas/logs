@@ -8,23 +8,35 @@ from botocore.exceptions import ClientError
 
 def handler(event, context):
     """
-    main lambda function
+    Post alert to slack webhook
     """
-
-    secrets = json.loads(get_secret()['SecretString'])
-    slack_url = secrets['slack_webhook_url']
-    slack_channel = secrets['slack_alert_channel']
-
     alert_message = json.loads(event['Records'][0]['Sns']['Message'])
-    print(alert_message)
     alarm_name = alert_message['AlarmName']
-    new_state = alert_message['NewStateValue']
     reason = alert_message['NewStateReason']
-    region = os.getenv('AWS_DEFAULT_REGION')
+    new_state = alert_message['NewStateValue']
+    color = "good" if new_state == 'OK' else "danger"
 
+    region = os.getenv('AWS_DEFAULT_REGION')
     alert_url = f'https://console.aws.amazon.com/cloudwatch/home?region={region}#alarm:alarmFilter=ANY;name={alarm_name}'
-    slack_message = f"<{alert_url}|{alarm_name}> state is now {new_state}: {reason}"
-    post_message_to_url(slack_url, {"channel": slack_channel , "text": slack_message})
+    slack_message = f"State is now {new_state}: \n {reason}"
+    link = f"<{alert_url}|{alarm_name}>"
+
+    attachments = [{
+            "fallback": f"{link} {slack_message}",
+            "title": alarm_name,
+            "title_link": alert_url,
+            "text": slack_message,
+            "color": color
+        }]
+
+    try:
+        slack_channel = json.loads(alert_message['AlarmDescription'])['slack_channel']
+    except:
+        slack_channel = "dcp-ops-alerts"
+
+    slack_url = json.loads(get_secret()['SecretString'])['slack_webhooks'][slack_channel]
+
+    post_message_to_url(slack_url, {"attachments": attachments})
 
 
 def get_secret():
