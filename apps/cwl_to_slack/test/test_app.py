@@ -7,6 +7,7 @@ class TestApp(unittest.TestCase):
     def setUp(self):
         self.mock_secrets = {
             'SecretString': '{'
+                            '"slack_alert_channel": "dcp-ops-alerts",'
                             '"slack_webhooks":{'
                                 '"dcp-ops":"dcp_slack_url",'
                                 '"upload-service":"upload_slack_url",'
@@ -48,8 +49,29 @@ class TestApp(unittest.TestCase):
             ]
         }
 
-        self.mock_attachment_alarm = {'attachments': [{'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;name=upload-staging|upload-staging> State is now ALARM: \n words words words', 'title': 'upload-staging', 'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;name=upload-staging', 'text': 'State is now ALARM: \n words words words', 'color': 'danger'}]}
-        self.mock_attachment_ok = {'attachments': [{'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;name=upload-staging|upload-staging> State is now OK: \n words words words', 'title': 'upload-staging', 'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;name=upload-staging', 'text': 'State is now OK: \n words words words', 'color': 'good'}]}
+        self.mock_attachment_alarm = {
+            'attachments': [
+                {'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
+                             'name=upload-staging|upload-staging> State is now ALARM: \n words words words',
+                 'title': 'upload-staging',
+                 'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
+                               'name=upload-staging',
+                 'text': 'State is now ALARM: \n words words words',
+                 'color': 'danger'}
+            ]
+        }
+        self.mock_attachment_ok = {
+            'attachments': [
+                {'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
+                             'name=upload-staging|upload-staging> State is now OK: \n words words words',
+                 'title': 'upload-staging',
+                 'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter'
+                               '=ANY;name=upload-staging',
+                 'text': 'State is now OK: \n words words words',
+                 'color': 'good'
+                 }
+            ]
+        }
 
     @patch('app.get_secret')
     @patch('app.post_message_to_url')

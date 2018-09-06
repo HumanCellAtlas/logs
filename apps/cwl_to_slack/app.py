@@ -29,12 +29,10 @@ def handler(event, context):
             "color": color
         }]
 
-    try:
-        slack_channel = json.loads(alert_message['AlarmDescription'])['slack_channel']
-    except:
-        slack_channel = "dcp-ops-alerts"
-
-    slack_url = json.loads(get_secret()['SecretString'])['slack_webhooks'][slack_channel]
+    secrets = json.loads(get_secret()['SecretString'])
+    default_slack_channel = secrets['slack_alert_channel']
+    slack_channel = json.loads(alert_message['AlarmDescription']).get("slack_channel", default_slack_channel)
+    slack_url = secrets['slack_webhooks'][slack_channel]
 
     post_message_to_url(slack_url, {"attachments": attachments})
 
