@@ -23,7 +23,7 @@ class TestApp(unittest.TestCase):
                         'Message':
                             '{"AlarmName":"upload-staging",'
                             '"AlarmDescription":'
-                                '"{ \\"slack_channel\\": \\"upload-service\\"}",'
+                                '"{ \\"slack_channel\\": \\"upload-service\\", \\"description\\": \\"it bad\\"}",'
                             '"NewStateValue":"ALARM",'
                             '"NewStateReason":"words words words",'
                             '"OldStateValue":"OK"'
@@ -32,6 +32,7 @@ class TestApp(unittest.TestCase):
                 }
             ]
         }
+
         self.mock_event_no_channel_ok = {
             'Records': [
                 {
@@ -52,22 +53,23 @@ class TestApp(unittest.TestCase):
         self.mock_attachment_alarm = {
             'attachments': [
                 {'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
-                             'name=upload-staging|upload-staging> State is now ALARM: \n words words words',
+                             'name=upload-staging|upload-staging> New state: ALARM\nDescription: it bad\nwords words words',
                  'title': 'upload-staging',
                  'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
                                'name=upload-staging',
-                 'text': 'State is now ALARM: \n words words words',
+                 'text': 'New state: ALARM\nDescription: it bad\nwords words words',
                  'color': 'danger'}
             ]
         }
+
         self.mock_attachment_ok = {
             'attachments': [
                 {'fallback': '<https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter=ANY;'
-                             'name=upload-staging|upload-staging> State is now OK: \n words words words',
+                             'name=upload-staging|upload-staging> New state: OK\nDescription: None\nwords words words',
                  'title': 'upload-staging',
                  'title_link': 'https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#alarm:alarmFilter'
                                '=ANY;name=upload-staging',
-                 'text': 'State is now OK: \n words words words',
+                 'text': 'New state: OK\nDescription: None\nwords words words',
                  'color': 'good'
                  }
             ]
