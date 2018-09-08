@@ -18,20 +18,25 @@ def handler(event, context):
 
     region = os.getenv('AWS_DEFAULT_REGION')
     alert_url = f'https://console.aws.amazon.com/cloudwatch/home?region={region}#alarm:alarmFilter=ANY;name={alarm_name}'
-    slack_message = f"State is now {new_state}: \n {reason}"
     link = f"<{alert_url}|{alarm_name}>"
-
-    attachments = [{
-            "fallback": f"{link} {slack_message}",
-            "title": alarm_name,
-            "title_link": alert_url,
-            "text": slack_message,
-            "color": color
-        }]
 
     secrets = json.loads(get_secret()['SecretString'])
     default_slack_channel = secrets['slack_alert_channel']
-    slack_channel = json.loads(alert_message['AlarmDescription']).get("slack_channel", default_slack_channel)
+    alarm_description = json.loads(alert_message['AlarmDescription'])
+    slack_channel = alarm_description.get("slack_channel", default_slack_channel)
+    description = alarm_description.get("description")
+    slack_message = '\n'.join(
+        [f"New state: {new_state}", f"Description: {description}", reason]
+    )
+
+    attachments = [{
+        "fallback": f"{link} {slack_message}",
+        "title": alarm_name,
+        "title_link": alert_url,
+        "text": slack_message,
+        "color": color
+    }]
+
     slack_url = secrets['slack_webhooks'][slack_channel]
 
     post_message_to_url(slack_url, {"attachments": attachments})
@@ -69,4 +74,3 @@ def post_message_to_url(url, message):
     body = json.dumps(message)
     headers = {'Content-Type': 'application/json'}
     requests.post(url, data=body, headers=headers)
-
