@@ -9,7 +9,7 @@ default: build
 .PHONY: install
 install:
 	virtualenv -p python3 venv
-	. venv/bin/activate && pip install -r requirements.txt
+	venv/bin/pip install -r requirements.txt
 
 
 .PHONY: plan
