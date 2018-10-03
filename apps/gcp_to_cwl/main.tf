@@ -3,6 +3,7 @@ variable "aws_profile" {}
 variable "aws_region" {}
 variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
+variable "terraform_bucket" {}
 
 provider "aws" {
   region = "${var.aws_region}"
