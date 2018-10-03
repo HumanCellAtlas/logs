@@ -9,7 +9,7 @@ default: build
 .PHONY: install
 install:
 	virtualenv -p python3 venv
-	. venv/bin/pip install -r requirements.txt
+	. venv/bin/activate && pip install -r requirements.txt
 
 
 .PHONY: plan
@@ -39,6 +39,5 @@ build: install
 deploy: build
 	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
 	aws lambda update-function-code --function-name es-idx-manager --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
-
-	venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
+	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
 	    terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars
