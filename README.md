@@ -37,7 +37,7 @@ make deploy
 
 ## Development
 
-To install the development environemnt run `make install`.
+To install the development environment run `make install`.
 
 ## Testing
 
