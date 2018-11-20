@@ -42,4 +42,3 @@ To install the development environment run `make install`.
 ## Testing
 
 To run unit tests, run `make test`.
-
