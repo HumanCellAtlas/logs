@@ -6,12 +6,20 @@ LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(PROJECT_ROOT)/terraform.tfvars`
 
 default: build
 
+.PHONY: clean
+clean:
+	rm -rf target/
+	rm *.zip
+
+.PHONY: target
+target:
+	mkdir -p target
+
 .PHONY: credentials
 credentials:
 	aws secretsmanager get-secret-value \
-		--secret-id logs/_/gcp_to_cwl.json | \
-		jq -r .SecretString | \
-		jq .gcp_exporter_google_application_credentials > $(CREDENTIALS_FILE)
+		--secret-id logs/_/gcp-credentials-logs-travis.json | \
+		jq -r .SecretString > $(CREDENTIALS_FILE)
 
 
 .PHONY: install
@@ -35,9 +43,7 @@ test: credentials
 
 
 .PHONY: build
-build: install credentials
-	rm -rf target
-	mkdir target
+build: clean target install credentials
 	cp app.py target/
 	cp -r lib target/
 	venv/bin/pip install -r requirements.txt -t target/ --upgrade
