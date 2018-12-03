@@ -22,7 +22,7 @@ def handler(event, context):
 
     secrets = json.loads(get_secret()['SecretString'])
     default_slack_channel = secrets['slack_alert_channel']
-    alarm_description = json.loads(alert_message['AlarmDescription'])
+    alarm_description = json.loads(alert_message.get('AlarmDescription', '{}'))
     slack_channel = alarm_description.get("slack_channel", default_slack_channel)
     description = alarm_description.get("description")
     slack_message = '\n'.join(
