@@ -55,12 +55,21 @@ resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
         {
             "Effect": "Allow",
             "Action": [
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-                "logs:PutSubscriptionFilter",
-                "logs:CreateLogGroup"
+                "logs:PutSubscriptionFilter"
             ],
             "Resource": "arn:aws:logs:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+                "logs:CreateLogGroup"
+            ],
+            "Resource": [
+                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.cwl_firehose_subscriber.function_name}:*:*",
+                "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${aws_lambda_function.cwl_firehose_subscriber.function_name}"
+            ]
         },
         {
             "Effect": "Allow",

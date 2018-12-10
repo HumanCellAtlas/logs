@@ -1,8 +1,8 @@
 import boto3
 import json
-import os
 import unittest
 import uuid
+from unittest.mock import Mock
 
 import app
 from app import PrefixSet
@@ -51,7 +51,8 @@ class TestApp(unittest.TestCase):
 
             # put subscription filter to kinesis on log group
             account_id = infra_config['account_id']
-            delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
+            delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(
+                account_id)
             cwl_to_kinesis_role_arn = "arn:aws:iam::{0}:role/cwl-firehose".format(account_id)
             app.put_subscription_filter(log_group_name, delivery_stream_arn, cwl_to_kinesis_role_arn)
 
@@ -65,3 +66,13 @@ class TestApp(unittest.TestCase):
 
         finally:
             logs_client.delete_log_group(logGroupName=log_group_name)
+
+    def test_failed_log_group_creation(self):
+        mock_context = Mock()
+        failure_event = {
+            "detail": {
+                "errorCode": "AccessDenied"
+            }
+        }
+        app.handler(failure_event, mock_context)
+        mock_context.invoked_function_arn.assert_not_called()
