@@ -43,6 +43,9 @@ def handler(event, context):
     """Main Lambda function
     """
     try:
+        if 'errorCode' in event['detail']:
+            logger.info('Creation of log group failed. No operation necessary.')
+            return
         log_group_name = event['detail']['requestParameters']['logGroupName']
         account_id = context.invoked_function_arn.split(":")[4]
         delivery_stream_arn = "arn:aws:firehose:us-east-1:{0}:deliverystream/Kinesis-Firehose-ELK".format(account_id)
