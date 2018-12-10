@@ -53,6 +53,7 @@ resource "aws_iam_role_policy" "log_retenion_policy_enforcer" {
         {
           "Effect": "Allow",
             "Action": [
+                "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:DescribeLogStreams",
                 "logs:PutLogEvents"
