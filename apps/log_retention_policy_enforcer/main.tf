@@ -75,6 +75,14 @@ resource "aws_iam_role_policy" "log_retenion_policy_enforcer" {
             "Effect": "Allow",
             "Action": "es:*",
             "Resource": "arn:aws:es:*:*:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:${var.aws_region}:${data.aws_caller_identity.current.account_id}:secret:logs/*"
         }
     ]
 }
