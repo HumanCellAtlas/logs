@@ -1,8 +1,8 @@
 import boto3
-import gzip
-import json
-import re
+import io
 from retrying import retry
+from .gzip_stream_reader import GzipStreamReader
+from .json_object_stream import JsonObjectStream
 
 
 class S3Client:
@@ -18,12 +18,15 @@ class S3Client:
 
     @classmethod
     def unzip_and_parse_firehose_s3_file(cls, file):
-        with gzip.GzipFile(fileobj=file['Body'], mode='r') as f:
-            log_events = f.read().decode()
-            to_split_on = '{"messageType":'
-            split_events = [to_split_on + x for x in re.split(to_split_on, log_events)[1:]]
-            for event in split_events:
-                yield json.loads(event)
+        try:
+            br = GzipStreamReader.from_file(file)
+            fw = io.TextIOWrapper(br, 'utf-8')
+            fw._CHUNK_SIZE = 1
+            os = JsonObjectStream(fw)
+            for obj in iter(lambda: os.next(), None):
+                yield obj
+        finally:
+            file.close()
 
     @retry(wait_fixed=1000, stop_max_attempt_number=3)
     def delete_file(self, s3_object_key):

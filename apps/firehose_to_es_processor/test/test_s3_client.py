@@ -1,6 +1,10 @@
 import json
 import os
+import sys
 import unittest
+
+pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # noqa
+sys.path.insert(0, pkg_root)  # noqa
 
 from lib.s3_client import S3Client
 from lib import firehose_records
@@ -24,15 +28,21 @@ class TestS3Client(unittest.TestCase):
         if travis_build_id:
             self.s3_object_key = self.s3_object_key + "-" + travis_build_id
         data = open("test/data/file.txt.gz", 'rb')
-        self.s3.Bucket(self.bucket).put_object(Key=self.s3_object_key, Body=data)
+        try:
+            self.s3.Bucket(self.bucket).put_object(Key=self.s3_object_key, Body=data)
+        finally:
+            data.close()
 
     def tearDown(self):
         self.s3_client.delete_file(self.s3_object_key)
 
     def test_s3_client(self):
-        file = self.s3_client.retrieve_file(self.s3_object_key)
-        input_records = list(self.s3_client.unzip_and_parse_firehose_s3_file(file))
+        file = self.s3_client.retrieve_file(self.s3_object_key)['Body']
+        input_records = self.s3_client.unzip_and_parse_firehose_s3_file(file)
         record_stream = firehose_records.from_docs(input_records)
         output_records = list(record_stream)
-        self.assertEqual(len(input_records), 2)
         self.assertEqual(len(output_records), 3)
+
+
+if __name__ == '__main__':
+    unittest.main()

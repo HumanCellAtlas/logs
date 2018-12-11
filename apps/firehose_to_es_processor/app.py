@@ -36,6 +36,7 @@ The code will:
 4) Bulk send the transformed events to the corresponding elastic search endpoing with today's index
 5) Delete the file from s3 after successful processing and post to ES
 """
+import itertools
 import logging
 
 from lib import firehose_records
@@ -58,7 +59,8 @@ def handler(event, context):
         bucket = record['s3']['bucket']['name']
         s3_client = S3Client(region, bucket)
         s3_object_key = record['s3']['object']['key']
-        file = s3_client.retrieve_file(s3_object_key)
+        logger.info(f"Loading from s3 file {s3_object_key}")
+        file = s3_client.retrieve_file(s3_object_key)['Body']
 
         doc_stream = s3_client.unzip_and_parse_firehose_s3_file(file)
         log_event_stream = firehose_records.from_docs(doc_stream)
@@ -68,10 +70,14 @@ def handler(event, context):
             notifier = AirbrakeNotifier()
             log_event_stream = notifier.notify_on_stream(log_event_stream)
 
-        log_events = list(log_event_stream)
         es_client = ESClient()
         es_client.create_cwl_day_index()
-        es_client.bulk_post(log_events)
+
+        total = 0
+        for batch_iter in group(1000, log_event_stream):
+            batch = list(batch_iter)
+            es_client.bulk_post(batch)
+            total += len(batch)
 
         s3_client.delete_file(s3_object_key)
 
@@ -80,4 +86,13 @@ def handler(event, context):
             for message, count in notifier.error_report.items():
                 logger.info("Observed following error {} times: {}".format(count, message))
 
-        logger.info("Indexed {} log events".format(len(log_events)))
+        logger.info("Indexed {} log events".format(total))
+
+
+def group(n, iterable):
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, n))
+        if not chunk:
+            return
+        yield chunk
