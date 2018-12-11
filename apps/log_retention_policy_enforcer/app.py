@@ -70,5 +70,5 @@ class LogRetentionPolicyEnforcer:
 def handler(event, context):
     """Main Lambda function
     """
-    enforcer = LogRetentionPolicyEnforcer.from_ttl_file(logs_client, config['log_retention_ttls'])
+    enforcer = LogRetentionPolicyEnforcer(logs_client, config['log_retention_ttls'])
     enforcer.run()
