@@ -62,7 +62,7 @@ def handler(event, context):
         logger.info(f"Loading from s3 file {s3_object_key}")
         file = s3_client.retrieve_file(s3_object_key)['Body']
 
-        doc_stream = s3_client.unzip_and_parse_firehose_s3_file(file)
+        doc_stream = s3_client.unzip_and_parse_firehose_file(file)
         log_event_stream = firehose_records.from_docs(doc_stream)
 
         notifier = None

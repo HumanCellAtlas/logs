@@ -17,7 +17,7 @@ class S3Client:
         return obj.get()
 
     @classmethod
-    def unzip_and_parse_firehose_s3_file(cls, file):
+    def unzip_and_parse_firehose_file(cls, file):
         with gzip.GzipFile(fileobj=file, mode='r') as fh:
             fw = io.TextIOWrapper(fh, 'utf-8')
             fw._CHUNK_SIZE = 1

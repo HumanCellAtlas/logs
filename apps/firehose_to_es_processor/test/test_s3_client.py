@@ -38,7 +38,7 @@ class TestS3Client(unittest.TestCase):
 
     def test_s3_client(self):
         file = self.s3_client.retrieve_file(self.s3_object_key)['Body']
-        input_records = self.s3_client.unzip_and_parse_firehose_s3_file(file)
+        input_records = self.s3_client.unzip_and_parse_firehose_file(file)
         record_stream = firehose_records.from_docs(input_records)
         output_records = list(record_stream)
         self.assertEqual(len(output_records), 3)
