@@ -18,9 +18,10 @@ class S3Client:
 
     @classmethod
     def unzip_and_parse_firehose_file(cls, file):
-        with gzip.GzipFile(fileobj=file, mode='r') as fh:
+        with gzip.GzipFile(fileobj=file, mode='rb') as fh:
             fw = io.TextIOWrapper(fh, 'utf-8')
-            fw._CHUNK_SIZE = 1
+            # Extract 10MB chunks from the compressed file
+            fw._CHUNK_SIZE = 10000000
             os = JsonObjectStream(fw)
             for obj in iter(lambda: os.next(), None):
                 yield obj

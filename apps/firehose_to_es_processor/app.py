@@ -36,8 +36,8 @@ The code will:
 4) Bulk send the transformed events to the corresponding elastic search endpoing with today's index
 5) Delete the file from s3 after successful processing and post to ES
 """
-import itertools
 import logging
+import sys
 
 from lib import firehose_records
 from lib.airbrake_notifier import AirbrakeNotifier
@@ -73,11 +73,21 @@ def handler(event, context):
         es_client = ESClient()
         es_client.create_cwl_day_index()
 
-        total = 0
-        for batch_iter in group(100000, log_event_stream):
-            batch = list(batch_iter)
+        current_stream_size = 0
+        batch = []
+        total_lines = 0
+        # buffer up to 25MB at a time and then submit to Elasticsearch
+        for log_event in log_event_stream:
+            current_stream_size += sys.getsizeof(log_event)
+            batch.append(log_event)
+            total_lines += 1
+            if current_stream_size > 25000000:
+                es_client.bulk_post(batch)
+                current_stream_size = 0
+                batch = []
+
+        if len(batch) > 0:
             es_client.bulk_post(batch)
-            total += len(batch)
 
         s3_client.delete_file(s3_object_key)
 
@@ -86,13 +96,4 @@ def handler(event, context):
             for message, count in notifier.error_report.items():
                 logger.info("Observed following error {} times: {}".format(count, message))
 
-        logger.info("Indexed {} log events".format(total))
-
-
-def group(n, iterable):
-    it = iter(iterable)
-    while True:
-        chunk = tuple(itertools.islice(it, n))
-        if not chunk:
-            return
-        yield chunk
+        logger.info("Indexed {} log events".format(total_lines))
