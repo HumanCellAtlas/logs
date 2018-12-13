@@ -105,7 +105,7 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
   role = "${aws_iam_role.firehose_processor.arn}"
   handler = "app.handler"
   runtime = "python3.6"
-  memory_size = 1024
+  memory_size = 2048
   timeout = 300
 }
 
