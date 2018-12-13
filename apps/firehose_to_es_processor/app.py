@@ -74,7 +74,7 @@ def handler(event, context):
         es_client.create_cwl_day_index()
 
         total = 0
-        for batch_iter in group(1000, log_event_stream):
+        for batch_iter in group(100000, log_event_stream):
             batch = list(batch_iter)
             es_client.bulk_post(batch)
             total += len(batch)
