@@ -17,7 +17,7 @@ class JsonObjectStream:
                 return None
             result += c
             if c == '"':
-                quotes_active = quotes_active if slash_active else (False if quotes_active else True)
+                quotes_active = quotes_active if slash_active else (not quotes_active)
             if c == '{':
                 brackets += 0 if quotes_active else 1
             if c == '}':
