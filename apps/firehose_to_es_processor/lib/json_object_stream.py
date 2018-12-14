@@ -24,4 +24,4 @@ class JsonObjectStream:
                 brackets += 0 if quotes_active else -1
                 if brackets == 0:
                     return json.loads(result)
-            slash_active = (False if slash_active else True) if c == "\\" else False
+            slash_active = (not slash_active) if c == "\\" else False
