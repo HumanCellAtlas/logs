@@ -106,8 +106,8 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 2048
-  timeout = 300
-  reserved_concurrent_executions = 3
+  timeout = 600
+  reserved_concurrent_executions = 5
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
