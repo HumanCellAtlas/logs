@@ -6,7 +6,10 @@ class JsonObjectStream:
     def __init__(self, reader):
         self.reader = reader
 
-    def next(self):
+    def __iter__(self):
+        return self
+
+    def __next__(self):
         brackets = 0
         slash_active = False
         quotes_active = False

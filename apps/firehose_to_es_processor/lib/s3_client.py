@@ -22,8 +22,7 @@ class S3Client:
             fw = io.TextIOWrapper(fh, 'utf-8')
             # Extract 10MB chunks from the compressed file
             fw._CHUNK_SIZE = 10000000
-            os = JsonObjectStream(fw)
-            for obj in iter(lambda: os.next(), None):
+            for obj in JsonObjectStream(fw):
                 yield obj
 
     @retry(wait_fixed=1000, stop_max_attempt_number=3)

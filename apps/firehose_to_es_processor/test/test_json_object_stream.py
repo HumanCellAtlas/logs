@@ -22,11 +22,12 @@ class TestJsonObjectStream(unittest.TestCase):
             }
         ]
         json_stream = JsonObjectStream(str_stream)
-        result = json_stream.next()
+        result = json_stream.__next__()
         self.assertDictEqual(result, expected[0])
-        result = json_stream.next()
+        result = json_stream.__next__()
         self.assertDictEqual(result, expected[1])
-        self.assertIsNone(json_stream.next())
+        with self.assertRaises(StopIteration):
+            json_stream.__next__()
 
 
 if __name__ == '__main__':
