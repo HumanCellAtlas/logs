@@ -13,12 +13,12 @@ class JsonObjectStream:
         brackets = 0
         slash_active = False
         quotes_active = False
-        result = ''
+        result = []
         while True:
             c = self.reader.read(1)
             if c == '':
-                return None
-            result += c
+                raise StopIteration()
+            result += [c]
             if c == '"':
                 quotes_active = quotes_active if slash_active else (not quotes_active)
             if c == '{':
@@ -26,5 +26,5 @@ class JsonObjectStream:
             if c == '}':
                 brackets += 0 if quotes_active else -1
                 if brackets == 0:
-                    return json.loads(result)
+                    return json.loads(''.join(result))
             slash_active = (not slash_active) if c == "\\" else False
