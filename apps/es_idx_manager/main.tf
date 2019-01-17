@@ -114,7 +114,7 @@ resource "aws_cloudwatch_event_rule" "es_idx_manager" {
 }
 
 resource "aws_lambda_permission" "dss" {
-  statement_id = "AllowExecutionFromCloudWatch"
+  statement_id = "AllowExecutionFromCloudWatch2"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.es_idx_manager.function_name}"

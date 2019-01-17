@@ -111,7 +111,7 @@ resource "aws_cloudwatch_event_rule" "gcp_to_cwl" {
 }
 
 resource "aws_lambda_permission" "dss" {
-  statement_id = "AllowExecutionFromCloudWatch"
+  statement_id = "AllowExecutionFromCloudWatch2"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.gcp_to_cwl.function_name}"

@@ -122,7 +122,7 @@ resource "aws_cloudwatch_event_rule" "log_retention_policy_enforcer" {
 }
 
 resource "aws_lambda_permission" "dss" {
-  statement_id = "AllowExecutionFromCloudWatch"
+  statement_id = "AllowExecutionFromCloudWatch1"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.log_retention_policy_enforcer.function_name}"
