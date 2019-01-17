@@ -19,6 +19,7 @@ data "google_iam_policy" "pubsub_publisher" {
 
 resource "google_pubsub_topic" "logs" {
   name = "logs"
+  project = "${google_project.logs.name}"
 }
 
 resource "google_pubsub_topic_iam_policy" "publisher" {
