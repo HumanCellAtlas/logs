@@ -37,6 +37,7 @@ The code will:
 5) Delete the file from s3 after successful processing and post to ES
 """
 import logging
+import sys
 
 from lib import firehose_records
 from lib.airbrake_notifier import AirbrakeNotifier
@@ -58,9 +59,10 @@ def handler(event, context):
         bucket = record['s3']['bucket']['name']
         s3_client = S3Client(region, bucket)
         s3_object_key = record['s3']['object']['key']
-        file = s3_client.retrieve_file(s3_object_key)
+        logger.info(f"Loading from s3 file {s3_object_key}")
+        file = s3_client.retrieve_file(s3_object_key)['Body']
 
-        doc_stream = s3_client.unzip_and_parse_firehose_s3_file(file)
+        doc_stream = s3_client.unzip_and_parse_firehose_file(file)
         log_event_stream = firehose_records.from_docs(doc_stream)
 
         notifier = None
@@ -68,10 +70,24 @@ def handler(event, context):
             notifier = AirbrakeNotifier()
             log_event_stream = notifier.notify_on_stream(log_event_stream)
 
-        log_events = list(log_event_stream)
         es_client = ESClient()
         es_client.create_cwl_day_index()
-        es_client.bulk_post(log_events)
+
+        current_stream_size = 0
+        batch = []
+        total_lines = 0
+        # buffer up to 25MB at a time and then submit to Elasticsearch
+        for log_event in log_event_stream:
+            current_stream_size += sys.getsizeof(log_event)
+            batch.append(log_event)
+            total_lines += 1
+            if current_stream_size > 25000000:
+                es_client.bulk_post(batch)
+                current_stream_size = 0
+                batch = []
+
+        if len(batch) > 0:
+            es_client.bulk_post(batch)
 
         s3_client.delete_file(s3_object_key)
 
@@ -80,4 +96,4 @@ def handler(event, context):
             for message, count in notifier.error_report.items():
                 logger.info("Observed following error {} times: {}".format(count, message))
 
-        logger.info("Indexed {} log events".format(len(log_events)))
+        logger.info("Indexed {} log events".format(total_lines))
