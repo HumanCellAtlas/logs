@@ -150,7 +150,7 @@ resource "aws_cloudwatch_event_target" "cwl_firehose_subscriber_lambda" {
 }
 
 resource "aws_lambda_permission" "cwl_firehose_subscriber" {
-  statement_id = "AllowExecutionFromCloudWatch2"
+  statement_id = "AllowExecutionFromCloudWatch"
   action = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.cwl_firehose_subscriber.function_name}"
   principal = "events.amazonaws.com"
