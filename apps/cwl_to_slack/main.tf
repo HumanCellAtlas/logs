@@ -89,7 +89,7 @@ resource "aws_sns_topic" "alarms" {
 }
 
 resource "aws_lambda_permission" "alarms" {
-  statement_id  = "AllowExecutionFromSNS2"
+  statement_id  = "AllowExecutionFromSNS"
   action = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.slack_notifier.function_name}"
   principal = "sns.amazonaws.com"

@@ -110,7 +110,7 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
-  statement_id  = "AllowExecutionFromS3Bucket2"
+  statement_id  = "AllowExecutionFromS3Bucket"
   action        = "lambda:InvokeFunction"
   function_name = "arn:aws:lambda:${var.aws_region}:${var.account_id}:function:Firehose-CWL-Processor"
   principal     = "s3.amazonaws.com"
