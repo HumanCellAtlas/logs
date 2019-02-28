@@ -131,7 +131,7 @@ resource "aws_elasticsearch_domain" "es" {
 
   cluster_config {
     instance_type = "m3.xlarge.elasticsearch"
-    instance_count = 2
+    instance_count = 3
   }
 
   ebs_options {
