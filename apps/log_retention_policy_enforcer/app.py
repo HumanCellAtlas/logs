@@ -21,7 +21,7 @@ logs_client = boto3.client('logs')
 
 class LogRetentionPolicyEnforcer:
 
-    def __init__(self, client, ttls=dict(), prefix=None, default_days=90):
+    def __init__(self, client, ttls=dict(), prefix=None, default_days=1827):
         self.client = client
         self.ttls = ttls
         # users can set these by hand
