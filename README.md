@@ -42,3 +42,7 @@ To install the development environment run `make install`.
 ## Testing
 
 To run unit tests, run `make test`.
+
+## Security
+
+**Please note**: If you believe you have found a security issue, _please responsibly disclose_ by contacting us at [security-leads@data.humancellatlas.org](mailto:security-leads@data.humancellatlas.org).
