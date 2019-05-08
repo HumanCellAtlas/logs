@@ -130,7 +130,7 @@ resource "aws_elasticsearch_domain" "es" {
   elasticsearch_version = "5.5"
 
   cluster_config {
-    instance_type = "m3.xlarge.elasticsearch"
+    instance_type = "m5.xlarge.elasticsearch"
     instance_count = 3
   }
 
