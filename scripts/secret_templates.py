@@ -24,8 +24,10 @@ secret_templates = {
         'terraform_bucket': 'DEFINE'
     },
     'logs/_/cwl_to_slack.json': {
-        'slack_webhook_url': 'DEFINE',
-        'slack_alert_channel': 'DEFINE'
+        'slack_alert_channel': 'DEFINE',
+        'slack_webhooks': {
+            'DEFINE_CHANNEL': 'DEFINE_URL'
+        }
     },
     'logs/_/cwl_firehose_subscriber.json': {
         'blacklisted_log_groups': [
