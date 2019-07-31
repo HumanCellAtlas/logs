@@ -149,12 +149,13 @@ resource "aws_elasticsearch_domain" "es" {
       "Principal": {
         "AWS": [
           ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_principal_emails)))},
-          ${join(", ", sort(formatlist("\"%s\"", var.es_principal_arns)))},
-          "arn:aws:iam::${var.account_id}:user/${var.travis_user}"
+          ${join(", ", sort(formatlist("\"%s\"", var.es_principal_arns)))}
         ]
       },
-      "Action": "es:*",
-      "Resource": "arn:aws:es:*:*:*"
+      "Action": [
+        "es:*"
+      ],
+      "Resource": "arn:aws:es:${var.aws_region}:${var.account_id}:domain/hca-logs/*"
     }
   ]
 }
