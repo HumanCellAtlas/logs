@@ -4,7 +4,7 @@
 
 resource "aws_s3_bucket" "test_fixtures" {
   bucket = "logs-test-${var.account_id}"
-  tags {
+  tags = {
     Name        = "logs"
     Environment = "default"
   }
@@ -169,7 +169,7 @@ EOF
 resource "aws_cloudformation_stack" "alerts" {
   name = "CloudTrail-Monitoring"
   template_body = "${file("./CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
-  parameters {
+  parameters = {
     LogGroupName = "${aws_cloudwatch_log_group.cloudtrail.name}"
   }
 }
@@ -286,7 +286,7 @@ resource "aws_s3_bucket" "kinesis-firehose-logs" {
   bucket = "kinesis-firehose-logs-${var.account_id}"
   acl    = "private"
 
-  tags {
+  tags = {
     Name        = "kinesis-firehose-logs"
     Environment = "default"
   }

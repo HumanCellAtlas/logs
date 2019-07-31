@@ -13,7 +13,7 @@ resource "google_project" "logs" {
 data "google_iam_policy" "pubsub_publisher" {
   binding {
     role = "roles/pubsub.publisher"
-    members = ["${formatlist("serviceAccount:%s", var.gcp_pubsub_authorized_service_accounts)}"]
+    members = "${formatlist("serviceAccount:%s", var.gcp_pubsub_authorized_service_accounts)}"
   }
 }
 
@@ -36,10 +36,10 @@ resource "google_pubsub_topic_iam_policy" "publisher" {
     }
 }
 
-output "google_pubsub_topic.logs.name" {
+output "google_pubsub_topic_logs_name" {
   value = "${google_pubsub_topic.logs.name}"
 }
 
-output "google_project.logs.name" {
+output "google_project_logs_name" {
   value = "${google_project.logs.name}"
 }
