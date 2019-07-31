@@ -3,6 +3,21 @@ variable "aws_profile" {}
 variable "aws_region" {}
 variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
+
+variable "project_name" {}
+variable "service_name" {}
+variable "owner_email" {}
+
+locals {
+  common_tags = {
+    "managedBy" = "terraform",
+    "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
+    "project" = "${var.project_name}",
+    "service" = "${var.service_name}",
+    "owner" = "${var.owner_email}"
+  }
+}
+
 variable "app_name" {
   default = "cloudwatch-slack-notifier"
 }
@@ -82,10 +97,12 @@ resource "aws_lambda_function" "slack_notifier" {
     "aws_iam_role.slack_notifier",
     "aws_sns_topic.alarms"
   ]
+  tags = "${local.common_tags}"
 }
 
 resource "aws_sns_topic" "alarms" {
   name = "cloudwatch-alarms"
+  tags = "${local.common_tags}"
 }
 
 resource "aws_lambda_permission" "alarms" {

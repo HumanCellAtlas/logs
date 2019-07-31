@@ -93,7 +93,7 @@ deploy-apps:
 	done
 
 deploy-%:
-	cd apps/$(*)/ && make deploy
+	cd apps/$(*)/ && make build deploy
 
 
 

@@ -4,6 +4,20 @@ variable "aws_region" {}
 variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
 
+variable "project_name" {}
+variable "service_name" {}
+variable "owner_email" {}
+
+locals {
+  common_tags = {
+    "managedBy" = "terraform",
+    "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
+    "project" = "${var.project_name}",
+    "service" = "${var.service_name}",
+    "owner" = "${var.owner_email}"
+  }
+}
+
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
@@ -108,6 +122,7 @@ resource "aws_lambda_function" "log_retention_policy_enforcer" {
       LOG_RETENTION_TTL_FILE = "./log_retention_ttl"
     }
   }
+  tags = "${local.common_tags}"
 }
 
 

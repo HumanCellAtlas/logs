@@ -4,10 +4,13 @@
 
 resource "aws_s3_bucket" "test_fixtures" {
   bucket = "logs-test-${var.account_id}"
-  tags = {
-    Name        = "logs"
-    Environment = "default"
-  }
+  tags = "${merge(
+    map(
+        "Name", "logs",
+        "Environment", "default"
+    ),
+    local.common_tags
+  )}"
 }
 
 ////
@@ -42,22 +45,24 @@ resource "aws_s3_bucket" "cloudtrail" {
     ]
 }
 POLICY
+  tags = "${local.common_tags}"
 }
 
 resource "aws_cloudtrail" "audit" {
-  name                       = "${var.cloudtrail_name}"
-  s3_bucket_name             = "${aws_s3_bucket.cloudtrail.bucket}"
-  cloud_watch_logs_role_arn  = "${aws_iam_role.cloudtrail.arn}"
+  name = "${var.cloudtrail_name}"
+  s3_bucket_name = "${aws_s3_bucket.cloudtrail.bucket}"
+  cloud_watch_logs_role_arn = "${aws_iam_role.cloudtrail.arn}"
   cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}"
   enable_log_file_validation = true
-  is_multi_region_trail      = true
+  is_multi_region_trail = true
   depends_on = [
     "aws_s3_bucket.cloudtrail"
   ]
+  tags = "${local.common_tags}"
 }
 
 resource "aws_iam_role" "cloudtrail" {
-  name               = "logging-aws-cloudtrail"
+  name = "logging-aws-cloudtrail"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -72,11 +77,12 @@ resource "aws_iam_role" "cloudtrail" {
   ]
 }
 EOF
+  tags = "${local.common_tags}"
 }
 
 resource "aws_iam_role_policy" "cloudtrail" {
-  name   = "cloudtrail-policy"
-  role   = "logging-aws-cloudtrail"
+  name = "cloudtrail-policy"
+  role = "logging-aws-cloudtrail"
   policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -109,6 +115,7 @@ EOF
 resource "aws_cloudwatch_log_group" "cloudtrail" {
   name = "${var.cloudtrail_log_group_name}"
   retention_in_days = "731"
+  tags = "${local.common_tags}"
 }
 
 
@@ -160,6 +167,7 @@ resource "aws_elasticsearch_domain" "es" {
   ]
 }
 EOF
+  tags = "${local.common_tags}"
 }
 
 
@@ -173,6 +181,7 @@ resource "aws_cloudformation_stack" "alerts" {
   parameters = {
     LogGroupName = "${aws_cloudwatch_log_group.cloudtrail.name}"
   }
+  tags = "${local.common_tags}"
 }
 
 
@@ -183,7 +192,7 @@ resource "aws_cloudformation_stack" "alerts" {
 variable "deployment_stage" {}
 
 resource "aws_iam_role" "gcp_to_cwl" {
-  name               = "gcp-to-cwl-exporter-${var.deployment_stage}"
+  name = "gcp-to-cwl-exporter-${var.deployment_stage}"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -198,11 +207,12 @@ resource "aws_iam_role" "gcp_to_cwl" {
   ]
 }
 EOF
+  tags = "${local.common_tags}"
 }
 
 resource "aws_iam_role_policy" "gcp_to_cwl" {
-  name   = "gcp-to-cwl-exporter-${var.deployment_stage}"
-  role   = "gcp-to-cwl-exporter-${var.deployment_stage}"
+  name = "gcp-to-cwl-exporter-${var.deployment_stage}"
+  role = "gcp-to-cwl-exporter-${var.deployment_stage}"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -231,7 +241,7 @@ EOF
 //
 
 resource "aws_iam_role" "kinesis-firehose-es" {
-  name               = "kinesis-firehose-es"
+  name = "kinesis-firehose-es"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -246,11 +256,12 @@ resource "aws_iam_role" "kinesis-firehose-es" {
   ]
 }
 EOF
+  tags = "${local.common_tags}"
 }
 
 resource "aws_iam_role_policy" "kinesis-firehose-es" {
-  name   = "kinesis-firehose-es"
-  role   = "kinesis-firehose-es"
+  name = "kinesis-firehose-es"
+  role = "kinesis-firehose-es"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -285,12 +296,15 @@ EOF
 
 resource "aws_s3_bucket" "kinesis-firehose-logs" {
   bucket = "kinesis-firehose-logs-${var.account_id}"
-  acl    = "private"
+  acl = "private"
 
-  tags = {
-    Name        = "kinesis-firehose-logs"
-    Environment = "default"
-  }
+  tags = "${merge(
+    map(
+        "Name", "logs",
+        "Environment", "default"
+    ),
+    local.common_tags
+  )}"
 }
 
 output "kinesis_bucket" {
@@ -300,6 +314,7 @@ output "kinesis_bucket" {
 resource "aws_cloudwatch_log_group" "firehose_errors" {
   name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
   retention_in_days = 1827
+  tags = "${local.common_tags}"
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
@@ -312,7 +327,8 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 
   lambda_function {
     lambda_function_arn = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
-    events              = ["s3:ObjectCreated:*"]
+    events = [
+      "s3:ObjectCreated:*"]
   }
 }
 
@@ -321,13 +337,13 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
 //
 
 resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
-  name        = "Kinesis-Firehose-ELK"
+  name = "Kinesis-Firehose-ELK"
   destination = "s3"
   s3_configuration {
-    role_arn           = "${aws_iam_role.kinesis-firehose-es.arn}"
-    bucket_arn         = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
-    buffer_size        = 20
-    buffer_interval    = 60
+    role_arn = "${aws_iam_role.kinesis-firehose-es.arn}"
+    bucket_arn = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+    buffer_size = 20
+    buffer_interval = 60
     prefix = "firehose"
     cloudwatch_logging_options {
       enabled = true
@@ -335,6 +351,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
       log_stream_name = "S3Delivery"
     }
   }
+  tags = "${local.common_tags}"
 }
 
 ////
@@ -342,7 +359,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
 //
 
 resource "aws_iam_role" "cwl-firehose" {
-  name               = "cwl-firehose"
+  name = "cwl-firehose"
   assume_role_policy = <<EOF
 {
   "Version": "2008-10-17",
@@ -358,11 +375,12 @@ resource "aws_iam_role" "cwl-firehose" {
   }
 }
 EOF
+  tags = "${local.common_tags}"
 }
 
 resource "aws_iam_role_policy" "cwl-firehose" {
-  name   = "cwl-firehose"
-  role   = "cwl-firehose"
+  name = "cwl-firehose"
+  role = "cwl-firehose"
   policy = <<EOF
 {
     "Statement":[
