@@ -22,7 +22,6 @@ class AirbrakeNotifier:
         self._report = dict()
         self._total_errors = 0
         self._airbrake_rate_limited = False
-        self.error_report = dict()
 
     def report(self):
         results = []
@@ -62,10 +61,6 @@ class AirbrakeNotifier:
                 'total': 0
             }
         if error_str:
-            if error_str not in self.error_report:
-                self.error_report[error_str] = 1
-            else:
-                self.error_report[error_str] += 1
             self._report[log_group]['errors'] += 1
             self._total_errors += 1
         self._report[log_group]['total'] += 1

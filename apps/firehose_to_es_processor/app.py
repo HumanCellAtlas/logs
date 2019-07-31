@@ -92,8 +92,14 @@ def handler(event, context):
         s3_client.delete_file(s3_object_key)
 
         if notifier:
-            observe_counts(notifier.report())
-            for message, count in notifier.error_report.items():
-                logger.info("Observed following error {} times: {}".format(count, message))
+            report = notifier.report()
+            observe_counts(report)
+            for log_group, counts in notifier._report.items():
+                logger.info("Observed log group {}: {} total, {} errors".format(
+                        log_group,
+                        counts['total'],
+                        counts['errors']
+                    )
+                )
 
         logger.info("Indexed {} log events".format(total_lines))
