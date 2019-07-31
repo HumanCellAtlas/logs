@@ -1,7 +1,9 @@
+include common.mk
+
 MAKEFILE_DIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 APPS_REVISION := $(shell git log -n 1 --format="%H" -- apps)
-TERRAFORM_BUCKET = org-humancellatlas-$(shell jq -r .account_id terraform.tfvars)-terraform
-DEPLOYMENT_STAGE = $(shell jq -r .deployment_stage terraform.tfvars)
+TERRAFORM_BUCKET = org-humancellatlas-$(shell jq -r .account_id $(SECRETS_FILE))-terraform
+DEPLOYMENT_STAGE = $(shell jq -r .deployment_stage $(SECRETS_FILE))
 DEPLOY_MARKER = s3://$(TERRAFORM_BUCKET)/logs/$(DEPLOYMENT_STAGE)-deployed
 APPS := gcp_to_cwl cwl_to_slack es_idx_manager firehose_to_es_processor cwl_firehose_subscriber log_retention_policy_enforcer
 
@@ -10,7 +12,7 @@ secrets:
 	aws secretsmanager get-secret-value \
 		--secret-id logs/_/config.json | \
 		jq -r .SecretString | \
-		python -m json.tool > terraform.tfvars
+		python -m json.tool > $(SECRETS_FILE)
 	aws secretsmanager get-secret-value \
 		--secret-id logs/_/gcp-credentials-logs-travis.json | \
 		jq -r .SecretString | \

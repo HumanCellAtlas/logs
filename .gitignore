@@ -131,4 +131,4 @@ hand_test.js
 apps/firehose_to_es_processor/target
 
 # secrets
-terraform.tfvars
+terraform.tfvars*

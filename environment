@@ -2,6 +2,7 @@
 set -a
 
 PROJECT_ROOT=`pwd`
+SECRETS_FILE="${PROJECT_ROOT}/terraform.tfvars.json"
 
 set +a
 

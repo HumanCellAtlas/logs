@@ -1,6 +1,8 @@
+include ../../common.mk
+
 ZIP_FILE := cloudwatch-slack-notifications_App.zip
 ZIP_PATH := cwl_to_slack
-LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(PROJECT_ROOT)/terraform.tfvars`
+LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(SECRETS_FILE)`
 
 
 .PHONY: install
@@ -13,7 +15,7 @@ install:
 plan:
 	TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
 	terraform plan -detailed-exitcode \
-	  -var-file $(PROJECT_ROOT)/terraform.tfvars
+	  -var-file $(SECRETS_FILE)
 
 
 .PHONY: test
@@ -35,5 +37,5 @@ deploy: build
 	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
 	aws lambda update-function-code --function-name cloudwatch-slack-notifier --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
 	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
-	    terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars
+	    terraform apply -var-file $(SECRETS_FILE)
 
