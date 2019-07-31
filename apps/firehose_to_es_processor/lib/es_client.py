@@ -41,7 +41,7 @@ class ESClient:
         """
         request_body = {
             "settings": {
-                "number_of_shards": 2,
+                "number_of_shards": 3,
                 "number_of_replicas": 0,
                 "analysis": {
                     "analyzer": {
