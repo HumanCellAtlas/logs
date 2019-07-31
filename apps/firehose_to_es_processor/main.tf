@@ -122,6 +122,6 @@ resource "aws_lambda_permission" "allow_bucket" {
 
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
-  retention_in_days = 90
+  retention_in_days = 1827
 
 }

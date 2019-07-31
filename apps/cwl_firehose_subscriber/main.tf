@@ -113,7 +113,7 @@ resource "aws_lambda_function" "cwl_firehose_subscriber" {
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {
   name = "/aws/lambda/cwl_firehose_subscriber"
-  retention_in_days = 90
+  retention_in_days = 1827
 }
 
 resource "aws_cloudwatch_event_rule" "create_log_group" {
