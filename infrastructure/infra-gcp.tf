@@ -8,6 +8,7 @@ variable "gcp_logs_project_name" {}
 resource "google_project" "logs" {
   project_id = "${var.gcp_logs_project_name}"
   name = "${var.gcp_logs_project_name}"
+  billing_account = "${var.gcp_billing_account}"
 }
 
 data "google_iam_policy" "pubsub_publisher" {

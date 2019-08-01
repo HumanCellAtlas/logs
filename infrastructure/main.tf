@@ -21,6 +21,10 @@ variable "gcp_region" {
   default = "us-central1"
 }
 
+variable "gcp_billing_account" {
+  type = string
+}
+
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
