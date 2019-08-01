@@ -1,8 +1,15 @@
-ZIP_FILE := EsIndexManager_App.zip
-ZIP_PATH := es-idx-manager
-ES_IDX_MANAGER_SETTINGS := target/es-idx-manager-settings.yaml
-LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(PROJECT_ROOT)/terraform.tfvars`
+include ../../common.mk
 
+SERVICE_NAME := es-idx-manager
+ZIP_FILE := EsIndexManager_App.zip
+ZIP_KEY := $(SERVICE_NAME)/$(ZIP_FILE)
+ES_IDX_MANAGER_SETTINGS := target/es-idx-manager-settings.yaml
+LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(SECRETS_FILE)`
+
+
+.PHONY: tmp
+tmp:
+	@echo $(LAMBDA_BUCKET)
 
 default: build
 
@@ -11,12 +18,16 @@ install:
 	virtualenv -p python3 venv
 	venv/bin/pip install -r requirements.txt
 
+terraform-%:
+	. venv/bin/activate && terraform $(*) \
+		-var-file $(SECRETS_FILE) \
+		-var path_to_zip_file=$(ZIP_KEY) \
+		-var service_name=$(SERVICE_NAME) \
+		$(TF_OPTIONS)
 
 .PHONY: plan
 plan:
-	TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
-		terraform plan -detailed-exitcode \
-		-var-file $(PROJECT_ROOT)/terraform.tfvars
+	TF_OPTIONS=-detailed-exitcode $(MAKE) terraform-plan
 
 .PHONY: test
 test:
@@ -36,8 +47,7 @@ build: install
 
 
 .PHONY: deploy
-deploy: build
-	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
-	aws lambda update-function-code --function-name es-idx-manager --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
-	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
-	    terraform apply -var-file $(PROJECT_ROOT)/terraform.tfvars
+deploy:
+	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_KEY)
+	$(MAKE) terraform-apply
+	aws lambda update-function-code --function-name es-idx-manager --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_KEY)

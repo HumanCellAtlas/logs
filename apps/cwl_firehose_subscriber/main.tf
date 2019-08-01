@@ -4,6 +4,20 @@ variable "aws_region" {}
 variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
 
+variable "project_name" {}
+variable "service_name" {}
+variable "owner_email" {}
+
+locals {
+  common_tags = {
+    "managedBy" = "terraform",
+    "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
+    "project" = "${var.project_name}",
+    "service" = "${var.service_name}",
+    "owner" = "${var.owner_email}"
+  }
+}
+
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
@@ -28,7 +42,7 @@ terraform {
 variable "account_id" {}
 
 resource "aws_iam_role" "cwl_firehose_subscriber" {
-  name               = "cwl_firehose_subscriber"
+  name = "cwl_firehose_subscriber"
   assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
@@ -46,8 +60,8 @@ EOF
 }
 
 resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
-  name   = "cwl_firehose_subscriber"
-  role   = "cwl_firehose_subscriber"
+  name = "cwl_firehose_subscriber"
+  role = "cwl_firehose_subscriber"
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -95,7 +109,8 @@ resource "aws_iam_role_policy" "cwl_firehose_subscriber" {
 }
 EOF
 
-depends_on = ["aws_iam_role.cwl_firehose_subscriber"]
+  depends_on = [
+    "aws_iam_role.cwl_firehose_subscriber"]
 }
 
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
@@ -109,15 +124,17 @@ resource "aws_lambda_function" "cwl_firehose_subscriber" {
   depends_on = [
     "aws_iam_role.cwl_firehose_subscriber"
   ]
+  tags = "${local.common_tags}"
 }
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {
   name = "/aws/lambda/cwl_firehose_subscriber"
   retention_in_days = 1827
+  tags = "${local.common_tags}"
 }
 
 resource "aws_cloudwatch_event_rule" "create_log_group" {
-  name        = "capture_create_log_group"
+  name = "capture_create_log_group"
   description = "Capture each Create Log Group"
 
   event_pattern = <<PATTERN
@@ -138,15 +155,16 @@ resource "aws_cloudwatch_event_rule" "create_log_group" {
   }
 }
 PATTERN
-depends_on = [
+  depends_on = [
     "aws_lambda_function.cwl_firehose_subscriber"
   ]
+  tags = "${local.common_tags}"
 }
 
 resource "aws_cloudwatch_event_target" "cwl_firehose_subscriber_lambda" {
-  rule      = "${aws_cloudwatch_event_rule.create_log_group.name}"
+  rule = "${aws_cloudwatch_event_rule.create_log_group.name}"
   target_id = "cwl_firehose_subscriber"
-  arn       = "${aws_lambda_function.cwl_firehose_subscriber.arn}"
+  arn = "${aws_lambda_function.cwl_firehose_subscriber.arn}"
 }
 
 resource "aws_lambda_permission" "cwl_firehose_subscriber" {

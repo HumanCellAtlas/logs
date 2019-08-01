@@ -1,9 +1,9 @@
 include ../../common.mk
 
+SERVICE_NAME := firehose_to_es
 ZIP_FILE := FirehoseCWLLogsProcessor_App.zip
-ZIP_PATH := firehose_to_es
+ZIP_KEY := firehose_to_es
 LAMBDA_BUCKET := `jq -r .logs_lambda_bucket $(SECRETS_FILE)`
-
 
 default: build
 
@@ -12,13 +12,16 @@ install:
 	virtualenv -p python3 venv
 	venv/bin/pip install -r requirements.txt --upgrade
 
+terraform-%:
+	. venv/bin/activate && terraform $(*) \
+		-var-file $(SECRETS_FILE) \
+		-var path_to_zip_file=$(ZIP_KEY) \
+		-var service_name=$(SERVICE_NAME) \
+		$(TF_OPTIONS)
 
 .PHONY: plan
 plan:
-	TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
-	terraform plan -detailed-exitcode \
-	  -var-file $(SECRETS_FILE)
-
+	TF_OPTIONS=-detailed-exitcode $(MAKE) terraform-plan
 
 .PHONY: test
 test:
@@ -33,13 +36,10 @@ build: install
 	cp -r lib target/
 	cd target && zip -r ../$(ZIP_FILE) *
 
-
-
 .PHONY: deploy
-deploy: build
-	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_PATH)/$(ZIP_FILE)
-	aws lambda update-function-code --function-name Firehose-CWL-Processor --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_PATH)/$(ZIP_FILE)
-	. venv/bin/activate && TF_VAR_path_to_zip_file=$(ZIP_PATH)/$(ZIP_FILE) \
-	    terraform apply -var-file $(SECRETS_FILE)
+deploy:
+	aws s3 cp $(ZIP_FILE) s3://$(LAMBDA_BUCKET)/$(ZIP_KEY)
+	$(MAKE) terraform-apply
+	aws lambda update-function-code --function-name Firehose-CWL-Processor --s3-bucket $(LAMBDA_BUCKET) --s3-key $(ZIP_KEY)
 
 

@@ -5,6 +5,19 @@ variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
 variable "account_id" {}
 
+variable "project_name" {}
+variable "service_name" {}
+variable "owner_email" {}
+
+locals {
+  common_tags = {
+    "managedBy" = "terraform",
+    "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
+    "project" = "${var.project_name}",
+    "service" = "${var.service_name}",
+    "owner" = "${var.owner_email}"
+  }
+}
 
 provider "aws" {
   region = "${var.aws_region}"
@@ -108,6 +121,7 @@ resource "aws_lambda_function" "firehose_cwl_processor" {
   memory_size = 2048
   timeout = 600
   reserved_concurrent_executions = 5
+  tags = "${local.common_tags}"
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
@@ -123,5 +137,5 @@ resource "aws_lambda_permission" "allow_bucket" {
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
   retention_in_days = 1827
-
+  tags = "${local.common_tags}"
 }

@@ -5,6 +5,20 @@ variable "logs_lambda_bucket" {}
 variable "path_to_zip_file" {}
 variable "terraform_bucket" {}
 
+variable "project_name" {}
+variable "service_name" {}
+variable "owner_email" {}
+
+locals {
+  common_tags = {
+    "managedBy" = "terraform",
+    "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
+    "project" = "${var.project_name}",
+    "service" = "${var.service_name}",
+    "owner" = "${var.owner_email}"
+  }
+}
+
 provider "aws" {
   region = "${var.aws_region}"
   profile = "${var.aws_profile}"
@@ -93,10 +107,11 @@ resource "aws_lambda_function" "gcp_to_cwl" {
   memory_size = 512
   timeout = 120
   environment {
-    variables {
+    variables = {
       GOOGLE_APPLICATION_CREDENTIALS = "./gcp-credentials.json"
     }
   }
+  tags = "${local.common_tags}"
 }
 
 
@@ -129,7 +144,7 @@ resource "aws_cloudwatch_event_target" "dss" {
 
 data "terraform_remote_state" "infra" {
   backend = "s3"
-  config {
+  config = {
     bucket = "${var.terraform_bucket}"
     key = "logs/terraform.tfstate"
     region = "${var.aws_region}"
@@ -139,6 +154,6 @@ data "terraform_remote_state" "infra" {
 
 resource "google_pubsub_subscription" "logs" {
   name = "logs.gcp-exporter"
-  topic = "${data.terraform_remote_state.infra.google_pubsub_topic.logs.name}"
-  project = "${data.terraform_remote_state.infra.google_project.logs.name}"
+  topic = "${data.terraform_remote_state.infra.outputs.google_pubsub_topic_logs_name}"
+  project = "${data.terraform_remote_state.infra.outputs.google_project_logs_name}"
 }
