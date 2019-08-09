@@ -2,8 +2,6 @@
 import boto3
 import json
 
-sts_client = boto3.client('sts')
-
 secret_templates = {
     'logs/_/gcp-credentials-logs-travis.json': dict(),
     'logs/_/config.json': {

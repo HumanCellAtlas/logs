@@ -125,11 +125,27 @@ resource "aws_cloudwatch_log_group" "cloudtrail" {
 
 variable "es_domain_name" {}
 variable "travis_user" {}
-variable "es_principal_emails" {
-  type = "list"
-}
+
 variable "es_principal_arns" {
   type = "list"
+}
+
+data "aws_secretsmanager_secret" "user_groups" {
+  name = "hca-id-groups.json"
+}
+
+data "aws_secretsmanager_secret_version" "user_groups" {
+  secret_id = "${data.aws_secretsmanager_secret.user_groups.id}"
+}
+
+locals {
+  user_groups = "${jsondecode(data.aws_secretsmanager_secret_version.user_groups.secret_string)}"
+  es_principal_emails = "${
+    concat(
+        lookup(local.user_groups, "dcp_admin"),
+        lookup(local.user_groups, "dcp_developer")
+    )
+  }"
 }
 
 resource "aws_elasticsearch_domain" "es" {
@@ -151,19 +167,25 @@ resource "aws_elasticsearch_domain" "es" {
 {
   "Version": "2012-10-17",
   "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": [
-          ${join(", ", sort(formatlist("\"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"", var.account_id, var.es_principal_emails)))},
-          ${join(", ", sort(formatlist("\"%s\"", var.es_principal_arns)))}
-        ]
-      },
-      "Action": [
-        "es:*"
-      ],
-      "Resource": "arn:aws:es:${var.aws_region}:${var.account_id}:domain/hca-logs/*"
-    }
+    ${join(
+        ", ",
+        formatlist(
+           "{\"Effect\": \"Allow\",\"Principal\": {\"AWS\": \"arn:aws:sts::%s:assumed-role/elk-oidc-proxy/%s\"}, \"Action\": \"es:*\", \"Resource\": \"arn:aws:es:%s:%s:domain/hca-logs/*\" }",
+           var.account_id,
+           local.es_principal_emails,
+           var.aws_region,
+           var.account_id
+        )
+    )},
+    ${join(
+        ", ",
+        formatlist(
+           "{\"Effect\": \"Allow\", \"Principal\": { \"AWS\": \"%s\" }, \"Action\": \"es:*\", \"Resource\": \"arn:aws:es:%s:%s:domain/hca-logs/*\" }",
+           var.es_principal_arns,
+           var.aws_region,
+           var.account_id
+        )
+    )}
   ]
 }
 EOF
