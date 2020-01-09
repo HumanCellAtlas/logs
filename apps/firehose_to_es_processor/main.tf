@@ -15,13 +15,13 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 ////
@@ -113,15 +113,15 @@ EOF
 resource "aws_lambda_function" "firehose_cwl_processor" {
   description = "Processes CloudWatch Logs from Firehose"
   function_name = "Firehose-CWL-Processor"
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
-  role = "${aws_iam_role.firehose_processor.arn}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
+  role =  aws_iam_role.firehose_processor.arn
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 2048
   timeout = 600
   reserved_concurrent_executions = 5
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_lambda_permission" "allow_bucket" {
@@ -137,5 +137,5 @@ resource "aws_lambda_permission" "allow_bucket" {
 resource "aws_cloudwatch_log_group" "firehose_cwl_processor" {
   name = "/aws/lambda/Firehose-CWL-Processor"
   retention_in_days = 1827
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }

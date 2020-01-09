@@ -14,13 +14,13 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 ////
@@ -115,22 +115,22 @@ EOF
 
 resource "aws_lambda_function" "cwl_firehose_subscriber" {
   function_name = "cwl_firehose_subscriber"
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
-  role = "${aws_iam_role.cwl_firehose_subscriber.arn}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
+  role =  aws_iam_role.cwl_firehose_subscriber.arn
   handler = "app.handler"
   runtime = "python3.6"
   timeout = 10
   depends_on = [
     "aws_iam_role.cwl_firehose_subscriber"
   ]
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_cloudwatch_log_group" "cwl_firehose_subscriber" {
   name = "/aws/lambda/cwl_firehose_subscriber"
   retention_in_days = 1827
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_cloudwatch_event_rule" "create_log_group" {
@@ -158,19 +158,19 @@ PATTERN
   depends_on = [
     "aws_lambda_function.cwl_firehose_subscriber"
   ]
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_cloudwatch_event_target" "cwl_firehose_subscriber_lambda" {
-  rule = "${aws_cloudwatch_event_rule.create_log_group.name}"
+  rule =  aws_cloudwatch_event_rule.create_log_group.name
   target_id = "cwl_firehose_subscriber"
-  arn = "${aws_lambda_function.cwl_firehose_subscriber.arn}"
+  arn =  aws_lambda_function.cwl_firehose_subscriber.arn
 }
 
 resource "aws_lambda_permission" "cwl_firehose_subscriber" {
   statement_id = "AllowExecutionFromCloudWatch"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.cwl_firehose_subscriber.function_name}"
+  function_name =  aws_lambda_function.cwl_firehose_subscriber.function_name
   principal = "events.amazonaws.com"
-  source_arn = "${aws_cloudwatch_event_rule.create_log_group.arn}"
+  source_arn =  aws_cloudwatch_event_rule.create_log_group.arn
 }

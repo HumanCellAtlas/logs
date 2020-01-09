@@ -14,13 +14,13 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 ////
@@ -59,7 +59,7 @@ EOF
 
 resource "aws_iam_role_policy" "log_retenion_policy_enforcer" {
   name   = "log-retention-policy-enforcer"
-  role   = "${aws_iam_role.log_retenion_policy_enforcer.name}"
+  role   =  aws_iam_role.log_retenion_policy_enforcer.name
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -110,9 +110,9 @@ EOF
 resource "aws_lambda_function" "log_retention_policy_enforcer" {
   function_name = "log-retention-policy-enforcer"
   description = "Enforces log retention policies"
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
-  role = "${aws_iam_role.log_retenion_policy_enforcer.arn}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
+  role =  aws_iam_role.log_retenion_policy_enforcer.arn
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 256
@@ -122,7 +122,7 @@ resource "aws_lambda_function" "log_retention_policy_enforcer" {
       LOG_RETENTION_TTL_FILE = "./log_retention_ttl"
     }
   }
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -140,15 +140,15 @@ resource "aws_lambda_permission" "dss" {
   statement_id = "AllowExecutionFromCloudWatch"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.log_retention_policy_enforcer.function_name}"
-  source_arn = "${aws_cloudwatch_event_rule.log_retention_policy_enforcer.arn}"
+  function_name =  aws_lambda_function.log_retention_policy_enforcer.function_name
+  source_arn =  aws_cloudwatch_event_rule.log_retention_policy_enforcer.arn
   depends_on = [
     "aws_lambda_function.log_retention_policy_enforcer"
   ]
 }
 
 resource "aws_cloudwatch_event_target" "dss" {
-  rule      = "${aws_cloudwatch_event_rule.log_retention_policy_enforcer.name}"
+  rule      =  aws_cloudwatch_event_rule.log_retention_policy_enforcer.name
   target_id = "invoke-log-retention-policy-enforcer"
-  arn       = "${aws_lambda_function.log_retention_policy_enforcer.arn}"
+  arn       =  aws_lambda_function.log_retention_policy_enforcer.arn
 }

@@ -14,13 +14,13 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 ////
@@ -59,7 +59,7 @@ EOF
 
 resource "aws_iam_role_policy" "es_idx_manager" {
   name   = "es-idx-manager"
-  role   = "${aws_iam_role.es_idx_manager.name}"
+  role   =  aws_iam_role.es_idx_manager.name
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -102,9 +102,9 @@ EOF
 resource "aws_lambda_function" "es_idx_manager" {
   function_name = "es-idx-manager"
   description = "Manages hca log elasticsearch indexes"
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
-  role = "${aws_iam_role.es_idx_manager.arn}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
+  role =  aws_iam_role.es_idx_manager.arn
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 256
@@ -114,7 +114,7 @@ resource "aws_lambda_function" "es_idx_manager" {
       ES_IDX_MANAGER_SETTINGS = "./es-idx-manager-settings.yaml"
     }
   }
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -126,22 +126,22 @@ resource "aws_cloudwatch_event_rule" "es_idx_manager" {
   name = "es-idx-manager"
   description = "Trigger the es-idx-manager app"
   schedule_expression = "rate(12 hours)"
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_lambda_permission" "dss" {
   statement_id = "AllowExecutionFromCloudWatch"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.es_idx_manager.function_name}"
-  source_arn = "${aws_cloudwatch_event_rule.es_idx_manager.arn}"
+  function_name =  aws_lambda_function.es_idx_manager.function_name
+  source_arn =  aws_cloudwatch_event_rule.es_idx_manager.arn
   depends_on = [
     "aws_lambda_function.es_idx_manager"
   ]
 }
 
 resource "aws_cloudwatch_event_target" "dss" {
-  rule      = "${aws_cloudwatch_event_rule.es_idx_manager.name}"
+  rule      =  aws_cloudwatch_event_rule.es_idx_manager.name
   target_id = "invoke-es-idx-manager"
-  arn       = "${aws_lambda_function.es_idx_manager.arn}"
+  arn       =  aws_lambda_function.es_idx_manager.arn
 }

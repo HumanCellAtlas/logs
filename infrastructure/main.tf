@@ -9,7 +9,7 @@ locals {
     "Name"      = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project"   = "${var.project_name}",
     "service"   = "${var.service_name}",
-    "owner"     = "${var.owner_email}"
+    "owner"     =  var.owner_email
   }
 }
 
@@ -26,12 +26,12 @@ variable "gcp_billing_account" {
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 provider "google" {
-  region = "${var.gcp_region}"
+  region =  var.gcp_region
 }
 
 // the bucket must be configured with the -backend-config flag on `terraform init`
@@ -46,5 +46,5 @@ resource "aws_s3_bucket" "lambda_area_bucket" {
   acl = "private"
   force_destroy = "false"
   acceleration_status = "Enabled"
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }

@@ -15,13 +15,13 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 ////
@@ -60,7 +60,7 @@ EOF
 
 resource "aws_iam_role_policy" "gcp_to_cwl" {
   name   = "gcp-to-cwl"
-  role   = "${aws_iam_role.gcp_to_cwl.name}"
+  role   =  aws_iam_role.gcp_to_cwl.name
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -99,9 +99,9 @@ EOF
 resource "aws_lambda_function" "gcp_to_cwl" {
   function_name = "gcp-to-cwl-exporter"
   description = "Exports logs from GCP to AWS CloudWatch"
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
-  role = "${aws_iam_role.gcp_to_cwl.arn}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
+  role =  aws_iam_role.gcp_to_cwl.arn
   handler = "app.handler"
   runtime = "python3.6"
   memory_size = 512
@@ -111,7 +111,7 @@ resource "aws_lambda_function" "gcp_to_cwl" {
       GOOGLE_APPLICATION_CREDENTIALS = "./gcp-credentials.json"
     }
   }
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -129,31 +129,31 @@ resource "aws_lambda_permission" "dss" {
   statement_id = "AllowExecutionFromCloudWatch"
   principal = "events.amazonaws.com"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.gcp_to_cwl.function_name}"
-  source_arn = "${aws_cloudwatch_event_rule.gcp_to_cwl.arn}"
+  function_name =  aws_lambda_function.gcp_to_cwl.function_name
+  source_arn =  aws_cloudwatch_event_rule.gcp_to_cwl.arn
   depends_on = [
     "aws_lambda_function.gcp_to_cwl"
   ]
 }
 
 resource "aws_cloudwatch_event_target" "dss" {
-  rule      = "${aws_cloudwatch_event_rule.gcp_to_cwl.name}"
+  rule      =  aws_cloudwatch_event_rule.gcp_to_cwl.name
   target_id = "invoke-gcp-to-cwl-exporter-enforcer"
-  arn       = "${aws_lambda_function.gcp_to_cwl.arn}"
+  arn       =  aws_lambda_function.gcp_to_cwl.arn
 }
 
 data "terraform_remote_state" "infra" {
   backend = "s3"
   config = {
-    bucket = "${var.terraform_bucket}"
+    bucket =  var.terraform_bucket
     key = "logs/terraform.tfstate"
-    region = "${var.aws_region}"
-    profile = "${var.aws_profile}"
+    region =  var.aws_region
+    profile =  var.aws_profile
   }
 }
 
 resource "google_pubsub_subscription" "logs" {
   name = "logs.gcp-exporter"
-  topic = "${data.terraform_remote_state.infra.outputs.google_pubsub_topic_logs_name}"
-  project = "${data.terraform_remote_state.infra.outputs.google_project_logs_name}"
+  topic =  data.terraform_remote_state.infra.outputs.google_pubsub_topic_logs_name
+  project =  data.terraform_remote_state.infra.outputs.google_project_logs_name
 }
