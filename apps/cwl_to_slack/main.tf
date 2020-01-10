@@ -14,7 +14,7 @@ locals {
     "Name" = "${var.project_name}-${var.aws_profile}-${var.service_name}",
     "project" = "${var.project_name}",
     "service" = "${var.service_name}",
-    "owner" = "${var.owner_email}"
+    "owner" =  var.owner_email
   }
 }
 
@@ -23,8 +23,8 @@ variable "app_name" {
 }
 
 provider "aws" {
-  region = "${var.aws_region}"
-  profile = "${var.aws_profile}"
+  region =  var.aws_region
+  profile =  var.aws_profile
 }
 
 terraform {
@@ -51,7 +51,7 @@ EOF
 
 resource "aws_iam_role_policy" "slack_notifier_logs" {
   name = "${aws_iam_role.slack_notifier.name}-logs"
-  role = "${aws_iam_role.slack_notifier.name}"
+  role =  aws_iam_role.slack_notifier.name
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -87,30 +87,30 @@ EOF
 resource "aws_lambda_function" "slack_notifier" {
   function_name = "cloudwatch-slack-notifier"
   description = "An Amazon SNS trigger that sends CloudWatch alarm notifications to Slack."
-  s3_bucket = "${var.logs_lambda_bucket}"
-  s3_key = "${var.path_to_zip_file}"
+  s3_bucket =  var.logs_lambda_bucket
+  s3_key =  var.path_to_zip_file
   runtime = "python3.6"
   handler = "app.handler"
   memory_size = 256
-  role = "${aws_iam_role.slack_notifier.arn}"
+  role =  aws_iam_role.slack_notifier.arn
   depends_on = [
     "aws_iam_role.slack_notifier",
     "aws_sns_topic.alarms"
   ]
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_sns_topic" "alarms" {
   name = "cloudwatch-alarms"
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_lambda_permission" "alarms" {
   statement_id  = "AllowExecutionFromSNS"
   action = "lambda:InvokeFunction"
-  function_name = "${aws_lambda_function.slack_notifier.function_name}"
+  function_name =  aws_lambda_function.slack_notifier.function_name
   principal = "sns.amazonaws.com"
-  source_arn = "${aws_sns_topic.alarms.arn}"
+  source_arn =  aws_sns_topic.alarms.arn
   depends_on = [
     "aws_sns_topic.alarms",
     "aws_lambda_function.slack_notifier"
@@ -118,9 +118,9 @@ resource "aws_lambda_permission" "alarms" {
 }
 
 resource "aws_sns_topic_subscription" "alarms" {
-  topic_arn = "${aws_sns_topic.alarms.arn}"
+  topic_arn =  aws_sns_topic.alarms.arn
   protocol = "lambda"
-  endpoint = "${aws_lambda_function.slack_notifier.arn}"
+  endpoint =  aws_lambda_function.slack_notifier.arn
   depends_on = [
     "aws_sns_topic.alarms",
     "aws_lambda_function.slack_notifier"

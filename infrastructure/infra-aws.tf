@@ -45,20 +45,20 @@ resource "aws_s3_bucket" "cloudtrail" {
     ]
 }
 POLICY
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_cloudtrail" "audit" {
-  name = "${var.cloudtrail_name}"
-  s3_bucket_name = "${aws_s3_bucket.cloudtrail.bucket}"
-  cloud_watch_logs_role_arn = "${aws_iam_role.cloudtrail.arn}"
-  cloud_watch_logs_group_arn = "${aws_cloudwatch_log_group.cloudtrail.arn}"
+  name =  var.cloudtrail_name
+  s3_bucket_name =  aws_s3_bucket.cloudtrail.bucket
+  cloud_watch_logs_role_arn =  aws_iam_role.cloudtrail.arn
+  cloud_watch_logs_group_arn =  aws_cloudwatch_log_group.cloudtrail.arn
   enable_log_file_validation = true
   is_multi_region_trail = true
   depends_on = [
     "aws_s3_bucket.cloudtrail"
   ]
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_iam_role" "cloudtrail" {
@@ -77,7 +77,7 @@ resource "aws_iam_role" "cloudtrail" {
   ]
 }
 EOF
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_iam_role_policy" "cloudtrail" {
@@ -113,9 +113,9 @@ EOF
 }
 
 resource "aws_cloudwatch_log_group" "cloudtrail" {
-  name = "${var.cloudtrail_log_group_name}"
+  name =  var.cloudtrail_log_group_name
   retention_in_days = "731"
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -127,7 +127,7 @@ variable "es_domain_name" {}
 variable "travis_user" {}
 
 variable "es_principal_arns" {
-  type = "list"
+  type = list
 }
 
 data "aws_secretsmanager_secret" "user_groups" {
@@ -135,11 +135,11 @@ data "aws_secretsmanager_secret" "user_groups" {
 }
 
 data "aws_secretsmanager_secret_version" "user_groups" {
-  secret_id = "${data.aws_secretsmanager_secret.user_groups.id}"
+  secret_id =  data.aws_secretsmanager_secret.user_groups.id
 }
 
 locals {
-  user_groups = "${jsondecode(data.aws_secretsmanager_secret_version.user_groups.secret_string)}"
+  user_groups =  jsondecode(data.aws_secretsmanager_secret_version.user_groups.secret_string)
   es_principal_emails = "${
     concat(
         lookup(local.user_groups, "dcp_admin"),
@@ -149,7 +149,7 @@ locals {
 }
 
 resource "aws_elasticsearch_domain" "es" {
-  domain_name = "${var.es_domain_name}"
+  domain_name =  var.es_domain_name
   elasticsearch_version = "5.5"
 
   cluster_config {
@@ -189,7 +189,7 @@ resource "aws_elasticsearch_domain" "es" {
   ]
 }
 EOF
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -199,11 +199,11 @@ EOF
 
 resource "aws_cloudformation_stack" "alerts" {
   name = "CloudTrail-Monitoring"
-  template_body = "${file("./CloudWatch_Alarms_for_CloudTrail_API_Activity.json")}"
+  template_body =  file("./CloudWatch_Alarms_for_CloudTrail_API_Activity.json")
   parameters = {
-    LogGroupName = "${aws_cloudwatch_log_group.cloudtrail.name}"
+    LogGroupName =  aws_cloudwatch_log_group.cloudtrail.name
   }
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 
@@ -229,7 +229,7 @@ resource "aws_iam_role" "gcp_to_cwl" {
   ]
 }
 EOF
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_iam_role_policy" "gcp_to_cwl" {
@@ -278,7 +278,7 @@ resource "aws_iam_role" "kinesis-firehose-es" {
   ]
 }
 EOF
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_iam_role_policy" "kinesis-firehose-es" {
@@ -330,13 +330,13 @@ resource "aws_s3_bucket" "kinesis-firehose-logs" {
 }
 
 output "kinesis_bucket" {
-  value = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+  value =  aws_s3_bucket.kinesis-firehose-logs.arn
 }
 
 resource "aws_cloudwatch_log_group" "firehose_errors" {
   name = "/aws/kinesisfirehose/Kinesis-Firehose-ES"
   retention_in_days = 1827
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
@@ -345,7 +345,7 @@ resource "aws_cloudwatch_log_stream" "firehose_s3_delivery_errors" {
 }
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
-  bucket = "${aws_s3_bucket.kinesis-firehose-logs.id}"
+  bucket =  aws_s3_bucket.kinesis-firehose-logs.id
 
   lambda_function {
     lambda_function_arn = "arn:aws:lambda:us-east-1:${var.account_id}:function:Firehose-CWL-Processor"
@@ -362,8 +362,8 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
   name = "Kinesis-Firehose-ELK"
   destination = "s3"
   s3_configuration {
-    role_arn = "${aws_iam_role.kinesis-firehose-es.arn}"
-    bucket_arn = "${aws_s3_bucket.kinesis-firehose-logs.arn}"
+    role_arn =  aws_iam_role.kinesis-firehose-es.arn
+    bucket_arn =  aws_s3_bucket.kinesis-firehose-logs.arn
     buffer_size = 20
     buffer_interval = 60
     prefix = "firehose"
@@ -373,7 +373,7 @@ resource "aws_kinesis_firehose_delivery_stream" "Kinesis-Firehose-ELK" {
       log_stream_name = "S3Delivery"
     }
   }
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 ////
@@ -397,7 +397,7 @@ resource "aws_iam_role" "cwl-firehose" {
   }
 }
 EOF
-  tags = "${local.common_tags}"
+  tags =  local.common_tags
 }
 
 resource "aws_iam_role_policy" "cwl-firehose" {
