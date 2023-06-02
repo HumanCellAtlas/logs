@@ -2,3 +2,4 @@ boto3==1.7.19
 google-cloud-pubsub==0.30.1
 proto-google-cloud-pubsub-v1==0.15.4
 dcplib
+cryptography>=41.0.0 # not directly required, pinned by Snyk to avoid a vulnerability
