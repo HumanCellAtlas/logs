@@ -5,3 +5,4 @@ retrying==1.3.3
 airbrake==2.1.0
 urllib3>=1.23
 dcplib
+cryptography>=41.0.3 # not directly required, pinned by Snyk to avoid a vulnerability
