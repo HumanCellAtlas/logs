@@ -1,2 +1,3 @@
 boto3==1.7.13
 dcplib
+cryptography>=42.0.2 # not directly required, pinned by Snyk to avoid a vulnerability
